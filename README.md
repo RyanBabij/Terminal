@@ -1,2 +1,3 @@
 # Terminal
-Terminal emulator
+
+Prototype for a computer terminal menu for my games.
