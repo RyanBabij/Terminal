@@ -30,11 +30,22 @@ void init()
 	/* Load font */
 	Png fontPng;
 	int fileSize;
-	unsigned char* fileData = FileManager::getFile("Textures/Font/8x8/8x8 Transparent v3 plus junk.png",&fileSize);	
-	fontPng.load(fileData,fileSize);
-	if(font8x8.loadData(&fontPng,8,8)==false)
-	{ std::cout<<"Error: Font did not load.\n"; }
-	delete [] fileData;
+	unsigned char* fileData = FileManager::getFile("Textures/Font/10x10/10x10 white v1.png",&fileSize);	
+	
+	if ( fileData == 0 )
+	{
+		std::cout<<"ERROR: Font PNG did not load.\n";
+	}
+	else
+	{	
+		fontPng.load(fileData,fileSize);
+		if(font8x8.loadData(&fontPng,10,10)==false)
+		{ std::cout<<"ERROR: Font did not load.\n"; }
+		delete [] fileData;
+	}
+	
+	
+
 
 	/* Start timers. */
 	frameRateTimer.init();
