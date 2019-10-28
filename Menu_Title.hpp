@@ -83,6 +83,22 @@ class Menu_Title: public GUI_Interface, public LogicTickInterface
 
  glColor4ub(255,255,255,255);
 	// RENDER TERMINAL
+	
+	
+	// DRAW RANDOM TEXT
+	
+	std::string randomText = "";
+	for (int i=0;i<5000;++i)
+	{
+		char randomChar = Random::randomInt(127);
+		if (randomChar == '\n')
+		{ randomChar = ' '; }
+		
+		randomText+=randomChar;
+	}
+	
+	      //Renderer::placeColour4a(150,150,250,250,panelX1+240,panelY1+40,panelX2-20,panelY2-20);
+     int linesDrawn = font8x8.drawText(randomText,centerX-320,centerY-240,centerX+320,centerY+240,false,false,true);
 		
     guiManager.render();
 	}
