@@ -17,16 +17,19 @@
 	
 	Intro idea: set all glyphs to random value, and cycle them randomly until they hit space.
 	
+	There are plans for multiple versions, and 2 or 3 different vendors. Basically to introduce different
+	programs/vulns etc.
+	
 */
 
 class Terminal: public GUI_Interface, public LogicTickInterface
-//class Terminal
 {
 	
 	char aGlyph [48][64]; /* Beware. The x and y are  flipped here because C++ stores arrays in row major. */
 	char* pGlyph;
 	
 	char aGlyphBacklog[48][64]; /* Character to be loaded onto the screen*/
+	char* pGlyphBacklog;
 	int loadX, loadY; /* current position the loader is at */
 	
 	int cursorX,cursorY;
@@ -41,6 +44,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	Terminal()
 	{
 		pGlyph = &aGlyph[0][0];
+		pGlyphBacklog = &aGlyphBacklog[0][0];
 		init();
 	}
 	
@@ -70,50 +74,8 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		
 		loadX=0; loadY=0;
 		
-		putCursor(7,8);
-		
-		
-		writeString(0,0, 	"                      .__                         ");
-		writeString(0,1, "_____  ___.__.___.__. |  |   _____ _____    ____  ");
-		writeString(0,2, "\\__  \\<   |  <   |  | |  |  /     \\\\__  \\  /  _ \\ ");
-		writeString(0,3, " / __ \\\\___  |\\___  | |  |_|  Y Y  \\/ __ \\(  <_> )");
-		writeString(0,4, "(____  / ____|/ ____| |____/__|_|  (____  /\\____/ ");
-		writeString(0,5, "     \\/\\/     \\/                 \\/     \\/        ");
-	
-
-
-		writeString(0,10, "@@@@@@@@@@@@@@@@@&,//////,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-		writeString(0,11, "@@@@@@@@@&@&/.@/////////////*,&////@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-		writeString(0,12, "@@@@@@@&**///////////////////***********,@@@@@@@@@@@@@@@@@@@@@@");
-		writeString(0,13, "@@@@@@**//////////////////////(***************/&@@@@@@@@@@@@@@@");
-		writeString(0,14, "@@@@/***///////////****////////,****************** &@@@@@@@@@@@");
-		writeString(0,15, "@@@,*****//////////////(////////*********************&@@@@@@@@@");
-		writeString(0,16, "@@/***********./*///////**////*************************/@@@@@@@");
-		writeString(0,17, "@/****************/////,***********.//////////////*******@@@@@@");
-		writeString(0,18, "&*****************************/////////////////////********@@@@");
-		writeString(0,19, "*****************************/////////////////////**********,&@");
-		writeString(0,20, "***************************** ///////////////@/ **************@");
-		writeString(0,21, "*****************,/////.**************///////*****************/");
-		writeString(0,22, "****************/////////////.*********@///********************");
-		writeString(0,23, "@***************//////////////////@****************************");
-		writeString(0,24, "@@&**************(////////////////////////*********************");
-		writeString(0,25, "@@&&********......******(//////////////////////@***************");
-		writeString(0,26, "@@@@@,*****(.......*********** ///////////////////////*********");
-		writeString(0,27, "@@@@@@@*****........****************,//////////////////////****");
-		writeString(0,28, "@@@@@@@@/***.......(************************@///////////////@**");
-		writeString(0,29, "@@@@@@@@@@,*........((...(......((..(.......(****@///////////**");
-		writeString(0,30, "@@@@@@@@@@@ ................................(*********/////.***");
-		writeString(0,31, "@@@@@@@@@@&..................................******************");
-		writeString(0,32, "@@@@@@@@@@@*...................(..........********************&");
-		writeString(0,33, "@@@@@@@@@@@@&.................*************************.&@@@@@@");
-		writeString(0,34, "@@@@@@@@@@@@@@&&*....(.(......********************&&@@@@@@@@@@@");
-		writeString(0,35, "@@@@@@@@@@@@@@@@@@@&/@@@/.((((**************/&@&@@@@@@@@@@@@@@@");
-
-
-
-		
-		writeString(0,7,"Welcome to AYYBBS");
-		writeString(0,8,"Login:");
+		putCursor(0,0);
+		bootSystem1();
 	}
 	
 	void setGlyph ( int x, int y, char val)
@@ -137,6 +99,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		// }
 	}
 	
+	// Normal "screen wiping" method of loading up a page, typical of old computers
 	void loadChar()
 	{
 		int maxSkip = 10;
@@ -168,6 +131,34 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 
 	}
 	
+	void corrupt()
+	{
+		int rY = Random::randomInt(47);
+		int rX = Random::randomInt(63);
+		
+		aGlyph[rY][rX]-= Random::randomInt(10);
+		if (aGlyph[rY][rX] < 0)
+		{
+			aGlyph[rY][rX] = 0;
+		}
+	}
+	
+	//Variant which loads all of screen at once, but cycles each character through the
+	// character table until it hits the right one.
+	void loadChar2()
+	{
+		// fill terminal with random glyphs.
+		for (int i=0;i<3072;++i)
+		{
+			if (pGlyph[i] != pGlyphBacklog[i])
+			{
+				pGlyph[i]++;
+				if (pGlyph[i] < 0) { pGlyph[i]=0; }
+				if (pGlyph[i] == '\n') { pGlyph[i]++; }
+			}
+		}
+	}
+	
 	void randomFill()
 	{
 		// fill terminal with random glyphs.
@@ -181,9 +172,19 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	// Terminal only renders text, not any decoration.
 	void render()
 	{
-		loadChar();
-		loadChar();
-		loadChar();
+
+		
+		loadChar2();
+		loadChar2();
+		loadChar2();
+		
+		while (Random::oneIn(1000))
+		{
+			corrupt();
+		}
+		
+		//loadChar();
+		//loadChar();
 		int centerX = panelX1 + (panelNX / 2);
 		int centerY = panelY1 + (panelNY / 2);
 	//	Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,&TEX_TERMINAL_BKG,false);
@@ -265,7 +266,8 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		if (isSafe(cursorX-1,cursorY))
 		{
 			putCursor(cursorX-1,cursorY);
-			//aGlyph[cursorY][cursorX] = ' ';
+			aGlyph[cursorY][cursorX+1] = ' ';
+			aGlyphBacklog[cursorY][cursorX+1] = ' ';
 		}
 
 	}
@@ -283,6 +285,10 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			
 			if ( _keyboard->isAlphaNumeric(_keyboard->lastKey))
 			{ typeChar(_keyboard->lastKey); }
+			else if (_keyboard->lastKey == Keyboard::SPACEBAR )
+			{
+				bbsDemo();
+			}
 			else if (_keyboard->lastKey == 8 )
 			{
 				backspace();
@@ -354,6 +360,66 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			}
 		}
 	}
+	
+	void bootSystem1()
+	{
+		randomFill();
+		writeString(0,0,"                    *** SUDACHI SYSTEM 1 ***                    ");
+		putCursor(0,1);
+	}
+	
+	void bbsDemo()
+	{
+		init();
+		randomFill();
+		
+		putCursor(7,8);
+		
+		
+		writeString(0,0, 	"                      .__                         ");
+		writeString(0,1, "_____  ___.__.___.__. |  |   _____ _____    ____  ");
+		writeString(0,2, "\\__  \\<   |  <   |  | |  |  /     \\\\__  \\  /  _ \\ ");
+		writeString(0,3, " / __ \\\\___  |\\___  | |  |_|  Y Y  \\/ __ \\(  <_> )");
+		writeString(0,4, "(____  / ____|/ ____| |____/__|_|  (____  /\\____/ ");
+		writeString(0,5, "     \\/\\/     \\/                 \\/     \\/        ");
+	
+
+
+		writeString(0,10, "@@@@@@@@@@@@@@@@@&,//////,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+		writeString(0,11, "@@@@@@@@@&@&/.@/////////////*,&////@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+		writeString(0,12, "@@@@@@@&**///////////////////***********,@@@@@@@@@@@@@@@@@@@@@@");
+		writeString(0,13, "@@@@@@**//////////////////////(***************/&@@@@@@@@@@@@@@@");
+		writeString(0,14, "@@@@/***///////////****////////,****************** &@@@@@@@@@@@");
+		writeString(0,15, "@@@,*****//////////////(////////*********************&@@@@@@@@@");
+		writeString(0,16, "@@/***********./*///////**////*************************/@@@@@@@");
+		writeString(0,17, "@/****************/////,***********.//////////////*******@@@@@@");
+		writeString(0,18, "&*****************************/////////////////////********@@@@");
+		writeString(0,19, "*****************************/////////////////////**********,&@");
+		writeString(0,20, "***************************** ///////////////@/ **************@");
+		writeString(0,21, "*****************,/////.**************///////*****************/");
+		writeString(0,22, "****************/////////////.*********@///********************");
+		writeString(0,23, "@***************//////////////////@****************************");
+		writeString(0,24, "@@&**************(////////////////////////*********************");
+		writeString(0,25, "@@&&********......******(//////////////////////@***************");
+		writeString(0,26, "@@@@@,*****(.......*********** ///////////////////////*********");
+		writeString(0,27, "@@@@@@@*****........****************,//////////////////////****");
+		writeString(0,28, "@@@@@@@@/***.......(************************@///////////////@**");
+		writeString(0,29, "@@@@@@@@@@,*........((...(......((..(.......(****@///////////**");
+		writeString(0,30, "@@@@@@@@@@@ ................................(*********/////.***");
+		writeString(0,31, "@@@@@@@@@@&..................................******************");
+		writeString(0,32, "@@@@@@@@@@@*...................(..........********************&");
+		writeString(0,33, "@@@@@@@@@@@@&.................*************************.&@@@@@@");
+		writeString(0,34, "@@@@@@@@@@@@@@&&*....(.(......********************&&@@@@@@@@@@@");
+		writeString(0,35, "@@@@@@@@@@@@@@@@@@@&/@@@/.((((**************/&@&@@@@@@@@@@@@@@@");
+
+
+
+		
+		writeString(0,7,"Welcome to AYYBBS");
+		writeString(0,8,"Login:");
+		
+	}
+	
 };
 
 
