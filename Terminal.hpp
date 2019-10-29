@@ -26,6 +26,9 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	char aGlyph [48][64]; /* Beware. The x and y are  flipped here because C++ stores arrays in row major. */
 	char* pGlyph;
 	
+	char aGlyphBacklog[48][64]; /* Character to be loaded onto the screen*/
+	int loadX, loadY; /* current position the loader is at */
+	
 	int cursorX,cursorY;
 	int cursorBlink; /* counts up from zero */
 	
@@ -49,6 +52,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			for (int _x=0;_x<64;++_x)
 			{
 					aGlyph[_y][_x] = ' ';
+					aGlyphBacklog[_y][_x] = ' ';
 			}
 		}
 		
@@ -63,6 +67,8 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		cursorBlink = 0;
 		pause=false;
 		intro=0;
+		
+		loadX=0; loadY=0;
 		
 		putCursor(7,8);
 		
@@ -120,7 +126,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		{
 			if ( isSafe(_x,_y) )
 			{
-				aGlyph[_y][_x] = _str[i];
+				aGlyphBacklog[_y][_x] = _str[i];
 				++_x;
 			}
 		}
@@ -129,6 +135,37 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			// aGlyph[_y][_x] = 
 			// ++_x;
 		// }
+	}
+	
+	void loadChar()
+	{
+		int maxSkip = 10;
+		while (maxSkip-- > 0)
+		{
+			
+			if ( isSafe(loadX,loadY) )
+			{
+				if ( aGlyph[loadY][loadX] != aGlyphBacklog[loadY][loadX] )
+				{
+					aGlyph[loadY][loadX] = aGlyphBacklog[loadY][loadX];
+					maxSkip=0;
+				}
+				++loadX;
+				if (loadX > 63)
+				{
+					if ( loadY < 47 )
+					{
+						loadX=0; ++loadY;
+					}
+					else
+					{
+						loadX=0; loadY=0;
+					}
+				}
+			}
+			
+		}
+
 	}
 	
 	void randomFill()
@@ -144,6 +181,9 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	// Terminal only renders text, not any decoration.
 	void render()
 	{
+		loadChar();
+		loadChar();
+		loadChar();
 		int centerX = panelX1 + (panelNX / 2);
 		int centerY = panelY1 + (panelNY / 2);
 	//	Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,&TEX_TERMINAL_BKG,false);
@@ -168,27 +208,35 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	
 	void putCursor(int _x, int _y)
 	{
-		if ( _x < 0 || _x > 63 || _y  < 0 || _y > 47)
+
+		if (isSafe(_x,_y))
 		{
-			_x = -1;
-			_y = -1;
+			if ( isSafe(cursorX,cursorY) )
+			{
+				aGlyph[cursorY][cursorX] = ' ';
+			}
+		
+			cursorX = _x;
+			cursorY = _y;
+			aGlyph[cursorY][cursorX] = 1;
 		}
 		
-		cursorX = _x;
-		cursorY = _y;
+
 		
-		aGlyph[cursorY][cursorX] = 1;
+
+		
+		
 	}
 	
 	void blinkCursor()
 	{
 		if (isSafe(cursorX,cursorY))
 		{
-			if (++cursorBlink > 30)
+			if (++cursorBlink > 40)
 			{
 				cursorBlink = 0;
 			}
-			if ( cursorBlink > 15)
+			if ( cursorBlink > 20)
 			{
 				aGlyph[cursorY][cursorX] = ' ';
 			}
@@ -196,6 +244,28 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			{
 				aGlyph[cursorY][cursorX] = 1;
 			}
+		}
+
+	}
+	
+	void typeChar (char c)
+	{
+		
+		if (isSafe(cursorX,cursorY) && isSafe(cursorX+1,cursorY))
+		{
+			putCursor(cursorX+1,cursorY);
+			aGlyph[cursorY][cursorX-1] = c;
+			aGlyphBacklog[cursorY][cursorX-1] = c;
+		}
+
+	}
+	
+	void backspace()
+	{
+		if (isSafe(cursorX-1,cursorY))
+		{
+			putCursor(cursorX-1,cursorY);
+			//aGlyph[cursorY][cursorX] = ' ';
 		}
 
 	}
@@ -209,7 +279,14 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	{
 		if (_keyboard->keyWasPressed)
 		{
+			std::cout<<"Keypress: "<<(int) _keyboard->lastKey<<".\n";
 			
+			if ( _keyboard->isAlphaNumeric(_keyboard->lastKey))
+			{ typeChar(_keyboard->lastKey); }
+			else if (_keyboard->lastKey == 8 )
+			{
+				backspace();
+			}
 			//pause = !pause;
 			intro=0;
 			
