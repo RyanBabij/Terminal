@@ -73,7 +73,7 @@ class Menu_Title: public GUI_Interface, public LogicTickInterface
     /* Background image. Stretch to fit, preserve aspect ratio. */
     //Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,backgroundTexture,false);
    
-		flicker();
+		//flicker();
 		//place terminal text indicator panel
 		
 		int centerX = panelX1 + (panelNX / 2);
@@ -107,6 +107,7 @@ class Menu_Title: public GUI_Interface, public LogicTickInterface
 	
 	bool keyboardEvent(Keyboard* _keyboard)
 	{
+		terminal.keyboardEvent(_keyboard);
 		return false;
 	}
 	

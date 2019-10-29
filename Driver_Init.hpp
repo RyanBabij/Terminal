@@ -30,7 +30,7 @@ void init()
 	/* Load font */
 	Png fontPng;
 	int fileSize;
-	unsigned char* fileData = FileManager::getFile("Textures/Font/10x10/10x10 white v2.png",&fileSize);	
+	unsigned char* fileData = FileManager::getFile("Textures/Font/10x10/10x10 white v3.png",&fileSize);	
 	
 	if ( fileData == 0 )
 	{
