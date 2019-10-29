@@ -49,7 +49,9 @@ class Menu_Title: public GUI_Interface, public LogicTickInterface
 
 	void eventResize()
 	{
-
+		int centerX = panelX1 + (panelNX / 2);
+		int centerY = panelY1 + (panelNY / 2);
+		terminal.setPanel(centerX-320,centerY-240,centerX+320,centerY+240);
 	}
 	
 	void init()
@@ -77,79 +79,17 @@ class Menu_Title: public GUI_Interface, public LogicTickInterface
 		int centerX = panelX1 + (panelNX / 2);
 		int centerY = panelY1 + (panelNY / 2);
 		
-				Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,&TEX_TERMINAL_BKG,true);
-				 glColor4ub(terminalFlicker,terminalFlicker,terminalFlicker,255);
-				 
-
+		Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,&TEX_TERMINAL_BKG,true);
+		glColor4ub(terminalFlicker,terminalFlicker,terminalFlicker,255);
+		
 		Renderer::placeTexture4(centerX-385,centerY+305,centerX+385,centerY-305,backgroundTexture,false);
 		//Renderer::placeTexture4(centerX-320,centerY+240,centerX+320,centerY-240,&TEX_TERMINAL_GRID,false);
 
- glColor4ub(255,255,255,255);
-	// RENDER TERMINAL
+	 glColor4ub(255,255,255,255);
+		// RENDER TERMINAL
 	
-	
-	// DRAW RANDOM TEXT
-	
-	std::string randomText = "";
-	
-	for (int i=0;i<64;++i)
-	{
-		randomText+=1;
-	}
+		terminal.render();
 
-	randomText+=1;
-	randomText += "                                                              ";
-	randomText+=1;
-	randomText+=1;
-	randomText += "                         AYY LMAO BBS                         ";
-	randomText+=1;
-	randomText+=1;
-	randomText += "                                                              ";
-	randomText+=1;
-	randomText+=1;
-	
-	for (int i=0;i<62;++i)
-	{
-		randomText+=2;
-	}
-	
-	randomText+=1;
-	randomText+=1;
-	randomText += "                                                              ";
-	randomText+=1;
-	
-	for (int i=0;i<2560;++i)
-	{
-		
-		if ( i%64==0  || i % 64 == 63 )
-		{
-			randomText += 1;
-		}
-		else if ( i%64 == 1 || i%64 == 62)
-		{
-			randomText+=' ';
-		}
-		else
-		{
-		char randomChar = Random::randomInt(127);
-		if (randomChar == '\n')
-		{ randomChar = ' '; }
-		
-		randomText+=randomChar;
-		}
-
-	}
-	
-	randomText+=1;
-	randomText += "                                                              ";
-	randomText+=1;
-	for (int i=0;i<64;++i)
-	{
-		randomText+=1;
-	}
-	
-	      //Renderer::placeColour4a(150,150,250,250,panelX1+240,panelY1+40,panelX2-20,panelY2-20);
-     int linesDrawn = font8x8.drawText(randomText,centerX-320,centerY-240,centerX+320,centerY+240,false,false,true,180,180,180);
 		
     guiManager.render();
 	}
