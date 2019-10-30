@@ -12,15 +12,16 @@
 	Terminal is currently hardcoded with 10x10 font and 64x48 character area, in a 640x480 resolution.
 	I'll probably need to add the ability to scale it up otherwise it'll look tiny on huge monitors.
 	
-	We'll probably stick with an ASCII table of 256 characters.
-	
-	
-	Intro idea: set all glyphs to random value, and cycle them randomly until they hit space.
-	
+	We'll probably stick with an ASCII table of 256 characters. 128 standard and 128 extended.
+	Not sure about colour and other modifiers.
+
 	There are plans for multiple versions, and 2 or 3 different vendors. Basically to introduce different
-	programs/vulns etc.
+	specs/cosmetics/programs/vulns etc.
 	
 */
+
+#include <string>
+
 
 class Terminal: public GUI_Interface, public LogicTickInterface
 {
@@ -32,12 +33,18 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	char* pGlyphBacklog;
 	int loadX, loadY; /* current position the loader is at */
 	
+	int inputSpace [48][64]; /* designated areas where user may input characters. TAB to move between them. Number = ID. 0 = protected */
+	
 	int cursorX,cursorY;
 	int cursorBlink; /* counts up from zero */
 	
 	bool pause;
 	
 	int intro;
+	
+	bool debugConsole; /* Access special features of browser */
+	
+	Vector <std::string> vPackets; /* Log of packets sent/recieved */
 	
 	public:
 	
@@ -57,20 +64,16 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			{
 					aGlyph[_y][_x] = ' ';
 					aGlyphBacklog[_y][_x] = ' ';
+					inputSpace[_y][_x] = 0;
 			}
 		}
-		
-		// aGlyph[0][0] = '@';
-		// aGlyph[0][1] = '@';
-		// aGlyph[0][2] = '@';
-		// aGlyph[47][0] = '@';
-		// aGlyph[46][0] = '@';
-		// aGlyph[45][0] = '@';
-		
+
 		cursorX = -1; cursorY = -1;
 		cursorBlink = 0;
 		pause=false;
 		intro=0;
+		debugConsole=false;
+		vPackets.clear();
 		
 		loadX=0; loadY=0;
 		
@@ -92,11 +95,6 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 				++_x;
 			}
 		}
-		// while (isSafe(_x,_y)
-		// {
-			// aGlyph[_y][_x] = 
-			// ++_x;
-		// }
 	}
 	
 	// Normal "screen wiping" method of loading up a page, typical of old computers
@@ -126,9 +124,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 					}
 				}
 			}
-			
 		}
-
 	}
 	
 	void corrupt()
@@ -166,14 +162,17 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		{
 			pGlyph[i] = Random::randomInt(127);
 			if (pGlyph[i] == '\n' ) { pGlyph[i] = ' '; }
+			pGlyphBacklog[i] = ' ';
 		}
+		
 	}
 	
 	// Terminal only renders text, not any decoration.
 	void render()
 	{
 
-		
+		//loadChar();
+		//loadChar();	
 		loadChar2();
 		loadChar2();
 		loadChar2();
@@ -182,12 +181,9 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		{
 			corrupt();
 		}
-		
-		//loadChar();
-		//loadChar();
+
 		int centerX = panelX1 + (panelNX / 2);
 		int centerY = panelY1 + (panelNY / 2);
-	//	Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,&TEX_TERMINAL_BKG,false);
 	
 	// if (intro==0)
 	// {
@@ -209,7 +205,6 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	
 	void putCursor(int _x, int _y)
 	{
-
 		if (isSafe(_x,_y))
 		{
 			if ( isSafe(cursorX,cursorY) )
@@ -221,12 +216,6 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			cursorY = _y;
 			aGlyph[cursorY][cursorX] = 1;
 		}
-		
-
-		
-
-		
-		
 	}
 	
 	void blinkCursor()
@@ -246,17 +235,22 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 				aGlyph[cursorY][cursorX] = 1;
 			}
 		}
-
 	}
 	
 	void typeChar (char c)
 	{
+		// Make sure we're on an input space before we type.
 		
 		if (isSafe(cursorX,cursorY) && isSafe(cursorX+1,cursorY))
 		{
-			putCursor(cursorX+1,cursorY);
-			aGlyph[cursorY][cursorX-1] = c;
-			aGlyphBacklog[cursorY][cursorX-1] = c;
+			if ( inputSpace[cursorY][cursorX] != 0 )
+			{
+				putCursor(cursorX+1,cursorY);
+				aGlyph[cursorY][cursorX-1] = c;
+				aGlyphBacklog[cursorY][cursorX-1] = c;
+			}
+			
+
 		}
 
 	}
@@ -289,11 +283,25 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			{
 				bbsDemo();
 			}
+			else if (_keyboard->lastKey == 96)
+			{
+				std::cout<<"ild\n";
+				debugConsole=!debugConsole;
+				
+				if ( debugConsole )
+				{
+					loadDebugConsole();
+				}
+			}
+			// Get whatever the user typed.
+			else if (_keyboard->lastKey == Keyboard::ENTER )
+			{
+				bbsDemo();
+			}
 			else if (_keyboard->lastKey == 8 )
 			{
 				backspace();
 			}
-			//pause = !pause;
 			intro=0;
 			
 			_keyboard->clearAll();
@@ -366,15 +374,34 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		randomFill();
 		writeString(0,0,"                    *** SUDACHI SYSTEM 1 ***                    ");
 		putCursor(0,1);
+		setInputSpace(0,1,64,1);
+		
+
+	}
+	
+	void loadDebugConsole()
+	{
+		randomFill();
+		writeString(0,0,"                    *** SNOWCRASH CONSOLE ***                    ");
+		putCursor(0,40);
+		setInputSpace(0,1,64,1);
+		
+		for (int i=0;i<vPackets.size() && i < 20;++i)
+		{
+			writeString(0,i+2,vPackets(i));
+		}
 	}
 	
 	void bbsDemo()
 	{
-		init();
+		vPackets.push("SENT 111 1111 1111 CONNECT");
+		vPackets.push("RECV 111 1111 1111 ACK");
+		vPackets.push("RECV 111 1111 1111 [SITE DATA]");
+		
+		//init();
 		randomFill();
 		
 		putCursor(7,8);
-		
 		
 		writeString(0,0, 	"                      .__                         ");
 		writeString(0,1, "_____  ___.__.___.__. |  |   _____ _____    ____  ");
@@ -382,8 +409,6 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		writeString(0,3, " / __ \\\\___  |\\___  | |  |_|  Y Y  \\/ __ \\(  <_> )");
 		writeString(0,4, "(____  / ____|/ ____| |____/__|_|  (____  /\\____/ ");
 		writeString(0,5, "     \\/\\/     \\/                 \\/     \\/        ");
-	
-
 
 		writeString(0,10, "@@@@@@@@@@@@@@@@@&,//////,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 		writeString(0,11, "@@@@@@@@@&@&/.@/////////////*,&////@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
@@ -412,12 +437,26 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		writeString(0,34, "@@@@@@@@@@@@@@&&*....(.(......********************&&@@@@@@@@@@@");
 		writeString(0,35, "@@@@@@@@@@@@@@@@@@@&/@@@/.((((**************/&@&@@@@@@@@@@@@@@@");
 
-
-
-		
 		writeString(0,7,"Welcome to AYYBBS");
 		writeString(0,8,"Login:");
 		
+		setInputSpace(7,8,12,1);
+		
+	}
+	
+	// Allow this area to be written on by user.
+	void setInputSpace(int _x, int _y, int length, int ID)
+	{
+		for (int i=0;i<length;++i)
+		{
+			if (isSafe(_x,_y))
+			{
+				inputSpace[_y][_x] = ID;
+				++_x;
+			}
+			else { return; }
+
+		}
 	}
 	
 };
