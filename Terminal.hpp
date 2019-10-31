@@ -33,6 +33,9 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	char* pGlyphBacklog;
 	int loadX, loadY; /* current position the loader is at */
 	
+	char aCorrupt[48][64]; /* corrupted characters go here */
+	char* pCorrupt;
+	
 	int inputSpace [48][64]; /* designated areas where user may input characters. TAB to move between them. Number = ID. 0 = protected */
 	
 	int cursorX,cursorY;
@@ -42,9 +45,16 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	
 	int intro;
 	
+	bool bootScreen; /* Main boot screen */
+	bool helpScreen; /* Shows list of commands */
 	bool debugConsole; /* Access special features of browser */
 	
 	Vector <std::string> vPackets; /* Log of packets sent/recieved */
+	
+	
+	Vector <std::string> vFile; /* Files can just be text strings */
+	
+	std::string command; /* command the user has typed */
 	
 	public:
 	
@@ -52,7 +62,9 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	{
 		pGlyph = &aGlyph[0][0];
 		pGlyphBacklog = &aGlyphBacklog[0][0];
+		pCorrupt = &aCorrupt[0][0];
 		init();
+		bootSystem1();
 	}
 	
 	void init()
@@ -64,6 +76,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			{
 					aGlyph[_y][_x] = ' ';
 					aGlyphBacklog[_y][_x] = ' ';
+					aCorrupt[_y][_x] = ' ';
 					inputSpace[_y][_x] = 0;
 			}
 		}
@@ -73,12 +86,29 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		pause=false;
 		intro=0;
 		debugConsole=false;
+		bootScreen=true;
+		helpScreen=false;
 		vPackets.clear();
+		command = "";
 		
 		loadX=0; loadY=0;
 		
 		putCursor(0,0);
-		bootSystem1();
+		//bootSystem1();
+	}
+	
+	void clearScreen()
+	{
+		int i=0;
+		for (int _y=0;_y<48;++_y)
+		{
+			for (int _x=0;_x<64;++_x)
+			{
+					aGlyphBacklog[_y][_x] = ' ';
+					inputSpace[_y][_x] = 0;
+			}
+		}
+		command="";
 	}
 	
 	void setGlyph ( int x, int y, char val)
@@ -176,6 +206,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		loadChar2();
 		loadChar2();
 		loadChar2();
+		loadChar2();
 		
 		while (Random::oneIn(1000))
 		{
@@ -216,6 +247,16 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			cursorY = _y;
 			aGlyph[cursorY][cursorX] = 1;
 		}
+		else
+		{
+			if ( isSafe(cursorX,cursorY) )
+			{
+				aGlyph[cursorY][cursorX] = ' ';
+			}
+		
+			cursorX = -1;
+			cursorY = -1;
+		}
 	}
 	
 	void blinkCursor()
@@ -248,6 +289,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 				putCursor(cursorX+1,cursorY);
 				aGlyph[cursorY][cursorX-1] = c;
 				aGlyphBacklog[cursorY][cursorX-1] = c;
+				command+=c;
 			}
 			
 
@@ -262,6 +304,11 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			putCursor(cursorX-1,cursorY);
 			aGlyph[cursorY][cursorX+1] = ' ';
 			aGlyphBacklog[cursorY][cursorX+1] = ' ';
+			
+			if ( command.size () > 0 )
+			{ command = command.substr(0, command.size()-1);
+			}
+			
 		}
 
 	}
@@ -281,7 +328,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			{ typeChar(_keyboard->lastKey); }
 			else if (_keyboard->lastKey == Keyboard::SPACEBAR )
 			{
-				bbsDemo();
+				//bbsDemo();
 			}
 			else if (_keyboard->lastKey == 96)
 			{
@@ -293,10 +340,62 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 					loadDebugConsole();
 				}
 			}
+			else if (_keyboard->lastKey == 18)
+			{
+				init();
+				bootSystem1();
+			}
+			else if (_keyboard->lastKey == 19)
+			{
+				std::cout<<"Save\n";
+			}
 			// Get whatever the user typed.
 			else if (_keyboard->lastKey == Keyboard::ENTER )
 			{
-				bbsDemo();
+				
+				//command = command.toUpper();
+				
+				// Convert string to upper case
+				for (auto & c: command) c = toupper(c);
+				std::cout<<"Entered command: "<<command<<".\n";
+				
+				if (command == "BBS" && ( bootScreen == true || helpScreen == true ) )
+				{
+					bbsDemo();
+					command = "";
+				}
+				else if (command == "HELP" && bootScreen == true)
+				{
+					helpScreen=true;
+					bootScreen=false;
+					debugConsole=false;
+					command = "";
+					loadHelpScreen();
+				}
+				if (command == "REBOOT" || command == "RESET")
+				{
+					init();
+					bootSystem1();
+				}
+				if (command == "WRITE")
+				{
+					command="";
+					clearScreen();
+					writeScreen();
+				}
+				if (command == "MAIL")
+				{
+					command="";
+					clearScreen();
+					mailScreen();
+				}
+				if (command == "GAME")
+				{
+					command="";
+					clearScreen();
+					game1();
+				}
+				
 			}
 			else if (_keyboard->lastKey == 8 )
 			{
@@ -375,8 +474,41 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		writeString(0,0,"                    *** SUDACHI SYSTEM 1 ***                    ");
 		putCursor(0,1);
 		setInputSpace(0,1,64,1);
+	}
+	
+	void loadHelpScreen()
+	{
+		clearScreen();
+		//randomFill();
+		writeString(0,0,"                    *** SUDACHI SYSTEM 1 ***                    ");
+		writeString(0,2,"CATALOG - LIST PROGRAMS");
+		writeString(0,3,"LIST - LIST FILES");
+		writeString(0,4,"RUN - RUN PROGRAM");
+		writeString(0,5,"REBOOT - REBOOT COMPUTER");
+		writeString(0,6,"POWEROFF - POWER OFF COMPUTER");
+		putCursor(0,10);
+		setInputSpace(0,10,64,1);
 		
-
+	}
+	
+	/* Show a menu of all the programs available on this computer.
+	It'll be cool if it's possible for a user to make their own programs */
+	void loadCatalog()
+	{
+		writeString(0,0,"                    *** SUDACHI SYSTEM 1 ***                    ");
+		writeString(0,2,"CONNECT"); /* Allows connection to servers with WireNet protocol */
+		writeString(0,3,"GAME1"); /* Some game probably breakout. */
+		writeString(0,4,"GAME2"); /* Maybe tetris or smth idk */
+		writeString(0,5,"DEBUG"); /* Snowcrash console, contains set of network programs */
+		writeString(0,6,"SONG"); /* A realistic elephant. */
+		writeString(0,7,"WRITE"); /* Take notes or write program */
+		writeString(0,8,"MAIL"); /* Check/send mail */
+	}
+	
+	/* List all files on computer. No fancy directory stuff. */
+	void loadList()
+	{
+		
 	}
 	
 	void loadDebugConsole()
@@ -398,8 +530,9 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		vPackets.push("RECV 111 1111 1111 ACK");
 		vPackets.push("RECV 111 1111 1111 [SITE DATA]");
 		
+		clearScreen();
 		//init();
-		randomFill();
+		//randomFill();
 		
 		putCursor(7,8);
 		
@@ -457,6 +590,55 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			else { return; }
 
 		}
+	}
+	
+	/* Runs the text editor. Basically a blank screen to type on. CTRL+S to save */
+	void writeScreen()
+	{
+		//init();
+		clearScreen(); 
+		writeString(0,0,"*** WRITE (CTRL+S to save. CTRL+R to exit.)***");
+		putCursor(0,1);
+		setInputSpace(0,1,64,1);
+	}
+	
+	/* Shows any mail addressed to you */
+	void mailScreen()
+	{
+		clearScreen(); 
+		writeString(0,0,"*** MAIL. Type number to read. ***");
+		writeString(0,1,"1. XX/XX/XXXX - WELCOME TO MAIL");
+		writeString(0,2,"2. XX/XX/XXXX - SUP");
+		putCursor(0,10);
+		setInputSpace(0,10,64,1);
+	}
+	
+	/* Breakout */
+	void game1()
+	{
+		putCursor(-1,-1);
+		char block = 1;
+		std::string blocks = "   ";
+		for (int i=0;i<58;++i)
+		{
+			blocks+=block;
+		}
+		blocks+="   ";
+		
+		writeString(0,1,blocks);
+		writeString(0,2,blocks);
+		writeString(0,3,blocks);
+		
+		std::string paddle = "";
+		paddle+=block; paddle+=block; paddle+=block; paddle+=block;
+		
+		writeString(30,47,paddle);
+		
+		std::string ball = "";
+		ball += 1;
+		
+		writeString(32,24,ball);
+		
 	}
 	
 };
