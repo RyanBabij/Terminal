@@ -22,6 +22,18 @@
 
 #include <string>
 
+/* Audio stuffs. */
+#include <Audio/Sound.hpp> /* Generic sound data handler */
+#include <Audio/Wav.hpp>
+#include <Audio/AudioPlayer.hpp> /* Generic audio player */
+#include <Audio/AudioPlayer_OpenAL.hpp>
+/* Global OpenAL audio player. */
+AudioPlayer_OpenAL globalAudioPlayer;
+/* Dial tones. */
+Sound * dialTone[10];
+
+#include <Time/Timer.hpp>
+Timer toneTimer; /* Keep track of when last tone was played */
 
 class Terminal: public GUI_Interface, public LogicTickInterface
 {
@@ -54,6 +66,8 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	
 	Vector <std::string> vFile; /* Files can just be text strings */
 	
+	std::string dialTones; /* Dialtones to play */
+	
 	std::string command; /* command the user has typed */
 	
 	public:
@@ -65,6 +79,8 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		pCorrupt = &aCorrupt[0][0];
 		init();
 		bootSystem1();
+		
+		dialTones="";
 	}
 	
 	void init()
@@ -95,6 +111,58 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		
 		putCursor(0,0);
 		//bootSystem1();
+		
+		frameRateTimer.init();
+		frameRateTimer.start();
+		
+		loadAudio();
+	}
+	
+	void loadAudio()
+	{
+		globalAudioPlayer.init();
+		globalAudioPlayer.globalVolume=25;
+			
+		Wav w1;
+		w1.readFile("wav/1.wav");
+		
+		Wav w2;
+		w2.readFile("wav/2.wav");
+		
+		Wav w3;
+		w3.readFile("wav/3.wav");
+
+		Wav w4;
+		w4.readFile("wav/4.wav");
+
+		Wav w5;
+		w5.readFile("wav/5.wav");
+
+		Wav w6;
+		w6.readFile("wav/6.wav");
+
+		Wav w7;
+		w7.readFile("wav/7.wav");
+
+		Wav w8;
+		w8.readFile("wav/8.wav");
+
+		Wav w9;
+		w9.readFile("wav/9.wav");
+
+		Wav w0;
+		w0.readFile("wav/0.wav");
+
+		dialTone[0] = w0.toSound();
+		dialTone[1] = w1.toSound();
+		dialTone[2] = w2.toSound();
+		dialTone[3] = w3.toSound();
+		dialTone[4] = w4.toSound();
+		dialTone[5] = w5.toSound();
+		dialTone[6] = w6.toSound();
+		dialTone[7] = w7.toSound();
+		dialTone[8] = w8.toSound();
+		dialTone[9] = w9.toSound();
 	}
 	
 	void clearScreen()
@@ -185,6 +253,12 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		}
 	}
 	
+	/* Shows a loading bar if the computer is in a loading state */
+	void loadingBar()
+	{
+	//	writeString(63,47,"@");
+	}
+	
 	void randomFill()
 	{
 		// fill terminal with random glyphs.
@@ -207,6 +281,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		loadChar2();
 		loadChar2();
 		loadChar2();
+		loadingBar();
 		
 		while (Random::oneIn(1000))
 		{
@@ -228,7 +303,29 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	//rainDemo();
 	blinkCursor();
 
+	if (dialTones.size() > 0)
+	{
+		toneTimer.update();
+		
+		if ( toneTimer.fullSeconds > 0.12)
+		{ globalAudioPlayer.stopAllSounds();
+		}
+		
+		if (toneTimer.fullSeconds > 0.20)
+		{
+			int nextTone = (int)dialTones[0]-48;
 
+			if ( nextTone >= 0 && nextTone <= 9)
+			{ globalAudioPlayer.playSoundOnce(dialTone[nextTone]);
+			}
+			
+			toneTimer.start();
+			dialTones.erase(0,1);
+		}
+	}
+
+	
+	
 	      //Renderer::placeColour4a(150,150,250,250,panelX1+240,panelY1+40,panelX2-20,panelY2-20);
    //int linesDrawn = font8x8.drawText(randomText,panelX1,panelY1,panelX2,panelY2,false,false,true,180,180,180);
   int linesDrawn = font8x8.drawText(&aGlyph[0][0],3072,panelX1,panelY1,panelX2,panelY2,false,false,true,180,180,180);
@@ -526,6 +623,10 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	
 	void bbsDemo()
 	{
+		//globalAudioPlayer.playSoundOnce(tonePls);
+		
+		dialTones = "1234567890";
+		
 		vPackets.push("SENT 111 1111 1111 CONNECT");
 		vPackets.push("RECV 111 1111 1111 ACK");
 		vPackets.push("RECV 111 1111 1111 [SITE DATA]");
@@ -605,10 +706,12 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	/* Shows any mail addressed to you */
 	void mailScreen()
 	{
+		char r = 1;
+		std::string redacted  = std::string() + r + "" + r + "/" + r + r + "/" +r +r +r +r;
 		clearScreen(); 
 		writeString(0,0,"*** MAIL. Type number to read. ***");
-		writeString(0,1,"1. XX/XX/XXXX - WELCOME TO MAIL");
-		writeString(0,2,"2. XX/XX/XXXX - SUP");
+		writeString(0,1,"1. "+redacted+" - WELCOME TO MAIL");
+		writeString(0,2,"2. "+redacted+" - SUP");
 		putCursor(0,10);
 		setInputSpace(0,10,64,1);
 	}
@@ -639,6 +742,12 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		
 		writeString(32,24,ball);
 		
+	}
+	
+	void screenConnect(std::string _number1, std::string _number2)
+	{
+		clearScreen();
+		writeString(0,0,"DIALING...");
 	}
 	
 };
