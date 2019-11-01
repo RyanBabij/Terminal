@@ -18,14 +18,18 @@
 	There are plans for multiple versions, and 2 or 3 different vendors. Basically to introduce different
 	specs/cosmetics/programs/vulns etc.
 	
+	CONNECT.  There should be 7, 10, 12, 19, or 22 digits, depending on whether using city extension number,
+	and whether including a calling code. CONNECT also returns 0 for failed connection, and 1 for
+	successful connection.
+	
 */
 
 #include <string>
 
 /* Audio stuffs. */
-#include <Audio/Sound.hpp> /* Generic sound data handler */
+#include <Audio/Sound.hpp> // Generic sound data handler
 #include <Audio/Wav.hpp>
-#include <Audio/AudioPlayer.hpp> /* Generic audio player */
+#include <Audio/AudioPlayer.hpp> // Generic audio player
 #include <Audio/AudioPlayer_OpenAL.hpp>
 /* Global OpenAL audio player. */
 AudioPlayer_OpenAL globalAudioPlayer;
@@ -35,6 +39,9 @@ Sound * dialTone[10];
 #include <Time/Timer.hpp>
 Timer toneTimer; /* Keep track of when last tone was played */
 
+#include <Data/Tokenize.hpp> // Tokenize console commands
+#include <Data/DataTools.hpp> // Check commands
+	
 class Terminal: public GUI_Interface, public LogicTickInterface
 {
 	
@@ -81,6 +88,10 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		bootSystem1();
 		
 		dialTones="";
+	}
+	~Terminal()
+	{
+		globalAudioPlayer.close();
 	}
 	
 	void init()
@@ -421,7 +432,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		{
 			std::cout<<"Keypress: "<<(int) _keyboard->lastKey<<".\n";
 			
-			if ( _keyboard->isAlphaNumeric(_keyboard->lastKey))
+			if ( _keyboard->isAlphaNumeric(_keyboard->lastKey) || _keyboard->lastKey == Keyboard::SPACE)
 			{ typeChar(_keyboard->lastKey); }
 			else if (_keyboard->lastKey == Keyboard::SPACEBAR )
 			{
@@ -455,6 +466,25 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 				// Convert string to upper case
 				for (auto & c: command) c = toupper(c);
 				std::cout<<"Entered command: "<<command<<".\n";
+				
+				//Tokenise
+				Vector <std::string> * vToken = Tokenize::tokenize(command,' ');
+			
+				for (int i=0;i<vToken->size();++i)
+				{
+					std::cout<<"Token: "<<(*vToken)(i)<<"\n";
+				}
+				
+				//First token is command.
+				if (vToken->size() != 0)
+				{
+					command = (*vToken)(0);
+				}
+				else
+				{
+					command = "";
+				}
+				
 				
 				if (command == "BBS" && ( bootScreen == true || helpScreen == true ) )
 				{
@@ -491,6 +521,53 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 					command="";
 					clearScreen();
 					game1();
+				}
+				
+				if (command == "CONNECT")
+				{
+					// strip everything except numbers. There should be 7, 10, 12, 19, or 22 digits.
+					// phonecards will be 12 digits.
+					
+					
+					if (vToken->size() == 1)
+					{
+						std::cout<<"Connect must have argument.\n";
+					}
+					else if (vToken->size() == 2)
+					{
+						std::string targetDial = (*vToken)(1);
+						std::cout<<"Dial arg: "<<targetDial<<".\n";
+						
+						// dial must be 10 or 7 digits. (3 digits are city code)
+						if ( DataTools::isNumber(targetDial) )
+						{
+							if (targetDial.size() == 10)
+							{
+							//	std::cout<<"Dialling: "<<targetDial<<".\n";
+								dialTones = targetDial;
+							}
+							else if (targetDial.size()==7)
+							{
+								targetDial = "001" + targetDial;
+								//std::cout<<"Dialling: "<<targetDial<<".\n";
+								dialTones = targetDial;
+							}
+							else
+							{
+								std::cout<<"ERROR: Dial number must be 7 or 10 digits, no spaces.\n";
+							}
+						}
+						else
+						{
+							std::cout<<"Error: Arg must be number.\n";
+						}
+					}
+					else
+					{
+						std::cout<<"Bad args\n";
+					}
+					//screenConnect("","");	
+					//command = "";
 				}
 				
 			}
@@ -627,9 +704,9 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		
 		dialTones = "1234567890";
 		
-		vPackets.push("SENT 111 1111 1111 CONNECT");
-		vPackets.push("RECV 111 1111 1111 ACK");
-		vPackets.push("RECV 111 1111 1111 [SITE DATA]");
+		vPackets.push("SENT 111 111 1111 CONNECT");
+		vPackets.push("RECV 111 111 1111 ACK");
+		vPackets.push("RECV 111 111 1111 [SITE DATA]");
 		
 		clearScreen();
 		//init();
@@ -744,7 +821,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		
 	}
 	
-	void screenConnect(std::string _number1, std::string _number2)
+	void screenConnect(std::string _number1="", std::string _number2="")
 	{
 		clearScreen();
 		writeString(0,0,"DIALING...");
