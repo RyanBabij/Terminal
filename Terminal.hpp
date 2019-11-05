@@ -22,6 +22,16 @@
 	and whether including a calling code. CONNECT also returns 0 for failed connection, and 1 for
 	successful connection.
 	
+	AUTODIAL. Dials random numbers until a connection is made.
+	
+	
+			ANSI ESCAPE NOTES
+			
+	The ANSI escape sequences are very important for terminals. They allow colours, and also things like
+	loading indicators and inputs.
+	
+	ANSI codes are stripped before being pushed to Terminal otherwise corruption might screw things up.
+	
 */
 
 #include <string>
@@ -35,12 +45,19 @@
 AudioPlayer_OpenAL globalAudioPlayer;
 /* Dial tones. */
 Sound * dialTone[10];
+Sound* sRing;
 
 #include <Time/Timer.hpp>
 Timer toneTimer; /* Keep track of when last tone was played */
 
 #include <Data/Tokenize.hpp> // Tokenize console commands
 #include <Data/DataTools.hpp> // Check commands
+
+#include "Server.hpp"
+#include "Operator.hpp"
+Operator op;
+	
+#include <String/ANSI.hpp>
 	
 class Terminal: public GUI_Interface, public LogicTickInterface
 {
@@ -55,7 +72,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	char aCorrupt[48][64]; /* corrupted characters go here */
 	char* pCorrupt;
 	
-	int inputSpace [48][64]; /* designated areas where user may input characters. TAB to move between them. Number = ID. 0 = protected */
+	Colour foregroundColour [48][64]; /* Keep track of colour for this glyph */
 	
 	int cursorX,cursorY;
 	int cursorBlink; /* counts up from zero */
@@ -69,12 +86,9 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	bool debugConsole; /* Access special features of browser */
 	
 	Vector <std::string> vPackets; /* Log of packets sent/recieved */
-	
-	
 	Vector <std::string> vFile; /* Files can just be text strings */
 	
 	std::string dialTones; /* Dialtones to play */
-	
 	std::string command; /* command the user has typed */
 	
 	public:
@@ -104,7 +118,6 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 					aGlyph[_y][_x] = ' ';
 					aGlyphBacklog[_y][_x] = ' ';
 					aCorrupt[_y][_x] = ' ';
-					inputSpace[_y][_x] = 0;
 			}
 		}
 
@@ -163,6 +176,10 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 
 		Wav w0;
 		w0.readFile("wav/0.wav");
+		
+		Wav wRing;
+		wRing.readFile("wav/ringtone.wav");
+		sRing = wRing.toSound();
 
 		dialTone[0] = w0.toSound();
 		dialTone[1] = w1.toSound();
@@ -184,7 +201,6 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			for (int _x=0;_x<64;++_x)
 			{
 					aGlyphBacklog[_y][_x] = ' ';
-					inputSpace[_y][_x] = 0;
 			}
 		}
 		command="";
@@ -196,11 +212,16 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	
 	void writeString(int _x, int _y, std::string _str)
 	{
-		for (unsigned int i=0;i<_str.length();++i)
+		ANSI ansi;
+		ansi.read(_str);
+		
+		
+		for (unsigned int i=0;i<ansi.size();++i)
 		{
 			if ( isSafe(_x,_y) )
 			{
-				aGlyphBacklog[_y][_x] = _str[i];
+				aGlyphBacklog[_y][_x] = ansi.ansiString[i];
+				foregroundColour[_y][_x].set(ansi.vForegroundColour(i));
 				++_x;
 			}
 		}
@@ -329,17 +350,26 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			if ( nextTone >= 0 && nextTone <= 9)
 			{ globalAudioPlayer.playSoundOnce(dialTone[nextTone]);
 			}
+			else if (dialTones[0] == 'R')
+			{
+				globalAudioPlayer.playSoundOnce(sRing);
+			}
 			
 			toneTimer.start();
 			dialTones.erase(0,1);
 		}
 	}
 
-	
-	
-	      //Renderer::placeColour4a(150,150,250,250,panelX1+240,panelY1+40,panelX2-20,panelY2-20);
-   //int linesDrawn = font8x8.drawText(randomText,panelX1,panelY1,panelX2,panelY2,false,false,true,180,180,180);
-  int linesDrawn = font8x8.drawText(&aGlyph[0][0],3072,panelX1,panelY1,panelX2,panelY2,false,false,true,180,180,180);
+		//Update: Glyphs now render on a grid instead of using error-prone string.
+		// Also foreground colour support added.
+		int i=0;
+		for (int _y=0;_y<48;++_y)
+		{
+			for (int _x=0;_x<64;++_x)
+			{
+					font8x8.putChar(aGlyph[_y][_x],panelX1+(10*_x),panelY2-(10*_y),foregroundColour[_y][_x]);
+			}
+		}
 	}
 	
 	void putCursor(int _x, int _y)
@@ -367,6 +397,18 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		}
 	}
 	
+	// User has pressed enter and console either goes down by 1, or shuffles everything up by 1.
+	void newLine()
+	{
+		if (isSafe(cursorX,cursorY))
+		{
+			if (cursorY < 47)
+			{
+				putCursor(0,cursorY+1);
+			}
+		}
+	}
+	
 	void blinkCursor()
 	{
 		if (isSafe(cursorX,cursorY))
@@ -389,20 +431,13 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	void typeChar (char c)
 	{
 		// Make sure we're on an input space before we type.
-		
 		if (isSafe(cursorX,cursorY) && isSafe(cursorX+1,cursorY))
 		{
-			if ( inputSpace[cursorY][cursorX] != 0 )
-			{
 				putCursor(cursorX+1,cursorY);
 				aGlyph[cursorY][cursorX-1] = c;
 				aGlyphBacklog[cursorY][cursorX-1] = c;
 				command+=c;
-			}
-			
-
 		}
-
 	}
 	
 	void backspace()
@@ -460,6 +495,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			// Get whatever the user typed.
 			else if (_keyboard->lastKey == Keyboard::ENTER )
 			{
+				newLine();
 				
 				//command = command.toUpper();
 				
@@ -544,13 +580,13 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 							if (targetDial.size() == 10)
 							{
 							//	std::cout<<"Dialling: "<<targetDial<<".\n";
-								dialTones = targetDial;
+								dialTones = targetDial+"R";
 							}
 							else if (targetDial.size()==7)
 							{
 								targetDial = "001" + targetDial;
 								//std::cout<<"Dialling: "<<targetDial<<".\n";
-								dialTones = targetDial;
+								dialTones = targetDial+"R";
 							}
 							else
 							{
@@ -570,6 +606,11 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 					//command = "";
 				}
 				
+				if (command == "AUTODIAL")
+				{
+					std::cout<<"Autodial.\n";
+				}
+				command = "";
 			}
 			else if (_keyboard->lastKey == 8 )
 			{
@@ -646,7 +687,8 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	{
 		randomFill();
 		writeString(0,0,"                    *** SUDACHI SYSTEM 1 ***                    ");
-		putCursor(0,1);
+		writeString(0,1,"WHITE TEXT \033[1;31mbold red text\033[0m\033[1;31mbold red text\033[0m\033[1;31mbold red text\033[0m WHITE TEXT");
+		putCursor(0,5);
 		setInputSpace(0,1,64,1);
 	}
 	
@@ -700,8 +742,6 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	
 	void bbsDemo()
 	{
-		//globalAudioPlayer.playSoundOnce(tonePls);
-		
 		dialTones = "1234567890";
 		
 		vPackets.push("SENT 111 111 1111 CONNECT");
@@ -758,16 +798,16 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	// Allow this area to be written on by user.
 	void setInputSpace(int _x, int _y, int length, int ID)
 	{
-		for (int i=0;i<length;++i)
-		{
-			if (isSafe(_x,_y))
-			{
-				inputSpace[_y][_x] = ID;
-				++_x;
-			}
-			else { return; }
+		// for (int i=0;i<length;++i)
+		// {
+			// if (isSafe(_x,_y))
+			// {
+				// //inputSpace[_y][_x] = ID;
+				// ++_x;
+			// }
+			// else { return; }
 
-		}
+		// }
 	}
 	
 	/* Runs the text editor. Basically a blank screen to type on. CTRL+S to save */
@@ -777,7 +817,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		clearScreen(); 
 		writeString(0,0,"*** WRITE (CTRL+S to save. CTRL+R to exit.)***");
 		putCursor(0,1);
-		setInputSpace(0,1,64,1);
+		//setInputSpace(0,1,64,1);
 	}
 	
 	/* Shows any mail addressed to you */
