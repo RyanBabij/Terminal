@@ -32,6 +32,10 @@
 	
 	ANSI codes are stripped before being pushed to Terminal otherwise corruption might screw things up.
 	
+		SNOWCRASH
+	Special developer debug console. Accessible at any time with ~ key. Has several useful tools, the
+	most common one being the packet inspector. Lets you modify, send, rebound packets.
+	
 */
 
 #include <string>
@@ -55,7 +59,7 @@ Timer toneTimer; /* Keep track of when last tone was played */
 
 #include "Server.hpp"
 #include "Operator.hpp"
-Operator op;
+//Operator op;
 	
 #include <String/ANSI.hpp>
 	
@@ -90,6 +94,8 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	
 	std::string dialTones; /* Dialtones to play */
 	std::string command; /* command the user has typed */
+	
+	std::string currentConnection; /* Active server connection. Empty string means no connection. */
 	
 	public:
 	
@@ -130,6 +136,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		helpScreen=false;
 		vPackets.clear();
 		command = "";
+		currentConnection="";
 		
 		loadX=0; loadY=0;
 		
@@ -218,12 +225,31 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		
 		for (unsigned int i=0;i<ansi.size();++i)
 		{
-			if ( isSafe(_x,_y) )
+			if ( ansi.ansiString[i] == '\n' || ansi.ansiString[i] == '\r' || isSafe(_x,_y)==false)
+			{
+				if (isSafe(0,_y+1))
+				{
+					_x=0; _y++;
+					if ( ansi.ansiString[i] == '\n' || ansi.ansiString[i] == '\r')
+					{
+						continue;
+					}
+					aGlyphBacklog[_y][_x] = ansi.ansiString[i];
+					foregroundColour[_y][_x].set(ansi.vForegroundColour(i));
+					++_x;
+				}
+			}
+			else if ( isSafe(_x,_y) )
 			{
 				aGlyphBacklog[_y][_x] = ansi.ansiString[i];
 				foregroundColour[_y][_x].set(ansi.vForegroundColour(i));
 				++_x;
 			}
+			else
+			{
+				return;
+			}
+
 		}
 	}
 	
@@ -522,6 +548,21 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 				}
 				
 				
+				//if we're connected to a server, send the command to it.
+				if (command != "" && currentConnection != "")
+				{
+					std::string response = op.sendPacket(currentConnection,command);
+					
+					std::cout<<"Packet: "<<command<<" send to "<<currentConnection<<".\n";
+					std::cout<<"Response: "<<response<<".\n";
+					
+					if ( response == "[RDR]" )
+					{
+						clearScreen();
+						loadPage(op.servePage(currentConnection));
+					}
+				}
+				
 				if (command == "BBS" && ( bootScreen == true || helpScreen == true ) )
 				{
 					bbsDemo();
@@ -564,6 +605,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 					// strip everything except numbers. There should be 7, 10, 12, 19, or 22 digits.
 					// phonecards will be 12 digits.
 					
+					std::string connectPacket = "[CON]";
 					
 					if (vToken->size() == 1)
 					{
@@ -574,19 +616,34 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 						std::string targetDial = (*vToken)(1);
 						std::cout<<"Dial arg: "<<targetDial<<".\n";
 						
+						
+						
 						// dial must be 10 or 7 digits. (3 digits are city code)
 						if ( DataTools::isNumber(targetDial) )
 						{
-							if (targetDial.size() == 10)
-							{
-							//	std::cout<<"Dialling: "<<targetDial<<".\n";
-								dialTones = targetDial+"R";
-							}
-							else if (targetDial.size()==7)
+							// Auto-add city code if necessary.
+							if (targetDial.size()==7)
 							{
 								targetDial = "001" + targetDial;
-								//std::cout<<"Dialling: "<<targetDial<<".\n";
+							}
+							
+							if (targetDial.size() == 10)
+							{
 								dialTones = targetDial+"R";
+								
+								vPackets.push("[CON]["+targetDial+"]");
+								
+								if ( op.dial(targetDial) )
+								{
+									vPackets.push("[ACK]["+targetDial+"]");
+									loadPage(op.servePage(targetDial));
+									currentConnection= targetDial;
+								}
+								else
+								{
+									vPackets.push("[404]["+targetDial+"]");
+									currentConnection="";
+								}
 							}
 							else
 							{
@@ -861,11 +918,18 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		
 	}
 	
-	void screenConnect(std::string _number1="", std::string _number2="")
+	void loadPage(std::string pageData)
 	{
 		clearScreen();
-		writeString(0,0,"DIALING...");
+		writeString(0,0,pageData);
+		putCursor(0,5);
 	}
+	
+	// void screenConnect(std::string _number1="", std::string _number2="")
+	// {
+		// clearScreen();
+		// writeString(0,0,"DIALING...");
+	// }
 	
 };
 

@@ -14,7 +14,7 @@ Create default servers and put them into Operator.
 
 void initServers()
 {
-
+	op.addServer(&serverRedThread);
 }
 
 #endif

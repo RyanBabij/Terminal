@@ -14,7 +14,10 @@
 	CON - Connect. Request connection.
 	ACK - Acknowledge. Acknowledge connection.
 	REJ - Reject. Reject connection.
+	DIS - Disconnect connection.
 	PGD - Page data. Data to render requested page. Entire page is passed at once for simplicity.
+	
+	RDR - Redraw. Client should request new page data.
 	
 */
 
@@ -31,32 +34,101 @@ class Server
 	}
 	
 	// Server will return the main page upon successful connection.
-	std::string serveMain()
+	virtual std::string servePage()
 	{
 		std::string mainPkt = "[PGD][data]";
 		return "";
 	}
 	
-	void recievePacket(std::string _packet)
+	virtual std::string recievePacket(std::string _packet)
 	{
+		return "";
 	}
-	void sendPacket(std::string _packet)
+	virtual void sendPacket(std::string _packet)
 	{
 	}
 };
 
 Server testServer;
 
-void initServers()
+
+
+
+class Server_RedThread: public Server
 {
-	testServer.number = "0011234567";
-}
-
-
-// class Server_RedThread: public Server
-// {
-	// public:
+	public:
 	
-// };
+	//std::string number;
+	std::string userHandle;
+	
+   enum ActiveMenu
+   {
+      MAIN,
+      BBS
+   };
+	 ActiveMenu activeMenu;
+	
+	Server_RedThread()
+	{
+		number = "0011111111";
+		userHandle="";
+		
+		activeMenu=MAIN;
+	}
+	
+	virtual std::string servePage()
+	{
+		std::string strMain = "";
+		if (activeMenu==MAIN)
+		{
+			strMain+="REDTHREAD\n\033[1;31m________________________________________________________________\033[0m";
+			strMain+= "\n\nPlease enter a handle:";
+		}
+		else
+		{
+			strMain+="BBS STUFF GOES HERE";
+		}
+
+
+		return strMain;
+	}
+	
+
+	std::string recievePacket(std::string _command)
+	{
+		if ( activeMenu==MAIN )
+		{
+			activeMenu=BBS;
+			// send redraw command
+			return "[RDR]";
+		}
+		else
+		{
+			activeMenu=MAIN;
+			// send redraw command
+			return "[RDR]";
+		}
+		return "";
+	}
+};
+Server_RedThread serverRedThread;
+
+class Server_Mail: public Server
+{
+	public:
+	
+	Server_Mail()
+	{
+		number = "0011234567";
+	}
+};
+
+class Server_LumaBank: public Server
+{
+	public:
+	
+	
+};
+
 
 #endif

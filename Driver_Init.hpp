@@ -11,6 +11,8 @@ Initialize main menus, start timers, initialise any important data.
 
 */
 
+#include "Driver_InitServers.hpp"
+
 void init()
 {	
   Random::seed();
@@ -73,6 +75,8 @@ void init()
 
 	mouseInterfaceManager.add(&menuTitle);
 	globalGuiManager.add(&menuTitle);
+	
+	initServers();
 	
 }
 

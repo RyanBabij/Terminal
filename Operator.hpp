@@ -26,24 +26,67 @@ class Operator
 	{
 	}
 	
-	void recievePacket(std::string _packet)
-	{
-	}
-	void sendPacket(std::string _packet)
-	{
-	}
-	bool dial(std::string _number)
+	// 0 is no Server for that number.
+	Server* getServer(std::string _number)
 	{
 		for (int i=0;i<vServer.size();++i)
 		{
-		//if ( vServer(i)->
+			if ( vServer(i)->number == _number)
+			{
+				return vServer(i);
+			}
+		}
+		return 0;
+	}
+	
+	void recievePacket(std::string _packet)
+	{
+	}
+	
+	// return value is any potential rebound packet. Empty string for no response.
+	std::string sendPacket(std::string address, std::string _packet)
+	{
+		std::string _rebound = "";
+		Server* target = getServer(address);
+		
+		if (target)
+		{
+			_rebound = target->recievePacket(_packet);
+		}
+		return _rebound;
+	}
+	bool dial(std::string _number)
+	{
+		std::cout<<"OPERATOR RECIEVED CALL\n";
+		for (int i=0;i<vServer.size();++i)
+		{
+			std::cout<<"Checking numbers: "<<_number<<" "<<vServer(i)->number<<".\n";
+			if ( vServer(i)->number == _number)
+			{
+				return true;
+			}
 		}
 		return false;
 	}
 	
-	// void addServer(std::string _address)
-	// {
-	// }
+	std::string servePage(std::string _number)
+	{
+		for (int i=0;i<vServer.size();++i)
+		{
+			if ( vServer(i)->number == _number)
+			{
+				return vServer(i)->servePage();
+			}
+		}
+		return "404";
+	}
+	
+	void addServer(Server* server)
+	{
+		vServer.push(server);
+	}
 };
+
+Operator op;
 
 #endif
