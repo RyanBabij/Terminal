@@ -15,8 +15,8 @@
 	We'll probably stick with an ASCII table of 256 characters. 128 standard and 128 extended.
 	Not sure about colour and other modifiers.
 
-	There are plans for multiple versions, and 2 or 3 different vendors. Basically to introduce different
-	specs/cosmetics/programs/vulns etc.
+	I was planning to develop multiple versions of the Terminal, however it probably won't be necessary,
+	instead that'll be done with servers. Minor cosmetic changes would be fine though.
 	
 	CONNECT.  There should be 7, 10, 12, 19, or 22 digits, depending on whether using city extension number,
 	and whether including a calling code. CONNECT also returns 0 for failed connection, and 1 for
@@ -217,7 +217,8 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	{
 	}
 	
-	void writeString(int _x, int _y, std::string _str)
+	// Movecursor will put the cursor at the end of the string.
+	void writeString(int _x, int _y, std::string _str, bool moveCursor=true)
 	{
 		ANSI ansi;
 		ansi.read(_str);
@@ -247,10 +248,12 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			}
 			else
 			{
+				if ( moveCursor ) { putCursor(47,63); }
 				return;
 			}
 
 		}
+		if ( moveCursor ) { putCursor(_x,_y); }
 	}
 	
 	// Normal "screen wiping" method of loading up a page, typical of old computers
@@ -518,38 +521,24 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			{
 				std::cout<<"Save\n";
 			}
+			else if (_keyboard->lastKey == 8 )
+			{
+				backspace();
+			}
 			// Get whatever the user typed.
 			else if (_keyboard->lastKey == Keyboard::ENTER )
 			{
 				newLine();
-				
-				//command = command.toUpper();
-				
 				// Convert string to upper case
 				for (auto & c: command) c = toupper(c);
 				std::cout<<"Entered command: "<<command<<".\n";
 				
-				//Tokenise
-				Vector <std::string> * vToken = Tokenize::tokenize(command,' ');
-			
-				for (int i=0;i<vToken->size();++i)
+				if ( command == "" )
 				{
-					std::cout<<"Token: "<<(*vToken)(i)<<"\n";
+					_keyboard->clearAll();
 				}
-				
-				//First token is command.
-				if (vToken->size() != 0)
-				{
-					command = (*vToken)(0);
-				}
-				else
-				{
-					command = "";
-				}
-				
-				
-				//if we're connected to a server, send the command to it.
-				if (command != "" && currentConnection != "")
+					// If we are connected to a server, send the entire input. Otherwise it should be tokenised.
+				else if (currentConnection != "")
 				{
 					std::string response = op.sendPacket(currentConnection,command);
 					
@@ -561,124 +550,146 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 						clearScreen();
 						loadPage(op.servePage(currentConnection));
 					}
+					command="";
 				}
+				// We are sending command to Terminal, so tokenise and process it
+				else
+				{
+
+					//Tokenise
+					Vector <std::string> * vToken = Tokenize::tokenize(command,' ');
 				
-				if (command == "BBS" && ( bootScreen == true || helpScreen == true ) )
-				{
-					bbsDemo();
-					command = "";
-				}
-				else if (command == "HELP" && bootScreen == true)
-				{
-					helpScreen=true;
-					bootScreen=false;
-					debugConsole=false;
-					command = "";
-					loadHelpScreen();
-				}
-				if (command == "REBOOT" || command == "RESET")
-				{
-					init();
-					bootSystem1();
-				}
-				if (command == "WRITE")
-				{
-					command="";
-					clearScreen();
-					writeScreen();
-				}
-				if (command == "MAIL")
-				{
-					command="";
-					clearScreen();
-					mailScreen();
-				}
-				if (command == "GAME")
-				{
-					command="";
-					clearScreen();
-					game1();
-				}
-				
-				if (command == "CONNECT")
-				{
-					// strip everything except numbers. There should be 7, 10, 12, 19, or 22 digits.
-					// phonecards will be 12 digits.
-					
-					std::string connectPacket = "[CON]";
-					
-					if (vToken->size() == 1)
+					for (int i=0;i<vToken->size();++i)
 					{
-						std::cout<<"Connect must have argument.\n";
+						std::cout<<"Token: "<<(*vToken)(i)<<"\n";
 					}
-					else if (vToken->size() == 2)
+					
+					//First token is command.
+					if (vToken->size() != 0)
 					{
-						std::string targetDial = (*vToken)(1);
-						std::cout<<"Dial arg: "<<targetDial<<".\n";
+						command = (*vToken)(0);
+					}
+					else
+					{
+						command = "";
+					}
+				
+				
+
+				
+					if (command == "BBS" && ( bootScreen == true || helpScreen == true ) )
+					{
+						bbsDemo();
+						command = "";
+					}
+					else if (command == "HELP" && bootScreen == true)
+					{
+						helpScreen=true;
+						bootScreen=false;
+						debugConsole=false;
+						command = "";
+						loadHelpScreen();
+					}
+					if (command == "REBOOT" || command == "RESET")
+					{
+						init();
+						bootSystem1();
+					}
+					if (command == "WRITE")
+					{
+						command="";
+						clearScreen();
+						writeScreen();
+					}
+					if (command == "MAIL")
+					{
+						command="";
+						clearScreen();
+						mailScreen();
+					}
+					if (command == "GAME")
+					{
+						command="";
+						clearScreen();
+						game1();
+					}
+				
+					if (command == "CONNECT")
+					{
+						// strip everything except numbers. There should be 7, 10, 12, 19, or 22 digits.
+						// phonecards will be 12 digits.
 						
+						std::string connectPacket = "[CON]";
 						
-						
-						// dial must be 10 or 7 digits. (3 digits are city code)
-						if ( DataTools::isNumber(targetDial) )
+						if (vToken->size() == 1)
 						{
-							// Auto-add city code if necessary.
-							if (targetDial.size()==7)
-							{
-								targetDial = "001" + targetDial;
-							}
+							std::cout<<"Connect must have argument.\n";
+						}
+						else if (vToken->size() == 2)
+						{
+							std::string targetDial = (*vToken)(1);
+							std::cout<<"Dial arg: "<<targetDial<<".\n";
 							
-							if (targetDial.size() == 10)
+							
+							
+							// dial must be 10 or 7 digits. (3 digits are city code)
+							if ( DataTools::isNumber(targetDial) )
 							{
-								dialTones = targetDial+"R";
-								
-								vPackets.push("[CON]["+targetDial+"]");
-								
-								if ( op.dial(targetDial) )
+								// Auto-add city code if necessary.
+								if (targetDial.size()==7)
 								{
-									vPackets.push("[ACK]["+targetDial+"]");
-									loadPage(op.servePage(targetDial));
-									currentConnection= targetDial;
+									targetDial = "001" + targetDial;
+								}
+								
+								if (targetDial.size() == 10)
+								{
+									dialTones = targetDial+"R";
+									
+									vPackets.push("[CON]["+targetDial+"]");
+									
+									if ( op.dial(targetDial) )
+									{
+										vPackets.push("[ACK]["+targetDial+"]");
+										loadPage(op.servePage(targetDial));
+										currentConnection= targetDial;
+									}
+									else
+									{
+										vPackets.push("[404]["+targetDial+"]");
+										currentConnection="";
+									}
 								}
 								else
 								{
-									vPackets.push("[404]["+targetDial+"]");
-									currentConnection="";
+									std::cout<<"ERROR: Dial number must be 7 or 10 digits, no spaces.\n";
 								}
 							}
 							else
 							{
-								std::cout<<"ERROR: Dial number must be 7 or 10 digits, no spaces.\n";
+								std::cout<<"Error: Arg must be number.\n";
 							}
 						}
 						else
 						{
-							std::cout<<"Error: Arg must be number.\n";
+							std::cout<<"Bad args\n";
 						}
+						//screenConnect("","");	
+						//command = "";
 					}
-					else
-					{
-						std::cout<<"Bad args\n";
-					}
-					//screenConnect("","");	
-					//command = "";
-				}
 				
-				if (command == "AUTODIAL")
-				{
-					std::cout<<"Autodial.\n";
+					if (command == "AUTODIAL")
+					{
+						std::cout<<"Autodial.\n";
+					}
+					command = "";
 				}
-				command = "";
+				intro=0;
+				
+				
+				return true;
 			}
-			else if (_keyboard->lastKey == 8 )
-			{
-				backspace();
-			}
-			intro=0;
-			
 			_keyboard->clearAll();
-			return true;
 		}
-
 		return false;
 	}
 	
@@ -922,7 +933,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	{
 		clearScreen();
 		writeString(0,0,pageData);
-		putCursor(0,5);
+		//putCursor(0,5);
 	}
 	
 	// void screenConnect(std::string _number1="", std::string _number2="")
@@ -933,5 +944,33 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	
 };
 
+// Interface for Terminal programs, mostly dedicated applications like games.
+// Dedicated applications recieve all keyboard input, and render to full screen.
+// Output can generally be returned as a string.
+// Currently hardcoded, but introduction of a coding language would technically
+// allow them to be coded in that language.
+class Terminal_Program
+{
+	public:
+	
+	
+};
+
+
+class Program_Breakout: public Terminal_Program
+{
+	public:
+};
+
+class Program_Tetris: public Terminal_Program
+{
+	public:
+};
+
+class Program_Dungeon: public Terminal_Program
+{
+	public:
+	
+};
 
 #endif
