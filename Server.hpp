@@ -250,22 +250,64 @@ class Server_RedThread: public Server
 };
 Server_RedThread serverRedThread;
 
-class Server_Mail: public Server
+// Mail can be stored using real encryption, which will require password to read.
+class Server_SpicyMail: public Server
 {
 	public:
 	
-	Server_Mail()
+   enum ActiveMenu
+   {
+      LOGIN,
+      MAIL_USER,
+			MAIL_ADMIN
+   };
+	 ActiveMenu activeMenu;
+	 
+	 std::string username;
+	 std::string password;
+	
+	Server_SpicyMail()
 	{
-		number = "0011234567";
+		number = "0012222222";
+		activeMenu=LOGIN;
+		username="";
+		password="";
+	}
+	
+	virtual std::string servePage()
+	{
+		std::string strMain = "";
+		if (activeMenu==LOGIN)
+		{
+			strMain+="WELCOME TO SPICYMAIL";
+			strMain+= "\nUsername:\nPassword:\033[1,1H"; /* put cursor at username */
+		}
+		else if (activeMenu==MAIL_USER)
+		{
+			strMain+="MAIL\nYou have x unread messages.";
+		}
+		return strMain;
 	}
 };
+Server_SpicyMail serverMail;
 
 class Server_LumaBank: public Server
 {
 	public:
 	
+   enum ActiveMenu
+   {
+      LOGIN,
+      CASHMONEY
+   };
+	 ActiveMenu activeMenu;
 	
+	Server_LumaBank()
+	{
+		number="0013333333";
+	}
 };
+Server_LumaBank serverLumaBank;
 
 
 #endif

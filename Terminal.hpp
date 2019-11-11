@@ -960,6 +960,28 @@ class Terminal_Program
 class Program_Breakout: public Terminal_Program
 {
 	public:
+	
+	unsigned char aBoard [48][64];
+	
+	int paddleX;
+	int ballX, ballY;
+	int ballDirection;
+	int ballSpeed;
+	
+	Program_Breakout()
+	{
+		paddleX=10;
+		ballX=10;
+		ballY = 20;
+		ballDirection = 0;
+		ballSpeed=0;
+	}
+	
+	void gameTick()
+	{
+		
+	}
+	
 };
 
 class Program_Tetris: public Terminal_Program
