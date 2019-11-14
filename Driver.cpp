@@ -11,8 +11,8 @@
 //#define WILDCAT_USE_DIRECT3D
 
 	// What OS we are compiling for. Currently only Windows and Linux are supported cos I don't got a Mac.
-//#include <Wildcat/Windows.hpp> //#define WILDCAT_WINDOWS
-#define WILDCAT_LINUX
+#include <Wildcat/Windows.hpp> //#define WILDCAT_WINDOWS
+//#define WILDCAT_LINUX
 
 	// DYNAMICALLY GENERATED HEADER FILE WITH STRING WHICH COUNTS COMPILATIONS.
 #include "CompileCount.hpp"
@@ -26,6 +26,13 @@
 #include <cstdlib>
 #include <string>
 #include <sstream>
+
+/* Tidies up the game and shuts down. */
+void shutDown()
+{
+	std::cout<<"Driver::shutDown().\n";
+	exit(0);
+}
 
 //Stolen from https://codereview.stackexchange.com/questions/226/formatter-class
 // This allows you to pass multiple datatypes as an std::string.
@@ -196,17 +203,14 @@ Menu_Title menuTitle;
 /* Initialization goes here. */
 #include "Driver_Init.hpp"
 
-/* Tidies up the game and shuts down. */
-void shutDown()
-{
-	std::cout<<"Driver::shutDown().\n";
-	exit(0);
-}
+
 
 /* OpenGL function hooks go here. */
 #include "Driver_GLHooks.hpp"
 
 #include <Misc/ArgReader.hpp>
+
+
 
 
 int main(int nArgs, char ** arg)

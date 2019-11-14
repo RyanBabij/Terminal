@@ -233,6 +233,8 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			for (int _x2=0;_x2<64;++_x2)
 			{
 					aGlyphBacklog[_y2][_x2] = ansiGrid.aGlyph[_y2][_x2];
+					foregroundColour[_y2][_x2] = ansiGrid.aColour[_y2][_x2];
+					//foregroundColour[_y2][_x2].set(255,255,255,255);
 			}
 		}
 		
@@ -538,6 +540,10 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 			{
 				backspace();
 			}
+			else if (_keyboard->lastKey == 3 ) /* CTRL+C */
+			{
+				shutDown();
+			}
 			// Get whatever the user typed.
 			else if (_keyboard->lastKey == Keyboard::ENTER )
 			{
@@ -768,7 +774,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	{
 		randomFill();
 		writeString(0,0,"                    *** SUDACHI SYSTEM 1 ***                    ");
-		writeString(0,1,"WHITE TEXT \033[1;31mbold red text\033[0m\033[1;31mbold red text\033[0m\033[1;31mbold red text\033[0m WHITE TEXT");
+		writeString(0,1,"WHITE TEXT \033[1;31mbold red text\033[0m\033[1;32mbold green text\033[0m\033[1;36mbold cyan text\033[0m WHITE TEXT");
 		putCursor(0,5);
 		setInputSpace(0,1,64,1);
 	}
