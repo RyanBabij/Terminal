@@ -223,37 +223,50 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		ANSI ansi;
 		ansi.read(_str);
 		
+		ANSI_Grid ansiGrid;
+		ansiGrid.read(_str);
+		ansiGrid.cursorX=_x;
+		ansiGrid.cursorY=_y;
 		
-		for (unsigned int i=0;i<ansi.size();++i)
+		for (int _y2=0;_y2<48;++_y2)
 		{
-			if ( ansi.ansiString[i] == '\n' || ansi.ansiString[i] == '\r' || isSafe(_x,_y)==false)
+			for (int _x2=0;_x2<64;++_x2)
 			{
-				if (isSafe(0,_y+1))
-				{
-					_x=0; _y++;
-					if ( ansi.ansiString[i] == '\n' || ansi.ansiString[i] == '\r')
-					{
-						continue;
-					}
-					aGlyphBacklog[_y][_x] = ansi.ansiString[i];
-					foregroundColour[_y][_x].set(ansi.vForegroundColour(i));
-					++_x;
-				}
+					aGlyphBacklog[_y2][_x2] = ansiGrid.aGlyph[_y2][_x2];
 			}
-			else if ( isSafe(_x,_y) )
-			{
-				aGlyphBacklog[_y][_x] = ansi.ansiString[i];
-				foregroundColour[_y][_x].set(ansi.vForegroundColour(i));
-				++_x;
-			}
-			else
-			{
-				if ( moveCursor ) { putCursor(47,63); }
-				return;
-			}
-
 		}
-		if ( moveCursor ) { putCursor(_x,_y); }
+		
+		putCursor(ansiGrid.cursorX,ansiGrid.cursorY);
+		// for (unsigned int i=0;i<ansi.size();++i)
+		// {
+			// if ( ansi.ansiString[i] == '\n' || ansi.ansiString[i] == '\r' || isSafe(_x,_y)==false)
+			// {
+				// if (isSafe(0,_y+1))
+				// {
+					// _x=0; _y++;
+					// if ( ansi.ansiString[i] == '\n' || ansi.ansiString[i] == '\r')
+					// {
+						// continue;
+					// }
+					// aGlyphBacklog[_y][_x] = ansi.ansiString[i];
+					// foregroundColour[_y][_x].set(ansi.vForegroundColour(i));
+					// ++_x;
+				// }
+			// }
+			// else if ( isSafe(_x,_y) )
+			// {
+				// aGlyphBacklog[_y][_x] = ansi.ansiString[i];
+				// foregroundColour[_y][_x].set(ansi.vForegroundColour(i));
+				// ++_x;
+			// }
+			// else
+			// {
+				// if ( moveCursor ) { putCursor(47,63); }
+				// return;
+			// }
+
+		// }
+		// if ( moveCursor ) { putCursor(_x,_y); }
 	}
 	
 	// Normal "screen wiping" method of loading up a page, typical of old computers
