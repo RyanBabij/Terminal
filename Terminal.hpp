@@ -26,7 +26,6 @@
 	
 	
 			ANSI ESCAPE NOTES
-			
 	The ANSI escape sequences are very important for terminals. They allow colours, and also things like
 	loading indicators and inputs.
 	
@@ -69,7 +68,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	char aGlyph [48][64]; /* Beware. The x and y are  flipped here because C++ stores arrays in row major. */
 	char* pGlyph;
 	
-	char aGlyphBacklog[48][64]; /* Character to be loaded onto the screen*/
+   char aGlyphBacklog[48][64]; /* Character to be loaded onto the screen*/
 	char* pGlyphBacklog;
 	int loadX, loadY; /* current position the loader is at */
 	
@@ -96,9 +95,9 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	std::string command; /* command the user has typed */
 	
 	std::string currentConnection; /* Active server connection. Empty string means no connection. */
-	
+
 	public:
-	
+
 	Terminal()
 	{
 		pGlyph = &aGlyph[0][0];
@@ -220,55 +219,20 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	// Movecursor will put the cursor at the end of the string.
 	void writeString(int _x, int _y, std::string _str, bool moveCursor=true)
 	{
-		ANSI ansi;
-		ansi.read(_str);
-		
 		ANSI_Grid ansiGrid;
-		ansiGrid.read(_str);
 		ansiGrid.cursorX=_x;
 		ansiGrid.cursorY=_y;
-		
+		ansiGrid.read(_str);
+
 		for (int _y2=0;_y2<48;++_y2)
 		{
 			for (int _x2=0;_x2<64;++_x2)
 			{
 					aGlyphBacklog[_y2][_x2] = ansiGrid.aGlyph[_y2][_x2];
 					foregroundColour[_y2][_x2] = ansiGrid.aColour[_y2][_x2];
-					//foregroundColour[_y2][_x2].set(255,255,255,255);
 			}
 		}
-		
 		putCursor(ansiGrid.cursorX,ansiGrid.cursorY);
-		// for (unsigned int i=0;i<ansi.size();++i)
-		// {
-			// if ( ansi.ansiString[i] == '\n' || ansi.ansiString[i] == '\r' || isSafe(_x,_y)==false)
-			// {
-				// if (isSafe(0,_y+1))
-				// {
-					// _x=0; _y++;
-					// if ( ansi.ansiString[i] == '\n' || ansi.ansiString[i] == '\r')
-					// {
-						// continue;
-					// }
-					// aGlyphBacklog[_y][_x] = ansi.ansiString[i];
-					// foregroundColour[_y][_x].set(ansi.vForegroundColour(i));
-					// ++_x;
-				// }
-			// }
-			// else if ( isSafe(_x,_y) )
-			// {
-				// aGlyphBacklog[_y][_x] = ansi.ansiString[i];
-				// foregroundColour[_y][_x].set(ansi.vForegroundColour(i));
-				// ++_x;
-			// }
-			// else
-			// {
-				// if ( moveCursor ) { putCursor(47,63); }
-				// return;
-			// }
-
-		// }
-		// if ( moveCursor ) { putCursor(_x,_y); }
 	}
 	
 	// Normal "screen wiping" method of loading up a page, typical of old computers
@@ -444,12 +408,9 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	// User has pressed enter and console either goes down by 1, or shuffles everything up by 1.
 	void newLine()
 	{
-		if (isSafe(cursorX,cursorY))
+		if (isSafe(0,cursorY+1))
 		{
-			if (cursorY < 47)
-			{
 				putCursor(0,cursorY+1);
-			}
 		}
 	}
 	
@@ -614,6 +575,10 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 						init();
 						bootSystem1();
 					}
+					if (command == "SHUTDOWN" || command == "POWEROFF")
+					{
+						shutDown();
+					}
 					if (command == "WRITE")
 					{
 						command="";
@@ -775,7 +740,6 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		randomFill();
 		writeString(0,0,"                    *** SUDACHI SYSTEM 1 ***                    ");
 		writeString(0,1,"WHITE TEXT \033[1;31mbold red text\033[0m\033[1;32mbold green text\033[0m\033[1;36mbold cyan text\033[0m WHITE TEXT");
-		putCursor(0,5);
 		setInputSpace(0,1,64,1);
 	}
 	
@@ -789,7 +753,6 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		writeString(0,4,"RUN - RUN PROGRAM");
 		writeString(0,5,"REBOOT - REBOOT COMPUTER");
 		writeString(0,6,"POWEROFF - POWER OFF COMPUTER");
-		putCursor(0,10);
 		setInputSpace(0,10,64,1);
 		
 	}
@@ -818,7 +781,6 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	{
 		randomFill();
 		writeString(0,0,"                    *** SNOWCRASH CONSOLE ***                    ");
-		putCursor(0,40);
 		setInputSpace(0,1,64,1);
 		
 		for (int i=0;i<vPackets.size() && i < 20;++i)
@@ -838,8 +800,6 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		clearScreen();
 		//init();
 		//randomFill();
-		
-		putCursor(7,8);
 		
 		writeString(0,0, 	"                      .__                         ");
 		writeString(0,1, "_____  ___.__.___.__. |  |   _____ _____    ____  ");
@@ -878,7 +838,6 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		writeString(0,7,"Welcome to AYYBBS");
 		writeString(0,8,"Login:");
 		
-		setInputSpace(7,8,12,1);
 		
 	}
 	
@@ -903,7 +862,6 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		//init();
 		clearScreen(); 
 		writeString(0,0,"*** WRITE (CTRL+S to save. CTRL+R to exit.)***");
-		putCursor(0,1);
 		//setInputSpace(0,1,64,1);
 	}
 	
@@ -916,7 +874,6 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 		writeString(0,0,"*** MAIL. Type number to read. ***");
 		writeString(0,1,"1. "+redacted+" - WELCOME TO MAIL");
 		writeString(0,2,"2. "+redacted+" - SUP");
-		putCursor(0,10);
 		setInputSpace(0,10,64,1);
 	}
 	
@@ -951,6 +908,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 	void loadPage(std::string pageData)
 	{
 		clearScreen();
+		putCursor(0,0);
 		writeString(0,0,pageData);
 		//putCursor(0,5);
 	}
