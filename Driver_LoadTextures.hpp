@@ -15,10 +15,10 @@
 /* WorldSim: Driver_LoadTextures.hpp
   #include "Driver_LoadTextures.hpp"
 
-	Called from Driver::init().
-	These vars are global.
-	All texture refs start with TEX_, and then use the path and filename from the textures folder.
-	Requires OpenGL headers.
+   Called from Driver::init().
+   These vars are global.
+   All texture refs start with TEX_, and then use the path and filename from the textures folder.
+   Requires OpenGL headers.
 */
 
 void SetColor(int value){
@@ -35,19 +35,19 @@ static Texture TEX_TERMINAL_BKG;
 
 void loadTextureVerbose(const std::string _path, Texture* _texture)
 {
-	std::cout<<"Loading: "<<_path<<".\n";
-	
-	if(loadTextureNearestNeighbour(_path,_texture)==false)
-	{ std::cout<<"Error loading "<<_path<<".\n"; }
+   std::cout<<"Loading: "<<_path<<".\n";
+   
+   if(loadTextureNearestNeighbour(_path,_texture)==false)
+   { std::cout<<"Error loading "<<_path<<".\n"; }
 }
 
 void preloadTextureVerbose(const std::string _path, Texture* _texture)
 {
 
-	
-	if(loadTextureNearestNeighbour(_path,_texture)==false)
-	{
-	SetColor(4);
+   
+   if(loadTextureNearestNeighbour(_path,_texture)==false)
+   {
+   SetColor(4);
     std::cout<<"Loading: "<<_path<<": FAIL.\n";
   SetColor(7);
   }

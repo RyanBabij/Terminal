@@ -5,14 +5,14 @@
 /* WorldSim: Driver_Settings.cpp
   #include "Driver_Settings.cpp"
 
-	Gameplay settings and other global settings go here. Some of this stuff will probably end up in an .ini file.
+   Gameplay settings and other global settings go here. Some of this stuff will probably end up in an .ini file.
 */
 
 #include <limits.h> // We need ULONG_MAX for absolute coords.
 #define ABSOLUTE_COORDINATE_NULL ULONG_MAX // Used as null-value for absolute coordinates, which can't use negative value.
 
   // SYSTEM STRINGS
-const std::string VERSION = "0.0.018 Win32 dev";
+const std::string VERSION = "0.0.019 Win32 dev";
 const std::string G_WINDOW_TITLE = "Terminal";
 const std::string SAVE_FOLDER_PATH = "savedata";
 
@@ -22,7 +22,7 @@ unsigned int RESOLUTIONX=800, RESOLUTIONY=600;
 const bool MAXIMISE_WINDOW = false;
 
   // MAIN MENU ENUMS
-	// I use a global enum to decide what menu we are in. Makes like much easier.
+   // I use a global enum to decide what menu we are in. Makes like much easier.
 enum enumMenu { MENU_UNKNOWN, MENU_TITLE, MENU_OPTIONS, MENU_LOADGAME, MENU_WORLDGENERATOR, MENU_WORLDSIMULATOR, MENU_ADVENTUREMODE };
 //Set the menu the game boots into
 enumMenu activeMenu = MENU_TITLE;
@@ -46,9 +46,9 @@ double LOGIC_PER_SECOND = 1;
 const double PHYSICS_PER_SECOND = 10;
 double ANIMATION_PER_SECOND = 10; // SETS SPEED OF ANIMATIONS
 
-	// SLOW FRAMERATE CAN BE ACTIVATED TO GET EXTRA CYCLES FOR GAMEPLAY.
+   // SLOW FRAMERATE CAN BE ACTIVATED TO GET EXTRA CYCLES FOR GAMEPLAY.
 int SLOW_FRAMERATE = 1000000/2;
-	// TURNS ON SLOW FRAMERATE
+   // TURNS ON SLOW FRAMERATE
 bool SLOW_FRAMERATE_ACTIVE = false;
 int UFRAMERATE = 1000000/FRAMERATE;
 const int UPOLLSPERSECOND = 1000000/POLLSPERSECOND;

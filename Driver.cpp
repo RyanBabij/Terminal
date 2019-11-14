@@ -1,6 +1,6 @@
 /* Terminal: Driver
   
-	Main file for Terminal. Created by Ryan Babij (https://github.com/RyanBabij/Terminal)
+   Main file for Terminal. Created by Ryan Babij (https://github.com/RyanBabij/Terminal)
   
   License: CC0
 */
@@ -10,11 +10,11 @@
 #define WILDCAT_USE_OPENGL
 //#define WILDCAT_USE_DIRECT3D
 
-	// What OS we are compiling for. Currently only Windows and Linux are supported cos I don't got a Mac.
+   // What OS we are compiling for. Currently only Windows and Linux are supported cos I don't got a Mac.
 #include <Wildcat/Windows.hpp> //#define WILDCAT_WINDOWS
 //#define WILDCAT_LINUX
 
-	// DYNAMICALLY GENERATED HEADER FILE WITH STRING WHICH COUNTS COMPILATIONS.
+   // DYNAMICALLY GENERATED HEADER FILE WITH STRING WHICH COUNTS COMPILATIONS.
 #include "CompileCount.hpp"
 
 #include <iostream>
@@ -30,8 +30,8 @@
 /* Tidies up the game and shuts down. */
 void shutDown()
 {
-	std::cout<<"Driver::shutDown().\n";
-	exit(0);
+   std::cout<<"Driver::shutDown().\n";
+   exit(0);
 }
 
 //Stolen from https://codereview.stackexchange.com/questions/226/formatter-class
@@ -73,24 +73,24 @@ void printHelp()
 {
   std::cout<<"\nTerminal"<<VERSION<<".\n";
   std::cout<<"  Warning: This is not a stable release.\n";
-	std::cout<<"  Terminal is a prototype computer terminal emulator for use in games.\n";
-	std::cout<<"  License: Public domain. This program uses a modified version of LodePNG.\n";
-	std::cout<<"  This is a pre-alpha release, and is not fully functional.\n";
+   std::cout<<"  Terminal is a prototype computer terminal emulator for use in games.\n";
+   std::cout<<"  License: Public domain. This program uses a modified version of LodePNG.\n";
+   std::cout<<"  This is a pre-alpha release, and is not fully functional.\n";
 
-	std::cout<<"Options:\n";
+   std::cout<<"Options:\n";
   std::cout<<"None.\n";
 
-	std::cout<<"\n";
-	std::cout<<"Version "<<VERSION<<".\n";
-	std::cout<<"Compiled: "<<__DATE__<<". "<<__TIME__<<".\n";
-	std::cout<<"Compile count: "<<COMPILE_COUNT<<".\n";
-	std::cout<<"\n";
+   std::cout<<"\n";
+   std::cout<<"Version "<<VERSION<<".\n";
+   std::cout<<"Compiled: "<<__DATE__<<". "<<__TIME__<<".\n";
+   std::cout<<"Compile count: "<<COMPILE_COUNT<<".\n";
+   std::cout<<"\n";
 }
 
 void pauseGame()
 {
-	std::cout<<"pauseGame() called.\n";
-	PAUSE_LOGIC=true;
+   std::cout<<"pauseGame() called.\n";
+   PAUSE_LOGIC=true;
 }
 
 #include <Time/Timer.hpp>
@@ -98,14 +98,14 @@ void pauseGame()
 /* This object exploits the c++ guarantee that the destructor is always called, in order to deal with unanticipated shutdowns, such as the player clicking the X. However, it seems the destructor guarantee does not apply in some cases, such as ending the process using the task manager, or using ctrl+c from the console. */
 class QuitChecker
 {
-	private:
-	Timer gameTime;
-	
-	public:
-	QuitChecker()
-	{
-		gameTime.init();
-		gameTime.start();
+   private:
+   Timer gameTime;
+   
+   public:
+   QuitChecker()
+   {
+      gameTime.init();
+      gameTime.start();
     
     // For now we will clear the savedata on startup because it can cause some instability.
     std::cout<<"Deleting temporary data folder ("<<SAVE_FOLDER_PATH<<")\n";
@@ -113,9 +113,9 @@ class QuitChecker
     {
       FileManager::deleteDirectory(SAVE_FOLDER_PATH,true);
     }
-	}
-	~QuitChecker()
-	{
+   }
+   ~QuitChecker()
+   {
     gameTime.update();
     if (gameTime.seconds > 10 )
     {
@@ -132,7 +132,7 @@ class QuitChecker
     }
 
 
-	}
+   }
 };
 QuitChecker quitChecker;
 
@@ -215,25 +215,25 @@ Menu_Title menuTitle;
 
 int main(int nArgs, char ** arg)
 {
-	ArgReader argReader;
-	argReader.feed(nArgs,arg);
+   ArgReader argReader;
+   argReader.feed(nArgs,arg);
   
-	if (argReader.hasTag("-help") || argReader.hasTag("--help") || argReader.hasTag("-h"))
-	{
-		printHelp();
-		return 0;
-	}
+   if (argReader.hasTag("-help") || argReader.hasTag("--help") || argReader.hasTag("-h"))
+   {
+      printHelp();
+      return 0;
+   }
   
   
-	std::cout<<"\nTerminal "<<VERSION<<". Warning: This is not a stable release.\n";
+   std::cout<<"\nTerminal "<<VERSION<<". Warning: This is not a stable release.\n";
 
-	GL_init(nArgs, arg);
-	
-	/* Initialise game. Load textures, fonts etc. */
-	init();
+   GL_init(nArgs, arg);
+   
+   /* Initialise game. Load textures, fonts etc. */
+   init();
   
-	/* Reshape is called here. */
-	glutMainLoop();
-	
-	return 0;
+   /* Reshape is called here. */
+   glutMainLoop();
+   
+   return 0;
 }
