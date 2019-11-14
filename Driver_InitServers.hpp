@@ -14,9 +14,9 @@ Create default servers and put them into Operator.
 
 void initServers()
 {
-	op.addServer(&serverRedThread);
-	op.addServer(&serverMail);
-	op.addServer(&serverLumaBank);
+   op.addServer(&serverRedThread);
+   op.addServer(&serverMail);
+   op.addServer(&serverLumaBank);
 }
 
 #endif
