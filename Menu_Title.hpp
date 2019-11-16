@@ -11,7 +11,7 @@
    Traditional 80 character width would be nice, but I kinda prefer square font.
 */
 
-#include "Terminal.hpp"
+#include "Terminal.cpp"
 
 class Menu_Title: public GUI_Interface, public LogicTickInterface
 {
