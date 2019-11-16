@@ -56,6 +56,7 @@ void init()
    pollRateTimer.start();
    logicRateTimer.init();
    logicRateTimer.start();
+   std::cout<<"Starting logic rate timer\n";
    physicsRateTimer.init();
    physicsRateTimer.start();
   animationTimer.init();
@@ -65,6 +66,9 @@ void init()
   
    playerKeypressTimer.init();
    playerKeypressTimer.start();
+   
+   gameTimer.init();
+   gameTimer.start();
 
    // /* Initialise the main menu */
    menuTitle.setPanel(0,0,RESOLUTIONX,RESOLUTIONY);

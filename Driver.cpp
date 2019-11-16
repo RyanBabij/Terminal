@@ -158,6 +158,7 @@ Timer logicRateTimer;
 Timer physicsRateTimer;
 Timer animationTimer;
 Timer playerKeypressTimer;
+Timer gameTimer; /* Runs for duration of game without resetting */
 /* Use this for checking algo speeds. */
 Timer debugTimer;
 

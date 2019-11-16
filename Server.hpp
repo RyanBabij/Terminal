@@ -138,7 +138,7 @@ class Server_RedThread: public Server
       if (activeMenu==MAIN)
       {
          strMain+="REDTHREAD\n\033[1;31m________________________________________________________________\033[0m";
-         strMain+= "\n\nPlease enter a handle:";
+         strMain+= "\n\nPlease enter a handle:\033[10;10Htest\033[11;10Htest\033[12;12Hayy\033[5;0H";
       }
       else if (activeMenu==BBS)
       {

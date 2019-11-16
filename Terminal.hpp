@@ -87,6 +87,8 @@ class Terminal: public GUI_Interface, public LogicTickInterface
    bool bootScreen; /* Main boot screen */
    bool helpScreen; /* Shows list of commands */
    bool debugConsole; /* Access special features of browser */
+   bool errorScreenActive; /* True if Terminal is in error state */
+   bool cursorVisible;
    
    Vector <std::string> vPackets; /* Log of packets sent/recieved */
    Vector <std::string> vFile; /* Files can just be text strings */
@@ -107,6 +109,9 @@ class Terminal: public GUI_Interface, public LogicTickInterface
       bootSystem1();
       
       dialTones="";
+      
+      errorScreenActive=true;
+      cursorVisible=true;
    }
    ~Terminal()
    {
@@ -136,6 +141,8 @@ class Terminal: public GUI_Interface, public LogicTickInterface
       vPackets.clear();
       command = "";
       currentConnection="";
+      errorScreenActive=true;
+      cursorVisible=true;
       
       loadX=0; loadY=0;
       
@@ -199,7 +206,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
       dialTone[9] = w9.toSound();
    }
    
-   void clearScreen()
+   void clearScreen(bool forced=false) /* forced will instantly clear the screen, instead of using backlog */
    {
       int i=0;
       for (int _y=0;_y<48;++_y)
@@ -207,6 +214,10 @@ class Terminal: public GUI_Interface, public LogicTickInterface
          for (int _x=0;_x<64;++_x)
          {
                aGlyphBacklog[_y][_x] = ' ';
+               if ( forced )
+               {
+                   aGlyph[_y][_x] = ' ';
+               }
          }
       }
       command="";
@@ -378,6 +389,13 @@ class Terminal: public GUI_Interface, public LogicTickInterface
                font8x8.putChar(aGlyph[_y][_x],panelX1+(10*_x),panelY2-(10*_y),foregroundColour[_y][_x]);
          }
       }
+      
+      if (errorScreenActive)
+      {
+         clearScreen(true);
+         errorScreen();
+      }
+
    }
    
    void putCursor(int _x, int _y)
@@ -388,20 +406,20 @@ class Terminal: public GUI_Interface, public LogicTickInterface
          {
             aGlyph[cursorY][cursorX] = ' ';
          }
-      
          cursorX = _x;
          cursorY = _y;
          aGlyph[cursorY][cursorX] = 1;
       }
       else
       {
-         if ( isSafe(cursorX,cursorY) )
-         {
-            aGlyph[cursorY][cursorX] = ' ';
-         }
+         // if ( isSafe(cursorX,cursorY) )
+         // {
+            // aGlyph[cursorY][cursorX] = ' ';
+         // }
       
-         cursorX = -1;
-         cursorY = -1;
+         // cursorX = -1;
+         // cursorY = -1;
+			// aGlyph[cursorY][cursorX] = 1;
       }
    }
    
@@ -416,19 +434,34 @@ class Terminal: public GUI_Interface, public LogicTickInterface
    
    void blinkCursor()
    {
+      if ( cursorVisible)
+      {
+         if (isSafe(cursorX,cursorY))
+         {
+            if (++cursorBlink > 40)
+            {
+               cursorBlink = 0;
+            }
+            if ( cursorBlink > 20)
+            {
+               aGlyph[cursorY][cursorX] = ' ';
+            }
+            else
+            {
+               aGlyph[cursorY][cursorX] = 1;
+            }
+         }
+      }
+   }
+   
+   void hideCursor()
+   {
+      cursorVisible=false;
       if (isSafe(cursorX,cursorY))
       {
-         if (++cursorBlink > 40)
+         if (aGlyph[cursorY][cursorX]==1)
          {
-            cursorBlink = 0;
-         }
-         if ( cursorBlink > 20)
-         {
-            aGlyph[cursorY][cursorX] = ' ';
-         }
-         else
-         {
-            aGlyph[cursorY][cursorX] = 1;
+             aGlyph[cursorY][cursorX] = ' ';
          }
       }
    }
@@ -482,7 +515,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
          {
             std::cout<<"ild\n";
             debugConsole=!debugConsole;
-            
+				
             if ( debugConsole )
             {
                loadDebugConsole();
@@ -535,7 +568,6 @@ class Terminal: public GUI_Interface, public LogicTickInterface
             // We are sending command to Terminal, so tokenise and process it
             else
             {
-
                //Tokenise
                Vector <std::string> * vToken = Tokenize::tokenize(command,' ');
             
@@ -669,7 +701,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
             }
             intro=0;
             
-            
+            _keyboard->clearAll();
             return true;
          }
          _keyboard->clearAll();
@@ -877,6 +909,49 @@ class Terminal: public GUI_Interface, public LogicTickInterface
       setInputSpace(0,10,64,1);
    }
    
+   /* Error screen displays if you break the computer */
+   void errorScreen(std::string strError="")
+   {
+      hideCursor();
+      
+      
+      Colour currentColour;
+      currentColour.set(255,255,255,255);
+      unsigned char errorBorder = ' ';
+      
+      gameTimer.update();
+
+      
+      if (gameTimer.seconds % 2 == 0)
+      {
+         currentColour.set(255,0,0,255);
+         errorBorder=1;
+      }
+      
+      for (int _x=0;_x<64;++_x)
+      {
+         aGlyph[0][_x]=errorBorder;
+         aGlyph[47][_x]=errorBorder;
+         
+         aGlyphBacklog[0][_x]=errorBorder;
+         aGlyphBacklog[47][_x]=errorBorder;
+         
+        foregroundColour[0][_x] = currentColour;
+        foregroundColour[47][_x] = currentColour;
+      }
+      for (int _y=0;_y<48;++_y)
+      {
+         aGlyph[_y][0]=errorBorder;
+         aGlyph[_y][63]=errorBorder;
+         
+         aGlyphBacklog[_y][0]=errorBorder;
+         aGlyphBacklog[_y][63]=errorBorder;
+         
+         foregroundColour[_y][0] = currentColour;
+         foregroundColour[_y][63] = currentColour;
+      }
+   }
+   
    /* Breakout */
    void game1()
    {
@@ -910,7 +985,6 @@ class Terminal: public GUI_Interface, public LogicTickInterface
       clearScreen();
       putCursor(0,0);
       writeString(0,0,pageData);
-      //putCursor(0,5);
    }
    
    // void screenConnect(std::string _number1="", std::string _number2="")
