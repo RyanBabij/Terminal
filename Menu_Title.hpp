@@ -12,6 +12,7 @@
 */
 
 #include "Terminal.cpp"
+#include "Terminal_Program.cpp"
 
 class Menu_Title: public GUI_Interface, public LogicTickInterface
 {
