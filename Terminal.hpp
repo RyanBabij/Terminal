@@ -25,7 +25,7 @@
    AUTODIAL. Dials random numbers until a connection is made.
    
    
-         ANSI ESCAPE NOTES
+      ANSI ESCAPE NOTES
    The ANSI escape sequences are very important for terminals. They allow colours, and also things like
    loading indicators and inputs.
    
@@ -34,6 +34,21 @@
       SNOWCRASH
    Special developer debug console. Accessible at any time with ~ key. Has several useful tools, the
    most common one being the packet inspector. Lets you modify, send, rebound packets.
+   
+      MEMORY NOTES
+   
+         ASCII MODE
+   [48][64] -> ASCII space, 8 bit
+   [48][64] -> colour space, 8 bit. 4 bit foreground, 4 bit background.
+   However in Terminal you can set all of these with a single op.
+   
+      GRAPHICS MODE
+   Old computers would sometimes have multiple graphics modes for different purposes. For example
+   displaying a bitmap image would use the highest resolution, but playing a game would use a lower one.
+   I'm not sure if I'll implement a graphics mode. If I do, it'll probably be low-res 160p like the Atari 2600.
+   However in my implementation there will be no sprite limits or playfield. The only major limitation will
+   be instructions per frame.
+
    
 */
 
@@ -77,7 +92,7 @@ class File
    File ()
    {
    }
-   
+
 };
 
 #include "Terminal_Program.hpp"
@@ -120,6 +135,8 @@ class Terminal: public GUI_Interface, public LogicTickInterface
    Vector <File*> vFile;
    /* System default files */
    File fileManual; /* Basic operation manual */
+   
+   Vector <Terminal_Program*> vProgram;
 
    public:
    
@@ -197,6 +214,9 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 
    
    void loadPage(std::string /* pageData */);
+   
+   void sendPacket(std::string _currentConnection, std::string _command);
+   void sendTerminalCommand(std::string _command);
 
    
    // void screenConnect(std::string _number1="", std::string _number2="")

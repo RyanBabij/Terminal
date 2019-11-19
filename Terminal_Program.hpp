@@ -10,7 +10,16 @@
    Output can generally be returned as a string.
    Currently hardcoded, but introduction of a coding language would technically
    allow them to be coded in that language.
+   
+   RENDER
+      We can achieve this by simply passing the array to swap.
 
+   PROGRAM OVERVIEW
+   
+      WRITE
+      Very basic text editor. Type the name of the file you want to write... For example:
+      "write file" will create a file called file. Typing the name of an already existing file
+      will edit that file. CTRL+S will exit the application.
 */ 
 
 class Terminal;
@@ -19,9 +28,20 @@ class Terminal_Program
 {
    public:
    bool active; /* true means the program is running */
-   Terminal* terminal;
+   //Terminal* terminal;
    
-   virtual void render();
+   std::string programName;
+   
+   Terminal_Program();
+   
+   /* Pass the commands written after the program name.
+   Return empty string if init successful, otherwise return error message */
+   virtual std::string init (Vector <std::string> vArg);
+   
+   virtual std::string render(); /* render at set framerate */
+   virtual void cycle(); /* advance 1 game cycle */
+   
+   //virtual void keyboardEvent (Keyboard*);
 };
 
 /* Write allows the user to write documents and programs. They can write
@@ -31,7 +51,14 @@ class Program_Write: public Terminal_Program
 {
    public:
    
+   File * currentFile;
+   
    Program_Write();
+   
+   std::string init (Vector <std::string> vArg) override;
+   
+   std::string render() override;
+   void cycle() override;
    
 };
 
@@ -45,10 +72,13 @@ class Program_Read: public Terminal_Program
    
    Program_Read();
    
-   void render() override;
+   std::string render() override;
 
 };
 
+/*
+Let's start by just drawing a dot bouncing around the screen.
+*/
 class Program_Breakout: public Terminal_Program
 {
    public:
@@ -62,7 +92,10 @@ class Program_Breakout: public Terminal_Program
    
    Program_Breakout();
    
-   void gameTick();
+   std::string render() override;
+   
+   void cycle() override;
+   
 };
 
 class Program_Tetris: public Terminal_Program

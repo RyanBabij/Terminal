@@ -27,6 +27,7 @@ Terminal::~Terminal()
    globalAudioPlayer.close();
 }
 
+
 void Terminal::init()
 {
    int i=0;
@@ -404,13 +405,8 @@ bool Terminal::keyboardEvent(Keyboard* _keyboard)
       
       if ( _keyboard->isAlphaNumeric(_keyboard->lastKey) || _keyboard->lastKey == Keyboard::SPACE)
       { typeChar(_keyboard->lastKey); }
-      else if (_keyboard->lastKey == Keyboard::SPACEBAR )
+      else if (_keyboard->lastKey == 96) /* TILDE */
       {
-         //bbsDemo();
-      }
-      else if (_keyboard->lastKey == 96)
-      {
-         std::cout<<"ild\n";
          debugConsole=!debugConsole;
          
          if ( debugConsole )
@@ -418,7 +414,7 @@ bool Terminal::keyboardEvent(Keyboard* _keyboard)
             loadDebugConsole();
          }
       }
-      else if (_keyboard->lastKey == 18)
+      else if (_keyboard->lastKey == 18) /* CTRL + R */
       {
          init();
          bootSystem1();
@@ -447,153 +443,17 @@ bool Terminal::keyboardEvent(Keyboard* _keyboard)
          {
             _keyboard->clearAll();
          }
-            // If we are connected to a server, send the entire input. Otherwise it should be tokenised.
+         
+         // If we're connected to a server, send the input to the server
          else if (currentConnection != "")
          {
-            std::string response = op.sendPacket(currentConnection,command);
-            
-            std::cout<<"Packet: "<<command<<" send to "<<currentConnection<<".\n";
-            std::cout<<"Response: "<<response<<".\n";
-            
-            if ( response == "[RDR]" )
-            {
-               clearScreen();
-               loadPage(op.servePage(currentConnection));
-            }
-            command="";
+            sendPacket(currentConnection,command);
+            command = "";
          }
          // We are sending command to Terminal, so tokenise and process it
          else
          {
-            //Tokenise
-            Vector <std::string> * vToken = Tokenize::tokenize(command,' ');
-         
-            for (int i=0;i<vToken->size();++i)
-            {
-               std::cout<<"Token: "<<(*vToken)(i)<<"\n";
-            }
-            
-            //First token is command.
-            if (vToken->size() != 0)
-            {
-               command = (*vToken)(0);
-            }
-            else
-            {
-               command = "";
-            }
-         
-         
-
-         
-            if (command == "BBS" && ( bootScreen == true || helpScreen == true ) )
-            {
-               bbsDemo();
-               command = "";
-            }
-            else if (command == "HELP" && bootScreen == true)
-            {
-               helpScreen=true;
-               bootScreen=false;
-               debugConsole=false;
-               command = "";
-               loadHelpScreen();
-            }
-            if (command == "REBOOT" || command == "RESET")
-            {
-               init();
-               bootSystem1();
-            }
-            if (command == "SHUTDOWN" || command == "POWEROFF")
-            {
-               shutDown();
-            }
-            if (command == "WRITE")
-            {
-               command="";
-               clearScreen();
-               writeScreen();
-            }
-            if (command == "MAIL")
-            {
-               command="";
-               clearScreen();
-               mailScreen();
-            }
-            if (command == "GAME")
-            {
-               command="";
-               clearScreen();
-               game1();
-            }
-         
-            if (command == "CONNECT")
-            {
-               // strip everything except numbers. There should be 7, 10, 12, 19, or 22 digits.
-               // phonecards will be 12 digits.
-               
-               std::string connectPacket = "[CON]";
-               
-               if (vToken->size() == 1)
-               {
-                  std::cout<<"Connect must have argument.\n";
-               }
-               else if (vToken->size() == 2)
-               {
-                  std::string targetDial = (*vToken)(1);
-                  std::cout<<"Dial arg: "<<targetDial<<".\n";
-                  
-                  
-                  
-                  // dial must be 10 or 7 digits. (3 digits are city code)
-                  if ( DataTools::isNumber(targetDial) )
-                  {
-                     // Auto-add city code if necessary.
-                     if (targetDial.size()==7)
-                     {
-                        targetDial = "001" + targetDial;
-                     }
-                     
-                     if (targetDial.size() == 10)
-                     {
-                        dialTones = targetDial+"R";
-                        
-                        vPackets.push("[CON]["+targetDial+"]");
-                        
-                        if ( op.dial(targetDial) )
-                        {
-                           vPackets.push("[ACK]["+targetDial+"]");
-                           loadPage(op.servePage(targetDial));
-                           currentConnection= targetDial;
-                        }
-                        else
-                        {
-                           vPackets.push("[404]["+targetDial+"]");
-                           currentConnection="";
-                        }
-                     }
-                     else
-                     {
-                        std::cout<<"ERROR: Dial number must be 7 or 10 digits, no spaces.\n";
-                     }
-                  }
-                  else
-                  {
-                     std::cout<<"Error: Arg must be number.\n";
-                  }
-               }
-               else
-               {
-                  std::cout<<"Bad args\n";
-               }
-               //screenConnect("","");   
-               //command = "";
-            }
-         
-            if (command == "AUTODIAL")
-            {
-               std::cout<<"Autodial.\n";
-            }
+            sendTerminalCommand(command);
             command = "";
          }
          intro=0;
@@ -828,5 +688,163 @@ void Terminal::loadPage(std::string pageData)
    putCursor(0,0);
    writeString(0,0,pageData);
 }
+
+void Terminal::sendPacket(std::string _currentConnection, std::string _command)
+{
+      std::string response = op.sendPacket(_currentConnection,_command);
+      
+      std::cout<<"Packet: "<<_command<<" send to "<<_currentConnection<<".\n";
+      std::cout<<"Response: "<<response<<".\n";
+      
+      if ( response == "[RDR]" )
+      {
+         clearScreen();
+         loadPage(op.servePage(_currentConnection));
+      }
+}
+
+void Terminal::sendTerminalCommand(std::string _command)
+{
+            //Tokenise
+            Vector <std::string> * vToken = Tokenize::tokenize(command,' ');
+         
+            for (int i=0;i<vToken->size();++i)
+            {
+               std::cout<<"Token: "<<(*vToken)(i)<<"\n";
+            }
+            
+            //First token is command.
+            if (vToken->size() != 0)
+            {
+               command = (*vToken)(0);
+            }
+            else
+            {
+               command = "";
+            }
+            
+            //Check system commands.
+            if (command == "HELP" && bootScreen == true)
+            {
+               helpScreen=true;
+               bootScreen=false;
+               debugConsole=false;
+               command = "";
+               loadHelpScreen();
+            }
+            else if (command == "REBOOT" || command == "RESET")
+            {
+               init();
+               bootSystem1();
+            }
+            else if (command == "SHUTDOWN" || command == "POWEROFF")
+            {
+               shutDown();
+            }
+            else if (command == "CONNECT") // This should really be a program
+            {
+               // strip everything except numbers. There should be 7, 10, 12, 19, or 22 digits.
+               // phonecards will be 12 digits.
+               
+               std::string connectPacket = "[CON]";
+               
+               if (vToken->size() == 1)
+               {
+                  std::cout<<"Connect must have argument.\n";
+               }
+               else if (vToken->size() == 2)
+               {
+                  std::string targetDial = (*vToken)(1);
+                  std::cout<<"Dial arg: "<<targetDial<<".\n";
+                  
+                  
+                  
+                  // dial must be 10 or 7 digits. (3 digits are city code)
+                  if ( DataTools::isNumber(targetDial) )
+                  {
+                     // Auto-add city code if necessary.
+                     if (targetDial.size()==7)
+                     {
+                        targetDial = "001" + targetDial;
+                     }
+                     
+                     if (targetDial.size() == 10)
+                     {
+                        dialTones = targetDial+"R";
+                        
+                        vPackets.push("[CON]["+targetDial+"]");
+                        
+                        if ( op.dial(targetDial) )
+                        {
+                           vPackets.push("[ACK]["+targetDial+"]");
+                           loadPage(op.servePage(targetDial));
+                           currentConnection= targetDial;
+                        }
+                        else
+                        {
+                           vPackets.push("[404]["+targetDial+"]");
+                           currentConnection="";
+                        }
+                     }
+                     else
+                     {
+                        std::cout<<"ERROR: Dial number must be 7 or 10 digits, no spaces.\n";
+                     }
+                  }
+                  else
+                  {
+                     std::cout<<"Error: Arg must be number.\n";
+                  }
+               }
+               else
+               {
+                  std::cout<<"Bad args\n";
+               }
+               //screenConnect("","");   
+               //command = "";
+            }
+            
+            else //Iterate through program list to find match.
+            {
+               for (int i=0;i<vProgram.size();++i)
+               {
+                  if (command == vProgram(i)->programName)
+                  {
+                     //init this program.
+                     std::cout<<"Program match. Running "<<command<<".\n";
+                  }
+               }
+            }
+            
+
+         
+         
+
+         
+
+            // if (command == "WRITE")
+            // {
+               // command="";
+               // clearScreen();
+               // writeScreen();
+            // }
+            // if (command == "MAIL")
+            // {
+               // command="";
+               // clearScreen();
+               // mailScreen();
+            // }
+            // if (command == "GAME")
+            // {
+               // command="";
+               // clearScreen();
+               // game1();
+            // }
+            // if (command == "AUTODIAL")
+            // {
+               // std::cout<<"Autodial.\n";
+            // }
+}
+
 
 #endif
