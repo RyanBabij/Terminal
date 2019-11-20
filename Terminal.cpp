@@ -66,6 +66,10 @@ void Terminal::init()
    
   fileManual.filename = "manual.txt";
   vFile.push(&fileManual);
+  
+  //load basic programs
+  vProgram.clearPtr();
+  vProgram.push(new Program_Write);
 }
 
 void Terminal::loadAudio()
@@ -138,7 +142,6 @@ void Terminal::clearScreen(bool forced) /* forced will instantly clear the scree
 
 void Terminal::writeString(int _x, int _y, std::string _str, bool moveCursor)
 {
-   ANSI_Grid ansiGrid;
    ansiGrid.cursorX=_x;
    ansiGrid.cursorY=_y;
    ansiGrid.read(_str);
@@ -151,6 +154,8 @@ void Terminal::writeString(int _x, int _y, std::string _str, bool moveCursor)
             foregroundColour[_y2][_x2] = ansiGrid.aColour[_y2][_x2];
       }
    }
+   cursorX=ansiGrid.cursorX;
+   cursorY=ansiGrid.cursorY;
    putCursor(ansiGrid.cursorX,ansiGrid.cursorY);
 }
 
@@ -298,29 +303,25 @@ if (dialTones.size() > 0)
 
 }
 
+// Simply placing the cursor over a glyph will erase it, which is kinda cool
 void Terminal::putCursor(int _x, int _y)
 {
+   if ( isSafe(cursorX,cursorY) )
+   {
+      aGlyph[cursorY][cursorX] = ' ';
+      aGlyphBacklog[cursorY][cursorX] = ' ';
+      ansiGrid.aGlyph[cursorY][cursorX] = ' ';
+   }
+   
    if (isSafe(_x,_y))
    {
-      if ( isSafe(cursorX,cursorY) )
-      {
-         aGlyph[cursorY][cursorX] = ' ';
-      }
       cursorX = _x;
       cursorY = _y;
-      aGlyph[cursorY][cursorX] = 1;
+      aGlyph[cursorY][cursorX] = ' ';
+      aGlyphBacklog[cursorY][cursorX] = ' ';
+      ansiGrid.aGlyph[cursorY][cursorX] = ' ';
    }
-   else
-   {
-      // if ( isSafe(cursorX,cursorY) )
-      // {
-         // aGlyph[cursorY][cursorX] = ' ';
-      // }
-   
-      // cursorX = -1;
-      // cursorY = -1;
-      // aGlyph[cursorY][cursorX] = 1;
-   }
+
 }
 
 void Terminal::newLine()
@@ -328,6 +329,12 @@ void Terminal::newLine()
    if (isSafe(0,cursorY+1))
    {
          putCursor(0,cursorY+1);
+   }
+   else
+   {
+      //Scroll terminal by 1 row.
+      std::cout<<"SHIFT\n";
+      shiftUp(1);
    }
 }
 
@@ -373,6 +380,8 @@ void Terminal::typeChar (char c)
          putCursor(cursorX+1,cursorY);
          aGlyph[cursorY][cursorX-1] = c;
          aGlyphBacklog[cursorY][cursorX-1] = c;
+         
+         ansiGrid.aGlyph[cursorY][cursorX-1]=c;
          command+=c;
    }
 }
@@ -384,6 +393,7 @@ void Terminal::backspace()
       putCursor(cursorX-1,cursorY);
       aGlyph[cursorY][cursorX+1] = ' ';
       aGlyphBacklog[cursorY][cursorX+1] = ' ';
+      ansiGrid.aGlyph[cursorY][cursorX+1]= ' ';
       
       if ( command.size () > 0 )
       { command = command.substr(0, command.size()-1);
@@ -705,145 +715,171 @@ void Terminal::sendPacket(std::string _currentConnection, std::string _command)
 
 void Terminal::sendTerminalCommand(std::string _command)
 {
-            //Tokenise
-            Vector <std::string> * vToken = Tokenize::tokenize(command,' ');
+   std::cout<<"Terminal command recieved\n";
+   //Tokenise
+   Vector <std::string> * vToken = Tokenize::tokenize(command,' ');
+
+   for (int i=0;i<vToken->size();++i)
+   {
+      std::cout<<"Token: "<<(*vToken)(i)<<"\n";
+   }
+   
+   //First token is command.
+   if (vToken->size() != 0)
+   {
+      command = (*vToken)(0);
+   }
+   else
+   {
+      command = "";
+   }
+   
+   //Check system commands.
+   if (command == "HELP" && bootScreen == true)
+   {
+      helpScreen=true;
+      bootScreen=false;
+      debugConsole=false;
+      command = "";
+      loadHelpScreen();
+   }
+   else if (command == "REBOOT" || command == "RESET")
+   {
+      init();
+      bootSystem1();
+   }
+   else if (command == "SHUTDOWN" || command == "POWEROFF")
+   {
+      shutDown();
+   }
+   else if (command == "CONNECT") // This should really be a program
+   {
+      // strip everything except numbers. There should be 7, 10, 12, 19, or 22 digits.
+      // phonecards will be 12 digits.
+      
+      std::string connectPacket = "[CON]";
+      
+      if (vToken->size() == 1)
+      {
+         std::cout<<"Connect must have argument.\n";
+      }
+      else if (vToken->size() == 2)
+      {
+         std::string targetDial = (*vToken)(1);
+         std::cout<<"Dial arg: "<<targetDial<<".\n";
          
-            for (int i=0;i<vToken->size();++i)
+         
+         
+         // dial must be 10 or 7 digits. (3 digits are city code)
+         if ( DataTools::isNumber(targetDial) )
+         {
+            // Auto-add city code if necessary.
+            if (targetDial.size()==7)
             {
-               std::cout<<"Token: "<<(*vToken)(i)<<"\n";
+               targetDial = "001" + targetDial;
             }
             
-            //First token is command.
-            if (vToken->size() != 0)
+            if (targetDial.size() == 10)
             {
-               command = (*vToken)(0);
-            }
-            else
-            {
-               command = "";
-            }
-            
-            //Check system commands.
-            if (command == "HELP" && bootScreen == true)
-            {
-               helpScreen=true;
-               bootScreen=false;
-               debugConsole=false;
-               command = "";
-               loadHelpScreen();
-            }
-            else if (command == "REBOOT" || command == "RESET")
-            {
-               init();
-               bootSystem1();
-            }
-            else if (command == "SHUTDOWN" || command == "POWEROFF")
-            {
-               shutDown();
-            }
-            else if (command == "CONNECT") // This should really be a program
-            {
-               // strip everything except numbers. There should be 7, 10, 12, 19, or 22 digits.
-               // phonecards will be 12 digits.
+               dialTones = targetDial+"R";
                
-               std::string connectPacket = "[CON]";
+               vPackets.push("[CON]["+targetDial+"]");
                
-               if (vToken->size() == 1)
+               if ( op.dial(targetDial) )
                {
-                  std::cout<<"Connect must have argument.\n";
-               }
-               else if (vToken->size() == 2)
-               {
-                  std::string targetDial = (*vToken)(1);
-                  std::cout<<"Dial arg: "<<targetDial<<".\n";
-                  
-                  
-                  
-                  // dial must be 10 or 7 digits. (3 digits are city code)
-                  if ( DataTools::isNumber(targetDial) )
-                  {
-                     // Auto-add city code if necessary.
-                     if (targetDial.size()==7)
-                     {
-                        targetDial = "001" + targetDial;
-                     }
-                     
-                     if (targetDial.size() == 10)
-                     {
-                        dialTones = targetDial+"R";
-                        
-                        vPackets.push("[CON]["+targetDial+"]");
-                        
-                        if ( op.dial(targetDial) )
-                        {
-                           vPackets.push("[ACK]["+targetDial+"]");
-                           loadPage(op.servePage(targetDial));
-                           currentConnection= targetDial;
-                        }
-                        else
-                        {
-                           vPackets.push("[404]["+targetDial+"]");
-                           currentConnection="";
-                        }
-                     }
-                     else
-                     {
-                        std::cout<<"ERROR: Dial number must be 7 or 10 digits, no spaces.\n";
-                     }
-                  }
-                  else
-                  {
-                     std::cout<<"Error: Arg must be number.\n";
-                  }
+                  vPackets.push("[ACK]["+targetDial+"]");
+                  loadPage(op.servePage(targetDial));
+                  currentConnection= targetDial;
                }
                else
                {
-                  std::cout<<"Bad args\n";
+                  vPackets.push("[404]["+targetDial+"]");
+                  currentConnection="";
                }
-               //screenConnect("","");   
-               //command = "";
             }
-            
-            else //Iterate through program list to find match.
+            else
             {
-               for (int i=0;i<vProgram.size();++i)
-               {
-                  if (command == vProgram(i)->programName)
-                  {
-                     //init this program.
-                     std::cout<<"Program match. Running "<<command<<".\n";
-                  }
-               }
+               std::cout<<"ERROR: Dial number must be 7 or 10 digits, no spaces.\n";
+            }
+         }
+         else
+         {
+            std::cout<<"Error: Arg must be number.\n";
+         }
+      }
+      else
+      {
+         std::cout<<"Bad args\n";
+      }
+      //screenConnect("","");   
+      //command = "";
+   }
+   
+   else //Iterate through program list to find match.
+   {
+      std::cout<<"Checking programs\n";
+      for (int i=0;i<vProgram.size();++i)
+      {
+         std::cout<<vProgram(i)->programName<<".\n";
+         if (command == vProgram(i)->programName)
+         {
+            //init this program.
+            std::cout<<"Program match. Running "<<command<<".\n";
+            
+            std::string strReturn = vProgram(i)->init(vToken);
+            
+            if ( strReturn != "")
+            {
+               writeString(cursorX,cursorY,strReturn);
             }
             
+         }
+      }
+   }
+            
+      // if (command == "MAIL")
+      // {
+         // command="";
+         // clearScreen();
+         // mailScreen();
+      // }
+      // if (command == "GAME")
+      // {
+         // command="";
+         // clearScreen();
+         // game1();
+      // }
+      // if (command == "AUTODIAL")
+      // {
+         // std::cout<<"Autodial.\n";
+      // }
+}
 
-         
-         
-
-         
-
-            // if (command == "WRITE")
-            // {
-               // command="";
-               // clearScreen();
-               // writeScreen();
-            // }
-            // if (command == "MAIL")
-            // {
-               // command="";
-               // clearScreen();
-               // mailScreen();
-            // }
-            // if (command == "GAME")
-            // {
-               // command="";
-               // clearScreen();
-               // game1();
-            // }
-            // if (command == "AUTODIAL")
-            // {
-               // std::cout<<"Autodial.\n";
-            // }
+void Terminal::shiftUp(int amount)
+{
+   
+   for (int _x=0;_x<64;++_x)
+   {
+      for (int _y=0;_y<47;++_y)
+      {
+         aGlyph[_y][_x] = aGlyph[_y+1][_x];
+         aGlyphBacklog[_y][_x] = aGlyphBacklog[_y+1][_x];
+         ansiGrid.aGlyph[_y][_x] = ansiGrid.aGlyph[_y+1][_x];
+         ansiGrid.aColour[_y][_x]=ansiGrid.aColour[_y+1][_x];
+         foregroundColour[_y][_x]=foregroundColour[_y+1][_x];
+      }
+   }
+   
+   for (int _x=0;_x<64;++_x)
+   {
+         aGlyph[47][_x] = ' ';
+         aGlyphBacklog[47][_x] = ' ';
+         ansiGrid.aGlyph[47][_x] = ' ';
+         ansiGrid.aColour[47][_x].set(255,255,255,255);
+         foregroundColour[47][_x].set(255,255,255,255);
+         putCursor(0,47);
+   }
+   
 }
 
 

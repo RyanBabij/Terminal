@@ -15,7 +15,11 @@ Terminal_Program::Terminal_Program()
    programName="";
 }
 
-std::string Terminal_Program::init (Vector <std::string> vArg)
+Terminal_Program::~Terminal_Program()
+{
+}
+
+std::string Terminal_Program::init (Vector <std::string>* vArg)
 {
    return "Error: This is a virtual function.";
 }
@@ -34,9 +38,36 @@ Program_Write::Program_Write()
    programName="WRITE";
 }
 
-std::string Program_Write::init (Vector <std::string> vArg)
+Program_Write::~Program_Write()
 {
-   return "";
+}
+
+std::string Program_Write::init (Vector <std::string>* vArg)
+{
+   if (vArg==0)
+   {
+      return "INTERNAL ERROR: NULL ARGS\n";
+   }
+   
+   if (vArg->size()<2)
+   {
+      return "Error: No filename specified\n";
+   }
+   else
+   {
+      std::string _fileName = (*vArg)(1);
+      std::cout<<"fname "<<_fileName<<".\n";
+      if (_fileName.size() > 0 && DataTools::isAlphaNumeric(_fileName))
+      {
+         return "";
+      }
+      else
+      {
+         return "ERROR: FILENAME MUST BE ALPHANUMERIC\n";
+      }
+   }
+   
+   return "NO U\n";
 }
 
 std::string Program_Write::render()

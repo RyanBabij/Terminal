@@ -33,10 +33,11 @@ class Terminal_Program
    std::string programName;
    
    Terminal_Program();
+   virtual ~Terminal_Program();
    
    /* Pass the commands written after the program name.
    Return empty string if init successful, otherwise return error message */
-   virtual std::string init (Vector <std::string> vArg);
+   virtual std::string init (Vector <std::string>* vArg);
    
    virtual std::string render(); /* render at set framerate */
    virtual void cycle(); /* advance 1 game cycle */
@@ -54,8 +55,9 @@ class Program_Write: public Terminal_Program
    File * currentFile;
    
    Program_Write();
+   ~Program_Write();
    
-   std::string init (Vector <std::string> vArg) override;
+   std::string init (Vector <std::string>* vArg) override;
    
    std::string render() override;
    void cycle() override;

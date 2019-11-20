@@ -137,6 +137,9 @@ class Terminal: public GUI_Interface, public LogicTickInterface
    File fileManual; /* Basic operation manual */
    
    Vector <Terminal_Program*> vProgram;
+   
+   // Container to handle ANSI strings and provide Terminal output.
+   ANSI_Grid ansiGrid;
 
    public:
    
@@ -217,6 +220,8 @@ class Terminal: public GUI_Interface, public LogicTickInterface
    
    void sendPacket(std::string _currentConnection, std::string _command);
    void sendTerminalCommand(std::string _command);
+   
+   void shiftUp(int amount); //scroll the terminal down by shifting all characters up
 
    
    // void screenConnect(std::string _number1="", std::string _number2="")
