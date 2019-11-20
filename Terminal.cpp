@@ -131,6 +131,7 @@ void Terminal::clearScreen(bool forced) /* forced will instantly clear the scree
       for (int _x=0;_x<64;++_x)
       {
             aGlyphBacklog[_y][_x] = ' ';
+            ansiGrid.aGlyph[_y][_x]=' ';
             if ( forced )
             {
                 aGlyph[_y][_x] = ' ';
@@ -156,7 +157,7 @@ void Terminal::writeString(int _x, int _y, std::string _str, bool moveCursor)
    }
    cursorX=ansiGrid.cursorX;
    cursorY=ansiGrid.cursorY;
-   putCursor(ansiGrid.cursorX,ansiGrid.cursorY);
+   //putCursor(ansiGrid.cursorX,ansiGrid.cursorY);
 }
 
 void Terminal::loadChar()
@@ -231,58 +232,59 @@ void Terminal::randomFill()
 // Terminal only renders text, not any decoration.
 void Terminal::render()
 {
-
-   //loadChar();
+   
+    //loadChar();
    //loadChar();   
    loadChar2();
    loadChar2();
    loadChar2();
    loadChar2();
    
-   while (Random::oneIn(1000))
-   {
-      corrupt();
-   }
-
-   int centerX = panelX1 + (panelNX / 2);
-   int centerY = panelY1 + (panelNY / 2);
-
-// if (intro==0)
-// {
-   // randomFill();
-   // ++intro;
-// }
-// else
-// {
-   // introStep();
-// }
-//rainDemo();
-blinkCursor();
-
-if (dialTones.size() > 0)
-{
-   toneTimer.update();
+   blinkCursor();
    
-   if ( toneTimer.fullSeconds > 0.12)
-   { globalAudioPlayer.stopAllSounds();
-   }
-   
-   if (toneTimer.fullSeconds > 0.20)
+   for (int i=0;i<vProgram.size();++i)
    {
-      int nextTone = (int)dialTones[0]-48;
-
-      if ( nextTone >= 0 && nextTone <= 9)
-      { globalAudioPlayer.playSoundOnce(dialTone[nextTone]);
-      }
-      else if (dialTones[0] == 'R')
+      if (vProgram(i)->active)
       {
-         globalAudioPlayer.playSoundOnce(sRing);
+         clearScreen();
+         std::cout<<"Writing st\n";
+         //putCursor(0,0);
+         writeString(0,0,vProgram(i)->render());
+      }
+   }
+   
+   // while (Random::oneIn(1000))
+   // {
+      // corrupt();
+   // }
+
+   // int centerX = panelX1 + (panelNX / 2);
+   // int centerY = panelY1 + (panelNY / 2);
+
+   if (dialTones.size() > 0)
+   {
+      toneTimer.update();
+      
+      if ( toneTimer.fullSeconds > 0.12)
+      { globalAudioPlayer.stopAllSounds();
       }
       
-      toneTimer.start();
-      dialTones.erase(0,1);
+      if (toneTimer.fullSeconds > 0.20)
+      {
+         int nextTone = (int)dialTones[0]-48;
+
+         if ( nextTone >= 0 && nextTone <= 9)
+         { globalAudioPlayer.playSoundOnce(dialTone[nextTone]);
+         }
+         else if (dialTones[0] == 'R')
+         {
+            globalAudioPlayer.playSoundOnce(sRing);
+         }
+         
+         toneTimer.start();
+         dialTones.erase(0,1);
+      }
    }
-}
 
    //Update: Glyphs now render on a grid instead of using error-prone string.
    // Also foreground colour support added.
@@ -295,11 +297,15 @@ if (dialTones.size() > 0)
       }
    }
    
+
+   
    if (errorScreenActive)
    {
       clearScreen(true);
       errorScreen();
    }
+   
+
 
 }
 
@@ -409,6 +415,15 @@ bool Terminal::isSafe(int _x, int _y)
 
 bool Terminal::keyboardEvent(Keyboard* _keyboard)
 {
+   for (int i=0;i<vProgram.size();++i)
+   {
+      if (vProgram(i)->active)
+      {
+         vProgram(i)->keyboardEvent(_keyboard);
+         return true;
+      }
+   }
+   
    if (_keyboard->keyWasPressed)
    {
       std::cout<<"Keypress: "<<(int) _keyboard->lastKey<<".\n";
@@ -857,6 +872,10 @@ void Terminal::sendTerminalCommand(std::string _command)
 
 void Terminal::shiftUp(int amount)
 {
+   if (isSafe(cursorX,cursorY))
+   {
+      aGlyph[cursorY][cursorX] = ' ';
+   }
    
    for (int _x=0;_x<64;++_x)
    {

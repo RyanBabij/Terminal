@@ -12,7 +12,7 @@
 #define ABSOLUTE_COORDINATE_NULL ULONG_MAX // Used as null-value for absolute coordinates, which can't use negative value.
 
   // SYSTEM STRINGS
-const std::string VERSION = "0.0.025 Win32 dev";
+const std::string VERSION = "0.0.026 Win32 dev";
 const std::string G_WINDOW_TITLE = "Terminal";
 const std::string SAVE_FOLDER_PATH = "savedata";
 

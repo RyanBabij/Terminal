@@ -42,7 +42,7 @@ class Terminal_Program
    virtual std::string render(); /* render at set framerate */
    virtual void cycle(); /* advance 1 game cycle */
    
-   //virtual void keyboardEvent (Keyboard*);
+   virtual void keyboardEvent (Keyboard*);
 };
 
 /* Write allows the user to write documents and programs. They can write
@@ -53,6 +53,7 @@ class Program_Write: public Terminal_Program
    public:
    
    File * currentFile;
+   std::string temp;
    
    Program_Write();
    ~Program_Write();
@@ -62,6 +63,7 @@ class Program_Write: public Terminal_Program
    std::string render() override;
    void cycle() override;
    
+   void keyboardEvent (Keyboard*) override;
 };
 
 /* Program that allows reading of files. Can scroll up/down with arrows

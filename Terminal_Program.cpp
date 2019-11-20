@@ -26,12 +26,17 @@ std::string Terminal_Program::init (Vector <std::string>* vArg)
 
 std::string Terminal_Program::render()
 {
-   return "";
+   return "TEXT RETURN\n\nlol";
 }
  
  void Terminal_Program::cycle()
  {
  }
+ 
+void Terminal_Program::keyboardEvent (Keyboard* _keyboard)
+{
+   
+}
  
 Program_Write::Program_Write()
 {
@@ -59,6 +64,8 @@ std::string Program_Write::init (Vector <std::string>* vArg)
       std::cout<<"fname "<<_fileName<<".\n";
       if (_fileName.size() > 0 && DataTools::isAlphaNumeric(_fileName))
       {
+         active = true;
+         temp = "Hey this is a test";
          return "";
       }
       else
@@ -72,12 +79,30 @@ std::string Program_Write::init (Vector <std::string>* vArg)
 
 std::string Program_Write::render()
 {
-   return "";
+   return temp;
 }
 
 void Program_Write::cycle()
 {  
 }
+
+void Program_Write::keyboardEvent (Keyboard* _keyboard)
+{
+   if (_keyboard->keyWasPressed)
+   {
+      if ( _keyboard->isAlphaNumeric(_keyboard->lastKey) || _keyboard->lastKey == Keyboard::SPACE)
+      {
+         temp+=_keyboard->lastKey;
+          _keyboard->clearAll();
+      }
+      else if (_keyboard->lastKey == Keyboard::ENTER)
+      {
+         temp+='\n';
+         _keyboard->clearAll();
+      }
+   }
+}
+ 
 
 Program_Read::Program_Read()
 {
