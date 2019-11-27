@@ -140,6 +140,8 @@ class Terminal: public GUI_Interface, public LogicTickInterface
    
    // Container to handle ANSI strings and provide Terminal output.
    ANSI_Grid ansiGrid;
+   
+   std::string strMainConsole;
 
    public:
    
@@ -165,6 +167,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
    void randomFill();
 
    void render();
+   bool renderProgram();
    
    void putCursor(int, int);
    
@@ -187,7 +190,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 
    // Return a random character, but not a newline.
    char getRandomChar();
-   void bootSystem1();
+   
    void loadHelpScreen();
 
    

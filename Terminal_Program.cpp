@@ -100,6 +100,10 @@ void Program_Write::keyboardEvent (Keyboard* _keyboard)
          temp+='\n';
          _keyboard->clearAll();
       }
+      else if (_keyboard->lastKey == 19 ) // CTRL + S to save
+      {
+         active = false;
+      }
    }
 }
  

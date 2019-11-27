@@ -13,13 +13,14 @@ Terminal::Terminal()
    pGlyph = &aGlyph[0][0];
    pGlyphBacklog = &aGlyphBacklog[0][0];
    pCorrupt = &aCorrupt[0][0];
-   init();
-   bootSystem1();
+
    
    dialTones="";
    
    errorScreenActive=false;
    cursorVisible=true;
+   
+   init();
 }
 
 Terminal::~Terminal()
@@ -70,6 +71,9 @@ void Terminal::init()
   //load basic programs
   vProgram.clearPtr();
   vProgram.push(new Program_Write);
+  
+   strMainConsole = "                    *** SUDACHI SYSTEM 1 ***                    ";
+   strMainConsole+="WHITE TEXT \033[1;31mbold red text\033[0m\033[1;32mbold green text\033[0m\033[1;36mbold cyan text\033[0m WHITE TEXT";
 }
 
 void Terminal::loadAudio()
@@ -226,13 +230,26 @@ void Terminal::randomFill()
       if (pGlyph[i] == '\n' ) { pGlyph[i] = ' '; }
       pGlyphBacklog[i] = ' ';
    }
-   
+}
+
+bool Terminal::renderProgram()
+{
+   for (int i=0;i<vProgram.size();++i)
+   {
+      if (vProgram(i)->active)
+      {
+         clearScreen();
+         //putCursor(0,0);
+         writeString(0,0,vProgram(i)->render());
+         return true;
+      }
+   }
+   return false;
 }
 
 // Terminal only renders text, not any decoration.
 void Terminal::render()
 {
-   
     //loadChar();
    //loadChar();   
    loadChar2();
@@ -242,25 +259,16 @@ void Terminal::render()
    
    blinkCursor();
    
-   for (int i=0;i<vProgram.size();++i)
+   if (renderProgram() == false)
    {
-      if (vProgram(i)->active)
-      {
-         clearScreen();
-         std::cout<<"Writing st\n";
-         //putCursor(0,0);
-         writeString(0,0,vProgram(i)->render());
-      }
-   }
+      std::cout<<"Write main cons\n";
+     // putCursor(0,0);
+      writeString(0,0,strMainConsole);
+      std::cout<<"STRMAINCON: "<<strMainConsole<<".\n";
+      //writeString(0,0,"TEST");
+   }      
+
    
-   // while (Random::oneIn(1000))
-   // {
-      // corrupt();
-   // }
-
-   // int centerX = panelX1 + (panelNX / 2);
-   // int centerY = panelY1 + (panelNY / 2);
-
    if (dialTones.size() > 0)
    {
       toneTimer.update();
@@ -297,15 +305,11 @@ void Terminal::render()
       }
    }
    
-
-   
    if (errorScreenActive)
    {
       clearScreen(true);
       errorScreen();
    }
-   
-
 
 }
 
@@ -380,6 +384,9 @@ void Terminal::hideCursor()
 
 void Terminal::typeChar (char c)
 {
+   strMainConsole += c;
+   
+   
    // Make sure we're on an input space before we type.
    if (isSafe(cursorX,cursorY) && isSafe(cursorX+1,cursorY))
    {
@@ -442,7 +449,6 @@ bool Terminal::keyboardEvent(Keyboard* _keyboard)
       else if (_keyboard->lastKey == 18) /* CTRL + R */
       {
          init();
-         bootSystem1();
       }
       else if (_keyboard->lastKey == 19)
       {
@@ -522,13 +528,6 @@ char Terminal::getRandomChar()
    char randChar = Random::randomInt(127);
    if (randChar == '\n') { return ' '; }
    return randChar;
-}
-
-void Terminal::bootSystem1()
-{
-   randomFill();
-   writeString(0,0,"                    *** SUDACHI SYSTEM 1 ***                    ");
-   writeString(0,1,"WHITE TEXT \033[1;31mbold red text\033[0m\033[1;32mbold green text\033[0m\033[1;36mbold cyan text\033[0m WHITE TEXT");
 }
 
 void Terminal::loadHelpScreen()
@@ -761,7 +760,6 @@ void Terminal::sendTerminalCommand(std::string _command)
    else if (command == "REBOOT" || command == "RESET")
    {
       init();
-      bootSystem1();
    }
    else if (command == "SHUTDOWN" || command == "POWEROFF")
    {
