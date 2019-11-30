@@ -72,8 +72,8 @@ void Terminal::init()
   vProgram.clearPtr();
   vProgram.push(new Program_Write);
   
-   strMainConsole = "                    *** SUDACHI SYSTEM 1 ***                    ";
-   strMainConsole+="WHITE TEXT \033[1;31mbold red text\033[0m\033[1;32mbold green text\033[0m\033[1;36mbold cyan text\033[0m WHITE TEXT";
+   strMainConsole = "                    *** SUDACHI SYSTEM 1 ***                    \n";
+
 }
 
 void Terminal::loadAudio()
@@ -261,11 +261,7 @@ void Terminal::render()
    
    if (renderProgram() == false)
    {
-      std::cout<<"Write main cons\n";
-     // putCursor(0,0);
-      writeString(0,0,strMainConsole);
-      std::cout<<"STRMAINCON: "<<strMainConsole<<".\n";
-      //writeString(0,0,"TEST");
+      writeString(0,0,strMainConsole,true);
    }      
 
    
@@ -401,18 +397,24 @@ void Terminal::typeChar (char c)
 
 void Terminal::backspace()
 {
-   if (isSafe(cursorX-1,cursorY))
+   if ( strMainConsole[strMainConsole.size()-1] != '\n')
    {
-      putCursor(cursorX-1,cursorY);
-      aGlyph[cursorY][cursorX+1] = ' ';
-      aGlyphBacklog[cursorY][cursorX+1] = ' ';
-      ansiGrid.aGlyph[cursorY][cursorX+1]= ' ';
+      strMainConsole.pop_back();
       
-      if ( command.size () > 0 )
-      { command = command.substr(0, command.size()-1);
+      if (isSafe(cursorX-1,cursorY))
+      {
+         putCursor(cursorX-1,cursorY);
+         aGlyph[cursorY][cursorX+1] = ' ';
+         aGlyphBacklog[cursorY][cursorX+1] = ' ';
+         ansiGrid.aGlyph[cursorY][cursorX+1]= ' ';
+         
+         if ( command.size () > 0 )
+         { command = command.substr(0, command.size()-1);
+         }
+         
       }
-      
    }
+
 }
 
 bool Terminal::isSafe(int _x, int _y)
@@ -465,6 +467,7 @@ bool Terminal::keyboardEvent(Keyboard* _keyboard)
       // Get whatever the user typed.
       else if (_keyboard->lastKey == Keyboard::ENTER )
       {
+         strMainConsole+='\n';
          newLine();
          // Convert string to upper case
          for (auto & c: command) c = toupper(c);
@@ -774,7 +777,7 @@ void Terminal::sendTerminalCommand(std::string _command)
       
       if (vToken->size() == 1)
       {
-         std::cout<<"Connect must have argument.\n";
+         strMainConsole+="\033[1;31mDestination number required\033[0m\n";
       }
       else if (vToken->size() == 2)
       {
@@ -812,17 +815,18 @@ void Terminal::sendTerminalCommand(std::string _command)
             }
             else
             {
-               std::cout<<"ERROR: Dial number must be 7 or 10 digits, no spaces.\n";
+               strMainConsole+="\033[1;31mDestination number must be 7 or 10 digits, no spaces.\033[0m\n";
             }
          }
          else
          {
-            std::cout<<"Error: Arg must be number.\n";
+            strMainConsole+="\033[1;31mParameter must be a number.\033[0m\n";
+            strMainConsole+="\033[1;31mParameter must be a number.\033[0m\n";
          }
       }
       else
       {
-         std::cout<<"Bad args\n";
+         strMainConsole+="\033[1;31mError.\033[0m\n";
       }
       //screenConnect("","");   
       //command = "";
@@ -845,9 +849,10 @@ void Terminal::sendTerminalCommand(std::string _command)
             {
                writeString(cursorX,cursorY,strReturn);
             }
-            
+            return;
          }
       }
+      strMainConsole+="\033[1;31mUnknown command \033[0m"+command+"\n";
    }
             
       // if (command == "MAIL")
