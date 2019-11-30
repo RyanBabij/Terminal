@@ -97,6 +97,8 @@ class File
 
 #include "Terminal_Program.hpp"
 
+// This needs to become timer-based
+#define TERM_GLYPH_DELAY 4
 
 class Terminal: public GUI_Interface, public LogicTickInterface
 {
@@ -109,6 +111,9 @@ class Terminal: public GUI_Interface, public LogicTickInterface
    
    char aCorrupt[48][64]; /* corrupted characters go here */
    char* pCorrupt;
+   
+   short int aGlyphDelay[48][64]; /* number of random glyphs to cycle before displaying correct one. */
+   short int * pGlyphDelay;
    
    Colour foregroundColour [48][64]; /* Keep track of colour for this glyph */
    
@@ -162,7 +167,10 @@ class Terminal: public GUI_Interface, public LogicTickInterface
    
    void corrupt();
    
-   void loadChar2();
+   void loadChar2(int nIterations = 1);
+   
+   // Cycles character through TERM_GLYPH_DELAY random characters before using the correct one
+   void loadChar3();
    
    void randomFill();
 

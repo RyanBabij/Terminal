@@ -13,6 +13,7 @@ Terminal::Terminal()
    pGlyph = &aGlyph[0][0];
    pGlyphBacklog = &aGlyphBacklog[0][0];
    pCorrupt = &aCorrupt[0][0];
+   pGlyphDelay = &aGlyphDelay[0][0];
 
    
    dialTones="";
@@ -39,6 +40,7 @@ void Terminal::init()
             aGlyph[_y][_x] = ' ';
             aGlyphBacklog[_y][_x] = ' ';
             aCorrupt[_y][_x] = ' ';
+            aGlyphDelay[_y][_x]=TERM_GLYPH_DELAY;
       }
    }
 
@@ -146,7 +148,7 @@ void Terminal::clearScreen(bool forced) /* forced will instantly clear the scree
 }
 
 void Terminal::writeString(int _x, int _y, std::string _str, bool moveCursor)
-{
+{   
    ansiGrid.cursorX=_x;
    ansiGrid.cursorY=_y;
    ansiGrid.read(_str);
@@ -207,16 +209,45 @@ void Terminal::corrupt()
 
 //Variant which loads all of screen at once, but cycles each character through the
 // character table until it hits the right one.
-void Terminal::loadChar2()
+// This should cycle through random chars to get consistent timing.
+void Terminal::loadChar2(int nIterations /* =1 */)
 {
-   // fill terminal with random glyphs.
+   for (int i2=0;i2<nIterations;++i2)
+   {
+      // fill terminal with random glyphs.
+      for (int i=0;i<3072;++i)
+      {
+         if (pGlyph[i] != pGlyphBacklog[i])
+         {
+            pGlyph[i]++;
+            if (pGlyph[i] < 0) { pGlyph[i]=0; }
+            if (pGlyph[i] == '\n') { pGlyph[i]++; }
+         }
+      }
+   }
+}
+
+//Variant which loads all of screen at once, but cycles each character through the
+// TERM_GLYPH_DELAY random characters before hitting the right one
+void Terminal::loadChar3()
+{
    for (int i=0;i<3072;++i)
    {
       if (pGlyph[i] != pGlyphBacklog[i])
       {
-         pGlyph[i]++;
-         if (pGlyph[i] < 0) { pGlyph[i]=0; }
-         if (pGlyph[i] == '\n') { pGlyph[i]++; }
+         if ( pGlyphDelay[i]==0 )
+         {
+            pGlyph[i] = pGlyphBacklog[i];
+            pGlyphDelay[i]=TERM_GLYPH_DELAY;
+         }
+         else
+         {
+            pGlyphDelay[i]--;
+            unsigned char randGlyph = Random::randomInt(253);
+            if (randGlyph == '\n') { randGlyph=255; }
+            if (randGlyph == pGlyphBacklog[i]) { randGlyph=254; }
+            pGlyph[i]=randGlyph;
+         }
       }
    }
 }
@@ -252,10 +283,7 @@ void Terminal::render()
 {
     //loadChar();
    //loadChar();   
-   loadChar2();
-   loadChar2();
-   loadChar2();
-   loadChar2();
+   loadChar3();
    
    blinkCursor();
    
@@ -847,7 +875,8 @@ void Terminal::sendTerminalCommand(std::string _command)
             
             if ( strReturn != "")
             {
-               writeString(cursorX,cursorY,strReturn);
+               writeString(cursorX,cursorY,strReturn,true);
+               strMainConsole+=strReturn;
             }
             return;
          }
