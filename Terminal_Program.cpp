@@ -12,6 +12,7 @@
 
 Terminal_Program::Terminal_Program()
 {
+   active=false;
    programName="";
 }
 
