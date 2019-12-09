@@ -94,7 +94,7 @@ void Program_Write::keyboardEvent (Keyboard* _keyboard)
       if ( _keyboard->isAlphaNumeric(_keyboard->lastKey) || _keyboard->lastKey == Keyboard::SPACE)
       {
          temp+=_keyboard->lastKey;
-          _keyboard->clearAll();
+         _keyboard->clearAll();
       }
       else if (_keyboard->lastKey == Keyboard::ENTER)
       {
@@ -104,6 +104,15 @@ void Program_Write::keyboardEvent (Keyboard* _keyboard)
       else if (_keyboard->lastKey == 19 ) // CTRL + S to save
       {
          active = false;
+      }
+      else if (_keyboard->lastKey == 8 ) // Backspace
+      {
+         if ( temp.size()>0)
+         {
+            temp.pop_back();
+         }
+         _keyboard->clearAll();
+         
       }
    }
 }
