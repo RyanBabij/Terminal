@@ -73,6 +73,7 @@ void Terminal::init()
   //load basic programs
   vProgram.clearPtr();
   vProgram.push(new Program_Write);
+  vProgram.push(new Program_Run);
   
    strMainConsole = "                    *** SUDACHI SYSTEM 1 ***                    \n";
 

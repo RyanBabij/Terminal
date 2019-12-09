@@ -5,7 +5,9 @@
 /* Terminal: Terminal_Program
    #include "Terminal_Program.cpp"
    
-*/ 
+*/
+
+#include <File/FileManagerStatic.hpp>
 
 #include "Terminal_Program.hpp"
 #include "Terminal.hpp"
@@ -61,16 +63,24 @@ std::string Program_Write::init (Vector <std::string>* vArg)
    }
    else
    {
+      temp="";
       std::string _fileName = (*vArg)(1);
-      std::cout<<"fname "<<_fileName<<".\n";
       if (_fileName.size() > 0 && DataTools::isAlphaNumeric(_fileName))
       {
          active = true;
-         temp = "Hey this is a test";
+         fileName=_fileName;
+         
+         if (FileManagerStatic::fileExists("storage/"+fileName))
+         {
+            temp = FileManagerStatic::load("storage/"+fileName);
+         }
          return "";
       }
       else
       {
+         temp="";
+         fileName="";
+         active=false;
          return "ERROR: FILENAME MUST BE ALPHANUMERIC\n";
       }
    }
@@ -103,6 +113,9 @@ void Program_Write::keyboardEvent (Keyboard* _keyboard)
       }
       else if (_keyboard->lastKey == 19 ) // CTRL + S to save
       {
+         std::string savePath = "storage/"+fileName;
+         std::cout<<"Saving file as "<<savePath<<".\n";
+         FileManagerStatic::writeFreshString(temp,savePath);
          active = false;
       }
       else if (_keyboard->lastKey == 8 ) // Backspace
@@ -127,6 +140,29 @@ Program_Read::Program_Read()
 std::string Program_Read::render()
 {
    //if ( fileToRead==0 || terminal==0 )
+   if ( fileToRead==0 )
+   {
+      return "";
+   }
+   
+   //RENDER THE OUTPUT.
+   //terminal->writeString(0,0,"AYY LMAO");
+   return "AYY LMAO";
+}
+
+Program_Run::Program_Run()
+{
+   programName="RUN";
+   fileToRead=0;
+}
+
+std::string Program_Run::init (Vector <std::string>* vArg)
+{
+   return "";
+}
+
+std::string Program_Run::render()
+{
    if ( fileToRead==0 )
    {
       return "";

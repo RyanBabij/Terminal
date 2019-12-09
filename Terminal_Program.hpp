@@ -54,6 +54,7 @@ class Program_Write: public Terminal_Program
    
    File * currentFile;
    std::string temp;
+   std::string fileName;
    
    Program_Write();
    ~Program_Write();
@@ -75,6 +76,20 @@ class Program_Read: public Terminal_Program
    File* fileToRead;
    
    Program_Read();
+   
+   std::string render() override;
+
+};
+
+/* Program that interprets files containing EASI language */
+class Program_Run: public Terminal_Program
+{
+   public:
+   
+   File* fileToRead;
+   
+   Program_Run();
+   std::string init (Vector <std::string>* vArg);
    
    std::string render() override;
 
