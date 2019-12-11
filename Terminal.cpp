@@ -75,6 +75,7 @@ void Terminal::init()
    vProgram.push(new Program_Write);
    vProgram.push(new Program_Run);
 
+   clearScreen();
    strMainConsole = "                    *** SUDACHI SYSTEM 1 ***                    \n";
 
 }
@@ -269,9 +270,22 @@ bool Terminal::renderProgram()
    {
       if (vProgram(i)->active)
       {
-         clearScreen();
+         if ( vProgram(i)->graphicsMode )
+         {
+            clearScreen();
+            strMainConsole = vProgram(i)->render();
+         }
+         else // ASCII mode
+         {
+            strMainConsole += vProgram(i)->render();
+         }
+         
+         
+         //clearScreen();
          //putCursor(0,0);
-         writeString(0,0,vProgram(i)->render());
+         //strMainConsole+=".";
+         
+         //writeString(0,0,vProgram(i)->render());
          return true;
       }
    }
@@ -408,7 +422,7 @@ bool Terminal::typeChar (const unsigned char c)
 {
    //if ( _keyboard->isAlphaNumeric(_keyboard->lastKey) || _keyboard->lastKey == Keyboard::SPACE)
   
-   std::string allowedInputs = "!@#$%^&*()\"\'";
+   std::string allowedInputs = " !@#$%^&*()\"\'";
 
    if (DataTools::isAlphaNumeric(c) || allowedInputs.find(c) != std::string::npos)
    {

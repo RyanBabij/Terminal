@@ -17,6 +17,7 @@ Terminal_Program::Terminal_Program()
 {
    active=false;
    programName="";
+   graphicsMode=false;
 }
 
 Terminal_Program::~Terminal_Program()
@@ -44,6 +45,7 @@ void Terminal_Program::keyboardEvent (Keyboard* _keyboard)
  
 Program_Write::Program_Write()
 {
+   graphicsMode=true;
    programName="WRITE";
 }
 
@@ -100,11 +102,13 @@ void Program_Write::cycle()
 
 void Program_Write::keyboardEvent (Keyboard* _keyboard)
 {
+   std::string allowedInputs = " !@#$%^&*()\"\'";
    if (_keyboard->keyWasPressed)
    {
-      if ( _keyboard->isAlphaNumeric(_keyboard->lastKey) || _keyboard->lastKey == Keyboard::SPACE)
+      unsigned char c = _keyboard->lastKey;
+      if (DataTools::isAlphaNumeric(c) || allowedInputs.find(c) != std::string::npos)
       {
-         temp+=_keyboard->lastKey;
+         temp += c;
          _keyboard->clearAll();
       }
       else if (_keyboard->lastKey == Keyboard::ENTER)
@@ -137,6 +141,7 @@ void Program_Write::keyboardEvent (Keyboard* _keyboard)
 
 Program_Read::Program_Read()
 {
+   graphicsMode=true;
    programName="READ";
    fileToRead=0;
 }
@@ -156,12 +161,18 @@ std::string Program_Read::render()
 
 Program_Run::Program_Run()
 {
+   graphicsMode=true;
    programName="RUN";
    fileToRead=0;
+   currentLine=0;
+   output="";
+   vLine=0;
 }
 
 std::string Program_Run::init (Vector <std::string>* vArg)
 {
+   std::cout<<"RUN INIT\n";
+   output="";
    active=false;
    if (vArg==0)
    {
@@ -178,15 +189,45 @@ std::string Program_Run::init (Vector <std::string>* vArg)
       std::string _fileName = (*vArg)(1);
       if (_fileName.size() > 0 && DataTools::isAlphaNumeric(_fileName))
       {
-         programName=_fileName;
+         fileName=_fileName;
          
-         if (FileManagerStatic::fileExists("storage/"+programName))
+         if (FileManagerStatic::fileExists("storage/"+fileName))
          {
-            fileContent = FileManagerStatic::load("storage/"+programName);
+            fileContent = FileManagerStatic::load("storage/"+fileName);
             if (fileContent.size()>0)
             {
+               
                active=true;
-               return "RUNNING PROGRAM\n";
+               currentLine=0;
+               
+               //EASI CODE MUST ALWAYS BE IN  U P P E R C A S E
+               for (auto & c: fileContent) c = toupper(c);
+               
+               // TOKENIZE CODE INTO LINES BY NEWLINE
+               // TOKENISE EACH LINE INTO INSTRUCTIONS BY SPACES
+               
+               if ( vLine )
+               {
+                  vLine->clear();
+                  delete vLine;
+               }
+
+               vLine = Tokenize::tokenize(fileContent,'\n');
+               
+               if ( vLine==0 )
+               {
+                  std::cout<<"ERROR: NO TOKENISE\n";
+                  active=false;
+                  currentLine=0;
+                  return "";
+               }
+               
+               for (int i=0;i<vLine->size();++i)
+               {
+                  std::cout<<i<<" "<<(*vLine)(i)<<"\n";
+               }
+               output="RUNNING PROGRAM\n";
+               return output;
             }
          }
          return "ERROR: FILE DOESN'T EXIST\n";
@@ -194,7 +235,7 @@ std::string Program_Run::init (Vector <std::string>* vArg)
       else
       {
          fileContent="";
-         programName="";
+         fileName="";
          active=false;
          return "ERROR: FILENAME MUST BE ALPHANUMERIC\n";
       }
@@ -203,10 +244,84 @@ std::string Program_Run::init (Vector <std::string>* vArg)
    return "NO U\n";
 }
 
+void Program_Run::cycle()
+{
+   std::cout<<"RUN CYCLE\n";
+   
+   //output+="CYCLE\n";
+   
+   if (vLine==0)
+   {
+      std::cout<<"Error: No code vector\n";
+      active=false;
+      currentLine=0;
+      return;
+   }
+   
+   if ( currentLine >= vLine->size() )
+   {
+      std::cout<<"EXECUTION FINISHED\n";
+      active=false;
+      currentLine=0;
+      return;
+   }
+   
+   std::cout<<"Executing line "<<currentLine<<": "<<(*vLine)(currentLine)<<"\n";
+   
+   Vector <std::string> * vToken = Tokenize::tokenize((*vLine)(currentLine),' ');
+   
+   std::cout<<"Tokenized:\n";
+   for (int i=0;i<vToken->size();++i)
+   {
+      std::cout<<(*vToken)(i)<<"\n";
+   }
+   
+   if ( vToken->size()>0)
+   {
+      // we have at least a basic instruction
+      
+      if ( (*vToken)(0) == "PRINT" )
+      {
+         std::cout<<"PRINT FOUND\n";
+         
+         if ( vToken->size() >= 2 )
+         {
+            std::cout<<"PRINTING: "<<(*vToken)(1)<<".\n";
+            output += (*vToken)(1)+"\n"; 
+         }
+         else
+         {
+            // RETURN ERROR
+            output += "ERROR";
+            //error("ERROR");
+         }
+      }
+      
+      
+   }
+   
+   ++currentLine;
+   
+
+}
+
+void Program_Run::execute(int lineNumber)
+{
+   
+}
+
 std::string Program_Run::render()
 {
    // interpret and run program here.
-   return "AYY LMAO";
+   
+   if (active)
+   {
+      cycle();
+      std::cout<<"Current render state: "<<output<<"\n";
+      return output;
+   }
+   
+   return output;
 }
 
 Program_Breakout::Program_Breakout()

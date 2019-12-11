@@ -29,6 +29,9 @@ class Terminal_Program
    public:
    bool active; /* true means the program is running */
    //Terminal* terminal;
+      /* If true, Terminal will constantly refresh render,
+         otherwise render calls will be cumulative */
+   bool graphicsMode;
    
    std::string programName;
    
@@ -88,11 +91,21 @@ class Program_Run: public Terminal_Program
    
    File* fileToRead;
    std::string fileContent;
+   int currentLine;
+   
+   std::string fileName;
+   std::string output; /* Program output, typically from PRINT */
+   
+   Vector <std::string> * vLine;
    
    Program_Run();
    std::string init (Vector <std::string>* vArg) override;
    
    std::string render() override;
+   
+   //run the code for 1 emulated cycle returns possible output
+   void cycle() override;
+   void execute(int lineNumber);
 
 };
 
