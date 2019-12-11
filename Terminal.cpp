@@ -404,20 +404,29 @@ void Terminal::hideCursor()
    }
 }
 
-void Terminal::typeChar (char c)
+bool Terminal::typeChar (const unsigned char c)
 {
-   strMainConsole += c;
+   //if ( _keyboard->isAlphaNumeric(_keyboard->lastKey) || _keyboard->lastKey == Keyboard::SPACE)
+  
+   std::string allowedInputs = "!@#$%^&*()\"\'";
 
-   // Make sure we're on an input space before we type.
-   if (isSafe(cursorX,cursorY) && isSafe(cursorX+1,cursorY))
+   if (DataTools::isAlphaNumeric(c) || allowedInputs.find(c) != std::string::npos)
    {
-      putCursor(cursorX+1,cursorY);
-      aGlyph[cursorY][cursorX-1] = c;
-      aGlyphBacklog[cursorY][cursorX-1] = c;
+      strMainConsole += c;
+      
+      // Make sure we're on an input space before we type.
+      if (isSafe(cursorX,cursorY) && isSafe(cursorX+1,cursorY))
+      {
+         putCursor(cursorX+1,cursorY);
+         aGlyph[cursorY][cursorX-1] = c;
+         aGlyphBacklog[cursorY][cursorX-1] = c;
 
-      ansiGrid.aGlyph[cursorY][cursorX-1]=c;
-      command+=c;
+         ansiGrid.aGlyph[cursorY][cursorX-1]=c;
+         command+=c;
+         return true;
+      }
    }
+   return false;
 }
 
 void Terminal::backspace()
@@ -442,7 +451,7 @@ void Terminal::backspace()
 
 bool Terminal::isSafe(int _x, int _y)
 {
-return ( _x >= 0 && _x <= 63 && _y  >= 0 && _y <= 47);
+   return ( _x >= 0 && _x <= 63 && _y  >= 0 && _y <= 47);
 }
 
 bool Terminal::keyboardEvent(Keyboard* _keyboard)
@@ -460,8 +469,8 @@ bool Terminal::keyboardEvent(Keyboard* _keyboard)
    {
    std::cout<<"Keypress: "<<(int) _keyboard->lastKey<<".\n";
 
-   if ( _keyboard->isAlphaNumeric(_keyboard->lastKey) || _keyboard->lastKey == Keyboard::SPACE)
-   { typeChar(_keyboard->lastKey); }
+   if ( typeChar(_keyboard->lastKey))
+   {  }
    else if (_keyboard->lastKey == 96) /* TILDE */
    {
       debugConsole=!debugConsole;

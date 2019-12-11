@@ -183,7 +183,8 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 
    void hideCursor();
 
-   void typeChar (char);
+   // put char onto Terminal screen. Returns false if the char is not typable.
+   bool typeChar (unsigned char);
 
    void backspace();
 
