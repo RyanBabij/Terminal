@@ -8,6 +8,7 @@
 */
 
 #include <File/FileManagerStatic.hpp>
+#include <File/FileManager.hpp>
 
 #include "Terminal_Program.hpp"
 #include "Terminal.hpp"
@@ -115,6 +116,9 @@ void Program_Write::keyboardEvent (Keyboard* _keyboard)
       {
          std::string savePath = "storage/"+fileName;
          std::cout<<"Saving file as "<<savePath<<".\n";
+         
+         FileManager::createDirectory("storage");
+         
          FileManagerStatic::writeFreshString(temp,savePath);
          active = false;
       }
@@ -158,18 +162,50 @@ Program_Run::Program_Run()
 
 std::string Program_Run::init (Vector <std::string>* vArg)
 {
-   return "";
+   active=false;
+   if (vArg==0)
+   {
+      return "INTERNAL ERROR: NULL ARGS\n";
+   }
+   
+   if (vArg->size()<2)
+   {
+      return "Error: No filename specified\n";
+   }
+   else
+   {
+      fileContent="";
+      std::string _fileName = (*vArg)(1);
+      if (_fileName.size() > 0 && DataTools::isAlphaNumeric(_fileName))
+      {
+         programName=_fileName;
+         
+         if (FileManagerStatic::fileExists("storage/"+programName))
+         {
+            fileContent = FileManagerStatic::load("storage/"+programName);
+            if (fileContent.size()>0)
+            {
+               active=true;
+               return "RUNNING PROGRAM\n";
+            }
+         }
+         return "ERROR: FILE DOESN'T EXIST\n";
+      }
+      else
+      {
+         fileContent="";
+         programName="";
+         active=false;
+         return "ERROR: FILENAME MUST BE ALPHANUMERIC\n";
+      }
+   }
+   
+   return "NO U\n";
 }
 
 std::string Program_Run::render()
 {
-   if ( fileToRead==0 )
-   {
-      return "";
-   }
-   
-   //RENDER THE OUTPUT.
-   //terminal->writeString(0,0,"AYY LMAO");
+   // interpret and run program here.
    return "AYY LMAO";
 }
 

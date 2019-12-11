@@ -87,9 +87,10 @@ class Program_Run: public Terminal_Program
    public:
    
    File* fileToRead;
+   std::string fileContent;
    
    Program_Run();
-   std::string init (Vector <std::string>* vArg);
+   std::string init (Vector <std::string>* vArg) override;
    
    std::string render() override;
 
