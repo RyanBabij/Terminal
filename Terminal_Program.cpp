@@ -93,6 +93,7 @@ std::string Program_Write::init (Vector <std::string>* vArg)
 
 std::string Program_Write::render()
 {
+   std::cout<<"WRITE RENDER STATE: \n"<<temp<<"\n";
    return temp;
 }
 
@@ -161,7 +162,7 @@ std::string Program_Read::render()
 
 Program_Run::Program_Run()
 {
-   graphicsMode=true;
+   graphicsMode=true; //We need to convert this to ASCII mode
    programName="RUN";
    fileToRead=0;
    currentLine=0;

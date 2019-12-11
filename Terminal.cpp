@@ -146,11 +146,12 @@ void Terminal::clearScreen(bool forced) /* forced will instantly clear the scree
          }
       }
    }
-   command="";
+   //command="";
+   //strMainConsole="";
 }
 
 void Terminal::writeString(int _x, int _y, std::string _str, bool moveCursor)
-{   
+{
    ansiGrid.cursorX=_x;
    ansiGrid.cursorY=_y;
    ansiGrid.read(_str);
@@ -268,16 +269,24 @@ bool Terminal::renderProgram()
 {
    for (int i=0;i<vProgram.size();++i)
    {
+      // WE NEED 2 STRINGS:
+      // ASCII MODE STRING AND GRAPHICS MODE STRING
+      // WE ALSO NEED TO HANDLE PROGRAM EXIT (OR MAYBE NOT NECESSARY
+      // IF USING A GRAPHICS BUFFER)
       if (vProgram(i)->active)
       {
          if ( vProgram(i)->graphicsMode )
          {
             clearScreen();
             strMainConsole = vProgram(i)->render();
+            //writeString(0,0,vProgram(i)->render(),true);
+            writeString(0,0,strMainConsole,true);
          }
          else // ASCII mode
          {
+            clearScreen();
             strMainConsole += vProgram(i)->render();
+            writeString(0,0,strMainConsole,true);
          }
          
          
@@ -301,10 +310,6 @@ void Terminal::render()
 
    blinkCursor();
 
-   if (renderProgram() == false)
-   {
-      writeString(0,0,strMainConsole,true);
-   }      
 
 
    if (dialTones.size() > 0)
@@ -331,6 +336,14 @@ void Terminal::render()
          dialTones.erase(0,1);
       }
    }
+   
+   if (renderProgram() == false)
+   {
+      clearScreen();
+      std::cout<<"STRMAINCONS: "<<strMainConsole<<"\n";
+      writeString(0,0,strMainConsole,true);
+   }
+
 
    //Update: Glyphs now render on a grid instead of using error-prone string.
    // Also foreground colour support added.
@@ -889,7 +902,7 @@ void Terminal::sendTerminalCommand(std::string _command)
 
             if ( strReturn != "")
             {
-               writeString(cursorX,cursorY,strReturn,true);
+               //writeString(cursorX,cursorY,strReturn,true);
                strMainConsole+=strReturn;
             }
             return;
