@@ -3,7 +3,7 @@
 #define TERMINAL_TERMINAL_CPP
 
 /* Terminal: Terminal
-   #include "Terminal.cpp"
+#include "Terminal.cpp"
 */
 
 #include "Terminal.hpp"
@@ -15,12 +15,12 @@ Terminal::Terminal()
    pCorrupt = &aCorrupt[0][0];
    pGlyphDelay = &aGlyphDelay[0][0];
 
-   
+
    dialTones="";
-   
+
    errorScreenActive=false;
    cursorVisible=true;
-   
+
    init();
 }
 
@@ -37,10 +37,10 @@ void Terminal::init()
    {
       for (int _x=0;_x<64;++_x)
       {
-            aGlyph[_y][_x] = ' ';
-            aGlyphBacklog[_y][_x] = ' ';
-            aCorrupt[_y][_x] = ' ';
-            aGlyphDelay[_y][_x]=TERM_GLYPH_DELAY;
+         aGlyph[_y][_x] = ' ';
+         aGlyphBacklog[_y][_x] = ' ';
+         aCorrupt[_y][_x] = ' ';
+         aGlyphDelay[_y][_x]=TERM_GLYPH_DELAY;
       }
    }
 
@@ -56,25 +56,25 @@ void Terminal::init()
    currentConnection="";
    errorScreenActive=false;
    cursorVisible=true;
-   
+
    loadX=0; loadY=0;
-   
+
    putCursor(0,0);
    //bootSystem1();
-   
+
    frameRateTimer.init();
    frameRateTimer.start();
-   
+
    loadAudio();
-   
-  fileManual.filename = "manual.txt";
-  vFile.push(&fileManual);
-  
-  //load basic programs
-  vProgram.clearPtr();
-  vProgram.push(new Program_Write);
-  vProgram.push(new Program_Run);
-  
+
+   fileManual.filename = "manual.txt";
+   vFile.push(&fileManual);
+
+   //load basic programs
+   vProgram.clearPtr();
+   vProgram.push(new Program_Write);
+   vProgram.push(new Program_Run);
+
    strMainConsole = "                    *** SUDACHI SYSTEM 1 ***                    \n";
 
 }
@@ -83,13 +83,13 @@ void Terminal::loadAudio()
 {
    globalAudioPlayer.init();
    globalAudioPlayer.globalVolume=25;
-      
+
    Wav w1;
    w1.readFile("wav/1.wav");
-   
+
    Wav w2;
    w2.readFile("wav/2.wav");
-   
+
    Wav w3;
    w3.readFile("wav/3.wav");
 
@@ -113,7 +113,7 @@ void Terminal::loadAudio()
 
    Wav w0;
    w0.readFile("wav/0.wav");
-   
+
    Wav wRing;
    wRing.readFile("wav/ringtone.wav");
    sRing = wRing.toSound();
@@ -137,12 +137,12 @@ void Terminal::clearScreen(bool forced) /* forced will instantly clear the scree
    {
       for (int _x=0;_x<64;++_x)
       {
-            aGlyphBacklog[_y][_x] = ' ';
-            ansiGrid.aGlyph[_y][_x]=' ';
-            if ( forced )
-            {
-                aGlyph[_y][_x] = ' ';
-            }
+         aGlyphBacklog[_y][_x] = ' ';
+         ansiGrid.aGlyph[_y][_x]=' ';
+         if ( forced )
+         {
+            aGlyph[_y][_x] = ' ';
+         }
       }
    }
    command="";
@@ -158,8 +158,8 @@ void Terminal::writeString(int _x, int _y, std::string _str, bool moveCursor)
    {
       for (int _x2=0;_x2<64;++_x2)
       {
-            aGlyphBacklog[_y2][_x2] = ansiGrid.aGlyph[_y2][_x2];
-            foregroundColour[_y2][_x2] = ansiGrid.aColour[_y2][_x2];
+         aGlyphBacklog[_y2][_x2] = ansiGrid.aGlyph[_y2][_x2];
+         foregroundColour[_y2][_x2] = ansiGrid.aColour[_y2][_x2];
       }
    }
    cursorX=ansiGrid.cursorX;
@@ -172,7 +172,6 @@ void Terminal::loadChar()
    int maxSkip = 10;
    while (maxSkip-- > 0)
    {
-      
       if ( isSafe(loadX,loadY) )
       {
          if ( aGlyph[loadY][loadX] != aGlyphBacklog[loadY][loadX] )
@@ -200,7 +199,7 @@ void Terminal::corrupt()
 {
    int rY = Random::randomInt(47);
    int rX = Random::randomInt(63);
-   
+
    aGlyph[rY][rX]-= Random::randomInt(10);
    if (aGlyph[rY][rX] < 0)
    {
@@ -282,26 +281,26 @@ bool Terminal::renderProgram()
 // Terminal only renders text, not any decoration.
 void Terminal::render()
 {
-    //loadChar();
+   //loadChar();
    //loadChar();   
    loadChar3();
-   
+
    blinkCursor();
-   
+
    if (renderProgram() == false)
    {
       writeString(0,0,strMainConsole,true);
    }      
 
-   
+
    if (dialTones.size() > 0)
    {
       toneTimer.update();
-      
+
       if ( toneTimer.fullSeconds > 0.12)
       { globalAudioPlayer.stopAllSounds();
       }
-      
+
       if (toneTimer.fullSeconds > 0.20)
       {
          int nextTone = (int)dialTones[0]-48;
@@ -313,7 +312,7 @@ void Terminal::render()
          {
             globalAudioPlayer.playSoundOnce(sRing);
          }
-         
+
          toneTimer.start();
          dialTones.erase(0,1);
       }
@@ -326,16 +325,15 @@ void Terminal::render()
    {
       for (int _x=0;_x<64;++_x)
       {
-            font8x8.putChar(aGlyph[_y][_x],panelX1+(10*_x),panelY2-(10*_y),foregroundColour[_y][_x]);
+         font8x8.putChar(aGlyph[_y][_x],panelX1+(10*_x),panelY2-(10*_y),foregroundColour[_y][_x]);
       }
    }
-   
+
    if (errorScreenActive)
    {
       clearScreen(true);
       errorScreen();
    }
-
 }
 
 // Simply placing the cursor over a glyph will erase it, which is kinda cool
@@ -347,7 +345,7 @@ void Terminal::putCursor(int _x, int _y)
       aGlyphBacklog[cursorY][cursorX] = ' ';
       ansiGrid.aGlyph[cursorY][cursorX] = ' ';
    }
-   
+
    if (isSafe(_x,_y))
    {
       cursorX = _x;
@@ -356,14 +354,13 @@ void Terminal::putCursor(int _x, int _y)
       aGlyphBacklog[cursorY][cursorX] = ' ';
       ansiGrid.aGlyph[cursorY][cursorX] = ' ';
    }
-
 }
 
 void Terminal::newLine()
 {
    if (isSafe(0,cursorY+1))
    {
-         putCursor(0,cursorY+1);
+      putCursor(0,cursorY+1);
    }
    else
    {
@@ -402,7 +399,7 @@ void Terminal::hideCursor()
    {
       if (aGlyph[cursorY][cursorX]==1)
       {
-          aGlyph[cursorY][cursorX] = ' ';
+         aGlyph[cursorY][cursorX] = ' ';
       }
    }
 }
@@ -410,17 +407,16 @@ void Terminal::hideCursor()
 void Terminal::typeChar (char c)
 {
    strMainConsole += c;
-   
-   
+
    // Make sure we're on an input space before we type.
    if (isSafe(cursorX,cursorY) && isSafe(cursorX+1,cursorY))
    {
-         putCursor(cursorX+1,cursorY);
-         aGlyph[cursorY][cursorX-1] = c;
-         aGlyphBacklog[cursorY][cursorX-1] = c;
-         
-         ansiGrid.aGlyph[cursorY][cursorX-1]=c;
-         command+=c;
+      putCursor(cursorX+1,cursorY);
+      aGlyph[cursorY][cursorX-1] = c;
+      aGlyphBacklog[cursorY][cursorX-1] = c;
+
+      ansiGrid.aGlyph[cursorY][cursorX-1]=c;
+      command+=c;
    }
 }
 
@@ -429,26 +425,24 @@ void Terminal::backspace()
    if ( strMainConsole[strMainConsole.size()-1] != '\n')
    {
       strMainConsole.pop_back();
-      
+
       if (isSafe(cursorX-1,cursorY))
       {
          putCursor(cursorX-1,cursorY);
          aGlyph[cursorY][cursorX+1] = ' ';
          aGlyphBacklog[cursorY][cursorX+1] = ' ';
          ansiGrid.aGlyph[cursorY][cursorX+1]= ' ';
-         
+
          if ( command.size () > 0 )
          { command = command.substr(0, command.size()-1);
          }
-         
       }
    }
-
 }
 
 bool Terminal::isSafe(int _x, int _y)
 {
-   return ( _x >= 0 && _x <= 63 && _y  >= 0 && _y <= 47);
+return ( _x >= 0 && _x <= 63 && _y  >= 0 && _y <= 47);
 }
 
 bool Terminal::keyboardEvent(Keyboard* _keyboard)
@@ -461,70 +455,70 @@ bool Terminal::keyboardEvent(Keyboard* _keyboard)
          return true;
       }
    }
-   
+
    if (_keyboard->keyWasPressed)
    {
-      std::cout<<"Keypress: "<<(int) _keyboard->lastKey<<".\n";
-      
-      if ( _keyboard->isAlphaNumeric(_keyboard->lastKey) || _keyboard->lastKey == Keyboard::SPACE)
-      { typeChar(_keyboard->lastKey); }
-      else if (_keyboard->lastKey == 96) /* TILDE */
+   std::cout<<"Keypress: "<<(int) _keyboard->lastKey<<".\n";
+
+   if ( _keyboard->isAlphaNumeric(_keyboard->lastKey) || _keyboard->lastKey == Keyboard::SPACE)
+   { typeChar(_keyboard->lastKey); }
+   else if (_keyboard->lastKey == 96) /* TILDE */
+   {
+      debugConsole=!debugConsole;
+
+      if ( debugConsole )
       {
-         debugConsole=!debugConsole;
-         
-         if ( debugConsole )
-         {
-            loadDebugConsole();
-         }
+         loadDebugConsole();
       }
-      else if (_keyboard->lastKey == 18) /* CTRL + R */
+   }
+   else if (_keyboard->lastKey == 18) /* CTRL + R */
+   {
+      init();
+   }
+   else if (_keyboard->lastKey == 19)
+   {
+      std::cout<<"Save\n";
+   }
+   else if (_keyboard->lastKey == 8 )
+   {
+      backspace();
+   }
+   else if (_keyboard->lastKey == 3 ) /* CTRL+C */
+   {
+      shutDown();
+   }
+   // Get whatever the user typed.
+   else if (_keyboard->lastKey == Keyboard::ENTER )
+   {
+      strMainConsole+='\n';
+      newLine();
+      // Convert string to upper case
+      for (auto & c: command) c = toupper(c);
+      std::cout<<"Entered command: "<<command<<".\n";
+
+      if ( command == "" )
       {
-         init();
-      }
-      else if (_keyboard->lastKey == 19)
-      {
-         std::cout<<"Save\n";
-      }
-      else if (_keyboard->lastKey == 8 )
-      {
-         backspace();
-      }
-      else if (_keyboard->lastKey == 3 ) /* CTRL+C */
-      {
-         shutDown();
-      }
-      // Get whatever the user typed.
-      else if (_keyboard->lastKey == Keyboard::ENTER )
-      {
-         strMainConsole+='\n';
-         newLine();
-         // Convert string to upper case
-         for (auto & c: command) c = toupper(c);
-         std::cout<<"Entered command: "<<command<<".\n";
-         
-         if ( command == "" )
-         {
-            _keyboard->clearAll();
-         }
-         
-         // If we're connected to a server, send the input to the server
-         else if (currentConnection != "")
-         {
-            sendPacket(currentConnection,command);
-            command = "";
-         }
-         // We are sending command to Terminal, so tokenise and process it
-         else
-         {
-            sendTerminalCommand(command);
-            command = "";
-         }
-         intro=0;
-         
          _keyboard->clearAll();
-         return true;
       }
+
+      // If we're connected to a server, send the input to the server
+      else if (currentConnection != "")
+      {
+         sendPacket(currentConnection,command);
+         command = "";
+      }
+      // We are sending command to Terminal, so tokenise and process it
+      else
+      {
+         sendTerminalCommand(command);
+         command = "";
+      }
+      intro=0;
+
       _keyboard->clearAll();
+      return true;
+   }
+   _keyboard->clearAll();
    }
    return false;
 }
@@ -538,10 +532,9 @@ void Terminal::introStep()
       {
          if (pGlyph[i] != ' ')
          {
-         pGlyph[i] = Random::randomInt(127);
-         if (pGlyph[i] == '\n' || Random::oneIn(4)) { pGlyph[i] = ' '; }
+            pGlyph[i] = Random::randomInt(127);
+            if (pGlyph[i] == '\n' || Random::oneIn(4)) { pGlyph[i] = ' '; }
          }
-
       }
    }
    else
@@ -572,7 +565,7 @@ void Terminal::loadHelpScreen()
    writeString(0,4,"RUN - RUN PROGRAM");
    writeString(0,5,"REBOOT - REBOOT COMPUTER");
    writeString(0,6,"POWEROFF - POWER OFF COMPUTER");
-   
+
 }
 
 void Terminal::loadCatalog()
@@ -591,7 +584,7 @@ void Terminal::loadDebugConsole()
 {
    randomFill();
    writeString(0,0,"                    *** SNOWCRASH CONSOLE ***                    ");
-   
+
    for (int i=0;i<vPackets.size() && i < 20;++i)
    {
       writeString(0,i+2,vPackets(i));
@@ -601,15 +594,15 @@ void Terminal::loadDebugConsole()
 void Terminal::bbsDemo()
 {
    dialTones = "1234567890";
-   
+
    vPackets.push("SENT 111 111 1111 CONNECT");
    vPackets.push("RECV 111 111 1111 ACK");
    vPackets.push("RECV 111 111 1111 [SITE DATA]");
-   
+
    clearScreen();
    //init();
    //randomFill();
-   
+
    writeString(0,0,    "                      .__                         ");
    writeString(0,1, "_____  ___.__.___.__. |  |   _____ _____    ____  ");
    writeString(0,2, "\\__  \\<   |  <   |  | |  |  /     \\\\__  \\  /  _ \\ ");
@@ -646,8 +639,6 @@ void Terminal::bbsDemo()
 
    writeString(0,7,"Welcome to AYYBBS");
    writeString(0,8,"Login:");
-   
-   
 }
 
 void Terminal::writeScreen()
@@ -672,40 +663,40 @@ void Terminal::mailScreen()
 void Terminal::errorScreen(std::string strError)
 {
    hideCursor();
-   
-   
+
+
    Colour currentColour;
    currentColour.set(255,255,255,255);
    unsigned char errorBorder = ' ';
-   
+
    gameTimer.update();
 
-   
+
    if (gameTimer.seconds % 2 == 0)
    {
       currentColour.set(255,0,0,255);
       errorBorder=1;
    }
-   
+
    for (int _x=0;_x<64;++_x)
    {
       aGlyph[0][_x]=errorBorder;
       aGlyph[47][_x]=errorBorder;
-      
+
       aGlyphBacklog[0][_x]=errorBorder;
       aGlyphBacklog[47][_x]=errorBorder;
-      
-     foregroundColour[0][_x] = currentColour;
-     foregroundColour[47][_x] = currentColour;
+
+      foregroundColour[0][_x] = currentColour;
+      foregroundColour[47][_x] = currentColour;
    }
    for (int _y=0;_y<48;++_y)
    {
       aGlyph[_y][0]=errorBorder;
       aGlyph[_y][63]=errorBorder;
-      
+
       aGlyphBacklog[_y][0]=errorBorder;
       aGlyphBacklog[_y][63]=errorBorder;
-      
+
       foregroundColour[_y][0] = currentColour;
       foregroundColour[_y][63] = currentColour;
    }
@@ -721,21 +712,20 @@ void Terminal::game1()
       blocks+=block;
    }
    blocks+="   ";
-   
+
    writeString(0,1,blocks);
    writeString(0,2,blocks);
    writeString(0,3,blocks);
-   
+
    std::string paddle = "";
    paddle+=block; paddle+=block; paddle+=block; paddle+=block;
-   
+
    writeString(30,47,paddle);
-   
+
    std::string ball = "";
    ball += 1;
-   
+
    writeString(32,24,ball);
-   
 }
 
 void Terminal::loadPage(std::string pageData)
@@ -747,16 +737,16 @@ void Terminal::loadPage(std::string pageData)
 
 void Terminal::sendPacket(std::string _currentConnection, std::string _command)
 {
-      std::string response = op.sendPacket(_currentConnection,_command);
-      
-      std::cout<<"Packet: "<<_command<<" send to "<<_currentConnection<<".\n";
-      std::cout<<"Response: "<<response<<".\n";
-      
-      if ( response == "[RDR]" )
-      {
-         clearScreen();
-         loadPage(op.servePage(_currentConnection));
-      }
+   std::string response = op.sendPacket(_currentConnection,_command);
+
+   std::cout<<"Packet: "<<_command<<" send to "<<_currentConnection<<".\n";
+   std::cout<<"Response: "<<response<<".\n";
+
+   if ( response == "[RDR]" )
+   {
+      clearScreen();
+      loadPage(op.servePage(_currentConnection));
+   }
 }
 
 void Terminal::sendTerminalCommand(std::string _command)
@@ -769,7 +759,7 @@ void Terminal::sendTerminalCommand(std::string _command)
    {
       std::cout<<"Token: "<<(*vToken)(i)<<"\n";
    }
-   
+
    //First token is command.
    if (vToken->size() != 0)
    {
@@ -779,7 +769,7 @@ void Terminal::sendTerminalCommand(std::string _command)
    {
       command = "";
    }
-   
+
    //Check system commands.
    if (command == "HELP" && bootScreen == true)
    {
@@ -801,9 +791,9 @@ void Terminal::sendTerminalCommand(std::string _command)
    {
       // strip everything except numbers. There should be 7, 10, 12, 19, or 22 digits.
       // phonecards will be 12 digits.
-      
+
       std::string connectPacket = "[CON]";
-      
+
       if (vToken->size() == 1)
       {
          strMainConsole+="\033[1;31mDestination number required\033[0m\n";
@@ -812,9 +802,9 @@ void Terminal::sendTerminalCommand(std::string _command)
       {
          std::string targetDial = (*vToken)(1);
          std::cout<<"Dial arg: "<<targetDial<<".\n";
-         
-         
-         
+
+
+
          // dial must be 10 or 7 digits. (3 digits are city code)
          if ( DataTools::isNumber(targetDial) )
          {
@@ -823,13 +813,13 @@ void Terminal::sendTerminalCommand(std::string _command)
             {
                targetDial = "001" + targetDial;
             }
-            
+
             if (targetDial.size() == 10)
             {
                dialTones = targetDial+"R";
-               
+
                vPackets.push("[CON]["+targetDial+"]");
-               
+
                if ( op.dial(targetDial) )
                {
                   vPackets.push("[ACK]["+targetDial+"]");
@@ -855,12 +845,12 @@ void Terminal::sendTerminalCommand(std::string _command)
       }
       else
       {
-         strMainConsole+="\033[1;31mError.\033[0m\n";
+      strMainConsole+="\033[1;31mError.\033[0m\n";
       }
       //screenConnect("","");   
       //command = "";
    }
-   
+
    else //Iterate through program list to find match.
    {
       std::cout<<"Checking programs\n";
@@ -871,9 +861,9 @@ void Terminal::sendTerminalCommand(std::string _command)
          {
             //init this program.
             std::cout<<"Program match. Running "<<command<<".\n";
-            
+
             std::string strReturn = vProgram(i)->init(vToken);
-            
+
             if ( strReturn != "")
             {
                writeString(cursorX,cursorY,strReturn,true);
@@ -884,23 +874,6 @@ void Terminal::sendTerminalCommand(std::string _command)
       }
       strMainConsole+="\033[1;31mUnknown command \033[0m"+command+"\n";
    }
-            
-      // if (command == "MAIL")
-      // {
-         // command="";
-         // clearScreen();
-         // mailScreen();
-      // }
-      // if (command == "GAME")
-      // {
-         // command="";
-         // clearScreen();
-         // game1();
-      // }
-      // if (command == "AUTODIAL")
-      // {
-         // std::cout<<"Autodial.\n";
-      // }
 }
 
 void Terminal::shiftUp(int amount)
@@ -909,7 +882,7 @@ void Terminal::shiftUp(int amount)
    {
       aGlyph[cursorY][cursorX] = ' ';
    }
-   
+
    for (int _x=0;_x<64;++_x)
    {
       for (int _y=0;_y<47;++_y)
@@ -921,18 +894,17 @@ void Terminal::shiftUp(int amount)
          foregroundColour[_y][_x]=foregroundColour[_y+1][_x];
       }
    }
-   
+
    for (int _x=0;_x<64;++_x)
    {
-         aGlyph[47][_x] = ' ';
-         aGlyphBacklog[47][_x] = ' ';
-         ansiGrid.aGlyph[47][_x] = ' ';
-         ansiGrid.aColour[47][_x].set(255,255,255,255);
-         foregroundColour[47][_x].set(255,255,255,255);
-         putCursor(0,47);
+      aGlyph[47][_x] = ' ';
+      aGlyphBacklog[47][_x] = ' ';
+      ansiGrid.aGlyph[47][_x] = ' ';
+      ansiGrid.aColour[47][_x].set(255,255,255,255);
+      foregroundColour[47][_x].set(255,255,255,255);
+      putCursor(0,47);
    }
-   
-}
 
+}
 
 #endif
