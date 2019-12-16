@@ -150,6 +150,7 @@ void Terminal::clearScreen(bool forced) /* forced will instantly clear the scree
 }
 
 //Writes the string to the backlog.
+// Todo: Add instant option.
 void Terminal::writeString(int _x, int _y, std::string _str, bool moveCursor)
 {
    ansiGrid.cursorX=_x;
@@ -723,10 +724,12 @@ void Terminal::errorScreen(std::string strError)
 
    clearScreen(true);
    
+   char errorBorder = ' ';
+
    Colour currentColour;
+   
+   // Note: Colours are currently broken on some systems
    currentColour.set(255,255,255,255);
-   //currentColour.set(255,0,0,255);
-   //unsigned char errorBorder = ' ';
 
    gameTimer.update();
 
@@ -734,37 +737,32 @@ void Terminal::errorScreen(std::string strError)
    if (gameTimer.seconds % 2 == 0)
    {
       currentColour.set(255,0,0,255);
-      //errorBorder=1;
+      errorBorder=1;
    }
    
-   //Draw a border using string.
-   //strMainConsole = "ERROR";
-   
-      //std::cout<<"ERROR var: "<<ERROR<<".\n";
-      writeString(0,0,"\n\nERROR");
+   // Draw flashing red border
+   for (int _x=0;_x<64;++_x)
+   {
+      aGlyph[0][_x]=errorBorder;
+      aGlyph[47][_x]=errorBorder;
 
-   // for (int _x=0;_x<64;++_x)
-   // {
-      // aGlyph[0][_x]=errorBorder;
-      // aGlyph[47][_x]=errorBorder;
+      aGlyphBacklog[0][_x]=errorBorder;
+      aGlyphBacklog[47][_x]=errorBorder;
 
-      // aGlyphBacklog[0][_x]=errorBorder;
-      // aGlyphBacklog[47][_x]=errorBorder;
+      foregroundColour[0][_x] = currentColour;
+      foregroundColour[47][_x] = currentColour;
+   }
+   for (int _y=0;_y<48;++_y)
+   {
+      aGlyph[_y][0]=errorBorder;
+      aGlyph[_y][63]=errorBorder;
 
-      // foregroundColour[0][_x] = currentColour;
-      // foregroundColour[47][_x] = currentColour;
-   // }
-   // for (int _y=0;_y<48;++_y)
-   // {
-      // aGlyph[_y][0]=errorBorder;
-      // aGlyph[_y][63]=errorBorder;
+      aGlyphBacklog[_y][0]=errorBorder;
+      aGlyphBacklog[_y][63]=errorBorder;
 
-      // aGlyphBacklog[_y][0]=errorBorder;
-      // aGlyphBacklog[_y][63]=errorBorder;
-
-      // foregroundColour[_y][0] = currentColour;
-      // foregroundColour[_y][63] = currentColour;
-   // }
+      foregroundColour[_y][0] = currentColour;
+      foregroundColour[_y][63] = currentColour;
+   }
 }
 
 void Terminal::game1()

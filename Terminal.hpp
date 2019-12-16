@@ -111,7 +111,8 @@ class Terminal: public GUI_Interface, public LogicTickInterface
    
    // Note that C64's resolution is 320x200, with 40 columns and 25 rows (4px * 8px).
    
-   //Storage is assumed to be external and therefore unlimited.
+   //Storage is assumed to be external and therefore unlimited. Classic storage
+   // at the time could store 100KB to 1MB.
    
    
    char aGlyph [48][64]; /* Beware. The x and y are  flipped here because C++ stores arrays in row major. */
@@ -228,7 +229,8 @@ class Terminal: public GUI_Interface, public LogicTickInterface
    void mailScreen();
 
 
-   /* Error screen displays if you break the computer */
+   /* Error screen displays if you break the computer. Has flashing red
+      border and error message. User must reset computer. */
    void errorScreen(std::string strError="" );
 
 
