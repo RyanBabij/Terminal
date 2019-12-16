@@ -100,12 +100,16 @@ class File
 class Terminal: public GUI_Interface, public LogicTickInterface
 {
    // Full RAM space, contains screen RAM etc. In future probably contains OS etc.
-   char memory [64000];
+   char memory [65536]; // = full c64 memory space.
    // ASCII mode = 3,072 bytes = 3KB. However scroll buffer requires extra.
    // Graphics mode = 160*120 = 19,200 = 19KB
    // bitmap mode = 640*480 = 64KB
    // display mode alters how render interprets screen RAM. For example in ASCII
    // mode it reads the first 3,072 bytes and interprets as ANSI
+   // we need basic memory map.
+   // C64 could address any memory from 0 to 65535 using POKE
+   
+   // Note that C64's resolution is 320x200, with 40 columns and 25 rows (4px * 8px).
    
    //Storage is assumed to be external and therefore unlimited.
    
