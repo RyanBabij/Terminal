@@ -71,8 +71,8 @@ void Terminal::init()
 
    //load basic programs
    vProgram.clearPtr();
-   vProgram.push(new Program_Write);
-   vProgram.push(new Program_Run);
+   vProgram.push(new Program_Write(this));
+   vProgram.push(new Program_Run(this));
 
    clearScreen();
    strMainConsole = "                    *** SUDACHI SYSTEM 1 ***                    \n";

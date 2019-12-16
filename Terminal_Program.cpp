@@ -13,12 +13,22 @@
 #include "Terminal_Program.hpp"
 #include "Terminal.hpp"
 
-Terminal_Program::Terminal_Program()
+Terminal_Program::Terminal_Program(Terminal * termPtr)
 {
+   terminal=termPtr;
    active=false;
    programName="";
    graphicsMode=false;
 }
+
+// Terminal_Program::Terminal_Program()
+// {
+   // terminal=0;
+   // active=false;
+   // programName="";
+   // graphicsMode=false;
+// }
+
 
 Terminal_Program::~Terminal_Program()
 {
@@ -43,7 +53,13 @@ void Terminal_Program::keyboardEvent (Keyboard* _keyboard)
    
 }
  
-Program_Write::Program_Write()
+// Program_Write::Program_Write()
+// {
+   // graphicsMode=true;
+   // programName="WRITE";
+// }
+
+Program_Write::Program_Write(Terminal * ptrTerminal): Terminal_Program(ptrTerminal)
 {
    graphicsMode=true;
    programName="WRITE";
@@ -168,27 +184,37 @@ void Program_Write::keyboardEvent (Keyboard* _keyboard)
 }
  
 
-Program_Read::Program_Read()
-{
-   graphicsMode=true;
-   programName="READ";
-   fileToRead=0;
-}
+// Program_Read::Program_Read()
+// {
+   // graphicsMode=true;
+   // programName="READ";
+   // fileToRead=0;
+// }
 
-std::string Program_Read::render()
-{
-   //if ( fileToRead==0 || terminal==0 )
-   if ( fileToRead==0 )
-   {
-      return "";
-   }
+// std::string Program_Read::render()
+// {
+   // //if ( fileToRead==0 || terminal==0 )
+   // if ( fileToRead==0 )
+   // {
+      // return "";
+   // }
    
-   //RENDER THE OUTPUT.
-   //terminal->writeString(0,0,"AYY LMAO");
-   return "AYY LMAO";
-}
+   // //RENDER THE OUTPUT.
+   // //terminal->writeString(0,0,"AYY LMAO");
+   // return "AYY LMAO";
+// }
 
-Program_Run::Program_Run()
+// Program_Run::Program_Run()
+// {
+   // graphicsMode=false; //We need to convert this to ASCII mode
+   // programName="RUN";
+   // fileToRead=0;
+   // currentLine=0;
+   // output="";
+   // vLine=0;
+// }
+
+Program_Run::Program_Run(Terminal * term): Terminal_Program(term)
 {
    graphicsMode=false; //We need to convert this to ASCII mode
    programName="RUN";
@@ -354,25 +380,25 @@ std::string Program_Run::render()
    return output;
 }
 
-Program_Breakout::Program_Breakout()
-{
-   programName="GAME1";
-   paddleX=10;
-   ballX=10;
-   ballY = 20;
-   ballDirection = 0;
-   ballSpeed=0;
-}
+// Program_Breakout::Program_Breakout()
+// {
+   // programName="GAME1";
+   // paddleX=10;
+   // ballX=10;
+   // ballY = 20;
+   // ballDirection = 0;
+   // ballSpeed=0;
+// }
 
-void Program_Breakout::cycle()
-{
-   std::cout<<"cycle\n";
-}
+// void Program_Breakout::cycle()
+// {
+   // std::cout<<"cycle\n";
+// }
 
-std::string Program_Breakout::render()
-{
-   return "";
-}
+// std::string Program_Breakout::render()
+// {
+   // return "";
+// }
    
 
 #endif

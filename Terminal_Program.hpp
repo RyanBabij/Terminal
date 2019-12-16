@@ -39,6 +39,9 @@ class Terminal;
 class Terminal_Program
 {
    public:
+   Terminal * terminal; /* Link to Terminal to call system functions and access RAM */
+   
+   
    bool active; /* true means the program is running */
    //Terminal* terminal;
       /* If true, Terminal will constantly refresh render,
@@ -47,7 +50,8 @@ class Terminal_Program
    
    std::string programName;
    
-   Terminal_Program();
+   Terminal_Program(Terminal*  test);
+   //Terminal_Program();
    virtual ~Terminal_Program();
    
    /* Pass the commands written after the program name.
@@ -71,7 +75,8 @@ class Program_Write: public Terminal_Program
    std::string temp;
    std::string fileName;
    
-   Program_Write();
+   //Program_Write();
+   Program_Write(Terminal * ptrTerminal);
    ~Program_Write();
    
    std::string init (Vector <std::string>* vArg) override;
@@ -82,19 +87,20 @@ class Program_Write: public Terminal_Program
    void keyboardEvent (Keyboard*) override;
 };
 
-/* Program that allows reading of files. Can scroll up/down with arrows
-and search by typing */
-class Program_Read: public Terminal_Program
-{
-   public:
+// /* Program that allows reading of files. Can scroll up/down with arrows
+// and search by typing */
+// class Program_Read: public Terminal_Program
+// {
+   // public:
    
-   File* fileToRead;
+   // File* fileToRead;
    
-   Program_Read();
+   // Program_Read();
+   // Program_Read(Terminal * ptrTerminal);
    
-   std::string render() override;
+   // std::string render() override;
 
-};
+// };
 
 /* Program that interprets files containing EASI language */
 class Program_Run: public Terminal_Program
@@ -110,7 +116,9 @@ class Program_Run: public Terminal_Program
    
    Vector <std::string> * vLine;
    
-   Program_Run();
+   //Program_Run();
+   Program_Run(Terminal * ptrTerminal);
+   
    std::string init (Vector <std::string>* vArg) override;
    
    std::string render() override;
@@ -124,35 +132,35 @@ class Program_Run: public Terminal_Program
 /*
 Let's start by just drawing a dot bouncing around the screen.
 */
-class Program_Breakout: public Terminal_Program
-{
-   public:
+// class Program_Breakout: public Terminal_Program
+// {
+   // public:
    
-   unsigned char aBoard [48][64];
+   // unsigned char aBoard [48][64];
    
-   int paddleX;
-   int ballX, ballY;
-   int ballDirection;
-   int ballSpeed;
+   // int paddleX;
+   // int ballX, ballY;
+   // int ballDirection;
+   // int ballSpeed;
    
-   Program_Breakout();
+   // Program_Breakout();
    
-   std::string render() override;
+   // std::string render() override;
    
-   void cycle() override;
+   // void cycle() override;
    
-};
+// };
 
-class Program_Tetris: public Terminal_Program
-{
-   public:
-};
+// class Program_Tetris: public Terminal_Program
+// {
+   // public:
+// };
 
-class Program_Dungeon: public Terminal_Program
-{
-   public:
+// class Program_Dungeon: public Terminal_Program
+// {
+   // public:
    
-};
+// };
 
 
 #endif

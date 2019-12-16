@@ -99,6 +99,17 @@ class File
 
 class Terminal: public GUI_Interface, public LogicTickInterface
 {
+   // Full RAM space, contains screen RAM etc. In future probably contains OS etc.
+   char memory [64000];
+   // ASCII mode = 3,072 bytes = 3KB. However scroll buffer requires extra.
+   // Graphics mode = 160*120 = 19,200 = 19KB
+   // bitmap mode = 640*480 = 64KB
+   // display mode alters how render interprets screen RAM. For example in ASCII
+   // mode it reads the first 3,072 bytes and interprets as ANSI
+   
+   //Storage is assumed to be external and therefore unlimited.
+   
+   
    char aGlyph [48][64]; /* Beware. The x and y are  flipped here because C++ stores arrays in row major. */
    char* pGlyph;
 
