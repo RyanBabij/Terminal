@@ -15,7 +15,6 @@ Terminal::Terminal()
    pCorrupt = &aCorrupt[0][0];
    pGlyphDelay = &aGlyphDelay[0][0];
 
-
    dialTones="";
 
    errorScreenActive=false;
@@ -274,6 +273,8 @@ bool Terminal::renderProgram()
       // ASCII MODE STRING AND GRAPHICS MODE STRING
       // WE ALSO NEED TO HANDLE PROGRAM EXIT (OR MAYBE NOT NECESSARY
       // IF USING A GRAPHICS BUFFER)
+      
+      // We really should just have a ptr to the active program (if any).
       if (vProgram(i)->active)
       {
          if ( vProgram(i)->graphicsMode )
@@ -289,6 +290,19 @@ bool Terminal::renderProgram()
             strMainConsole += vProgram(i)->render();
             writeString(0,0,strMainConsole,true);
          }
+         
+         // check if programs terminated, so we can reset screen.
+         for (int i2=0;i2<vProgram.size();++i2)
+         {
+            if (vProgram(i2)->active)
+            {
+               //clearScreen(true);
+               return true;
+            }
+         }
+         std::cout<<"TERMINATE DETECTED\n";
+         
+         // terminal reset code
          
          
          //clearScreen();
@@ -358,7 +372,7 @@ void Terminal::render()
 
    if (errorScreenActive)
    {
-      clearScreen(true);
+      //clearScreen(true);
       errorScreen();
    }
 }
@@ -488,6 +502,21 @@ bool Terminal::keyboardEvent(Keyboard* _keyboard)
       if (vProgram(i)->active)
       {
          vProgram(i)->keyboardEvent(_keyboard);
+         
+         
+         // check if programs terminated, so we can reset screen.
+         for (int i2=0;i2<vProgram.size();++i2)
+         {
+            if (vProgram(i2)->active)
+            {
+               
+               return true;
+            }
+         }
+         std::cout<<"TERMINATE DETECTED\n";
+         clearScreen(true);
+         strMainConsole="";
+         _keyboard->clearAll();
          return true;
       }
    }
@@ -677,14 +706,6 @@ void Terminal::bbsDemo()
    writeString(0,8,"Login:");
 }
 
-void Terminal::writeScreen()
-{
-   //init();
-   clearScreen(); 
-   writeString(0,0,"*** WRITE (CTRL+S to save. CTRL+R to exit.)***");
-   putCursor(0,1);
-   //setInputSpace(0,1,64,1);
-}
 
 void Terminal::mailScreen()
 {
@@ -700,10 +721,12 @@ void Terminal::errorScreen(std::string strError)
 {
    hideCursor();
 
-
+   clearScreen(true);
+   
    Colour currentColour;
    currentColour.set(255,255,255,255);
-   unsigned char errorBorder = ' ';
+   //currentColour.set(255,0,0,255);
+   //unsigned char errorBorder = ' ';
 
    gameTimer.update();
 
@@ -711,31 +734,37 @@ void Terminal::errorScreen(std::string strError)
    if (gameTimer.seconds % 2 == 0)
    {
       currentColour.set(255,0,0,255);
-      errorBorder=1;
+      //errorBorder=1;
    }
+   
+   //Draw a border using string.
+   //strMainConsole = "ERROR";
+   
+      //std::cout<<"ERROR var: "<<ERROR<<".\n";
+      writeString(0,0,"\n\nERROR");
 
-   for (int _x=0;_x<64;++_x)
-   {
-      aGlyph[0][_x]=errorBorder;
-      aGlyph[47][_x]=errorBorder;
+   // for (int _x=0;_x<64;++_x)
+   // {
+      // aGlyph[0][_x]=errorBorder;
+      // aGlyph[47][_x]=errorBorder;
 
-      aGlyphBacklog[0][_x]=errorBorder;
-      aGlyphBacklog[47][_x]=errorBorder;
+      // aGlyphBacklog[0][_x]=errorBorder;
+      // aGlyphBacklog[47][_x]=errorBorder;
 
-      foregroundColour[0][_x] = currentColour;
-      foregroundColour[47][_x] = currentColour;
-   }
-   for (int _y=0;_y<48;++_y)
-   {
-      aGlyph[_y][0]=errorBorder;
-      aGlyph[_y][63]=errorBorder;
+      // foregroundColour[0][_x] = currentColour;
+      // foregroundColour[47][_x] = currentColour;
+   // }
+   // for (int _y=0;_y<48;++_y)
+   // {
+      // aGlyph[_y][0]=errorBorder;
+      // aGlyph[_y][63]=errorBorder;
 
-      aGlyphBacklog[_y][0]=errorBorder;
-      aGlyphBacklog[_y][63]=errorBorder;
+      // aGlyphBacklog[_y][0]=errorBorder;
+      // aGlyphBacklog[_y][63]=errorBorder;
 
-      foregroundColour[_y][0] = currentColour;
-      foregroundColour[_y][63] = currentColour;
-   }
+      // foregroundColour[_y][0] = currentColour;
+      // foregroundColour[_y][63] = currentColour;
+   // }
 }
 
 void Terminal::game1()
@@ -787,17 +816,29 @@ void Terminal::sendPacket(std::string _currentConnection, std::string _command)
 
 void Terminal::sendTerminalCommand(std::string _command)
 {
-   std::cout<<"Terminal command recieved\n";
+   std::cout<<"Terminal command recieved: "<<_command<<"\n";
+   
+   // Any valid command must have length at least 1.
+   if ( _command.size() == 0 )
+   {
+      return;
+   }
    //Tokenise
    Vector <std::string> * vToken = Tokenize::tokenize(command,' ');
+   
+   if (vToken==0) // Tokenize returns null obj if no tokens.
+   {
+      return;
+   }
 
+std::cout<<"vtoken size: "<<vToken->size()<<".\n";
    for (int i=0;i<vToken->size();++i)
    {
       std::cout<<"Token: "<<(*vToken)(i)<<"\n";
    }
 
    //First token is command.
-   if (vToken->size() != 0)
+   if (vToken->size() > 0)
    {
       command = (*vToken)(0);
    }
@@ -822,6 +863,11 @@ void Terminal::sendTerminalCommand(std::string _command)
    else if (command == "SHUTDOWN" || command == "POWEROFF")
    {
       shutDown();
+   }
+   else if (command=="ERROR")
+   {
+      std::cout<<"error\n";
+      errorScreenActive=true;
    }
    else if (command == "CONNECT") // This should really be a program
    {

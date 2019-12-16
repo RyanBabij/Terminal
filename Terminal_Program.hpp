@@ -11,9 +11,21 @@
    Currently hardcoded, but introduction of a coding language would technically
    allow them to be coded in that language.
    
+   PROGRAM MODES
+      There are three modes:
+         CONSOLE MODE
+         All output goes to console output. This is very simple mode which
+         just uses PRINT command and returns string on render calls.
+         CURSES MODE
+         Program directly modifies ANSI buffer. Program is passed array of 48x64.
+         GRAPHICS MODE
+         Program draws pixels to screenspace. Program is passed array of 480x640
+         (or potentially a smaller array depending on performance considerations).
+         120x160 would be a good smaller size.
+   
    RENDER
       We can achieve this by simply passing the array to swap.
-
+      
    PROGRAM OVERVIEW
    
       WRITE

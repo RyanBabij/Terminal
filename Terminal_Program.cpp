@@ -93,6 +93,7 @@ std::string Program_Write::init (Vector <std::string>* vArg)
 
 std::string Program_Write::render()
 {
+   if (!active) { return ""; }
    return temp;
 }
 
@@ -102,6 +103,7 @@ void Program_Write::cycle()
 
 void Program_Write::keyboardEvent (Keyboard* _keyboard)
 {
+   if (!active) { return; }
    std::string allowedInputs = " !@#$%^&*()\"\'";
    if (_keyboard->keyWasPressed)
    {
@@ -124,7 +126,12 @@ void Program_Write::keyboardEvent (Keyboard* _keyboard)
          FileManager::createDirectory("storage");
          
          FileManagerStatic::writeFreshString(temp,savePath);
+         _keyboard->clearAll();
          active = false;
+      }
+      else if (_keyboard->lastKey == 3 ) /* CTRL+C to shutdown (passed up to Terminal)*/
+      {
+         active=false;
       }
       else if (_keyboard->lastKey == 8 ) // Backspace
       {
@@ -134,6 +141,28 @@ void Program_Write::keyboardEvent (Keyboard* _keyboard)
          }
          _keyboard->clearAll();
          
+      }
+         // CURSOR NAVIGATION
+      else if (_keyboard->isPressed(Keyboard::LEFT))
+      {
+         std::cout<<"LEFT\n";
+         //--cursorX;
+         _keyboard->clearAll();
+      }
+      else if (_keyboard->lastKey == Keyboard::RIGHT)
+      {
+         std::cout<<"RIGHT\n";
+         _keyboard->clearAll();
+      }
+      else if (_keyboard->lastKey == Keyboard::UP)
+      {
+         std::cout<<"UP\n";
+         _keyboard->clearAll();
+      }
+      else if (_keyboard->lastKey == Keyboard::DOWN)
+      {
+         std::cout<<"DOWN\n";
+         _keyboard->clearAll();
       }
    }
 }
@@ -161,7 +190,7 @@ std::string Program_Read::render()
 
 Program_Run::Program_Run()
 {
-   graphicsMode=true; //We need to convert this to ASCII mode
+   graphicsMode=false; //We need to convert this to ASCII mode
    programName="RUN";
    fileToRead=0;
    currentLine=0;
@@ -316,6 +345,7 @@ std::string Program_Run::render()
    
    if (active)
    {
+      output="";
       cycle();
       std::cout<<"Current render state: "<<output<<"\n";
       return output;

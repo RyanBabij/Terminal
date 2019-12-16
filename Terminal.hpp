@@ -209,10 +209,6 @@ class Terminal: public GUI_Interface, public LogicTickInterface
    void bbsDemo();
 
 
-   /* Runs the text editor. Basically a blank screen to type on. CTRL+S to save */
-   void writeScreen();
-
-
    /* Shows any mail addressed to you */
    void mailScreen();
 
