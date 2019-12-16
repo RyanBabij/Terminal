@@ -150,6 +150,7 @@ void Terminal::clearScreen(bool forced) /* forced will instantly clear the scree
    //strMainConsole="";
 }
 
+//Writes the string to the backlog.
 void Terminal::writeString(int _x, int _y, std::string _str, bool moveCursor)
 {
    ansiGrid.cursorX=_x;
@@ -340,7 +341,6 @@ void Terminal::render()
    if (renderProgram() == false)
    {
       clearScreen();
-      std::cout<<"STRMAINCONS: "<<strMainConsole<<"\n";
       writeString(0,0,strMainConsole,true);
    }
 
@@ -393,7 +393,7 @@ void Terminal::newLine()
    {
       //Scroll terminal by 1 row.
       std::cout<<"SHIFT\n";
-      shiftUp(1);
+      shiftUp(1); //ANSI_Grid handles scrolling, but we need to handle the backlog scrolling
    }
 }
 
@@ -925,8 +925,8 @@ void Terminal::shiftUp(int amount)
       {
          aGlyph[_y][_x] = aGlyph[_y+1][_x];
          aGlyphBacklog[_y][_x] = aGlyphBacklog[_y+1][_x];
-         ansiGrid.aGlyph[_y][_x] = ansiGrid.aGlyph[_y+1][_x];
-         ansiGrid.aColour[_y][_x]=ansiGrid.aColour[_y+1][_x];
+         //ansiGrid.aGlyph[_y][_x] = ansiGrid.aGlyph[_y+1][_x];
+         //ansiGrid.aColour[_y][_x]=ansiGrid.aColour[_y+1][_x];
          foregroundColour[_y][_x]=foregroundColour[_y+1][_x];
       }
    }
@@ -935,8 +935,8 @@ void Terminal::shiftUp(int amount)
    {
       aGlyph[47][_x] = ' ';
       aGlyphBacklog[47][_x] = ' ';
-      ansiGrid.aGlyph[47][_x] = ' ';
-      ansiGrid.aColour[47][_x].set(255,255,255,255);
+      //ansiGrid.aGlyph[47][_x] = ' ';
+      //ansiGrid.aColour[47][_x].set(255,255,255,255);
       foregroundColour[47][_x].set(255,255,255,255);
       putCursor(0,47);
    }

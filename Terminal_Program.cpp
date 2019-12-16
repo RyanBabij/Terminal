@@ -93,7 +93,6 @@ std::string Program_Write::init (Vector <std::string>* vArg)
 
 std::string Program_Write::render()
 {
-   std::cout<<"WRITE RENDER STATE: \n"<<temp<<"\n";
    return temp;
 }
 
