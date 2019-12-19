@@ -212,10 +212,37 @@ void Program_Run::cycle()
       }
       else if (instruction=="END")
       {
+         std::cout<<" END \n";
          output+="END OF PROGRAM\n";
          active=false;
          currentLine=0;
          return;
+      }
+      else if (instruction == "LET")
+      {
+         std::cout<<" LET \n";
+         
+         // for now just require the following syntax:
+         // LET VAR = VALUE
+         if (vToken->size() > 3)
+         {
+            if ( (*vToken)(2) == "=" )
+            {
+               if ( DataTools::isAlphaNumeric( (*vToken)(1) ) )
+               {
+                  if ( DataTools::isNumeric( (*vToken)(3) ) )
+                  {
+                     std::cout<<"VARIABLE "<<(*vToken)(1)<<" WILL EQUAL "<<(*vToken)(3)<<".\n";
+                     varTable.update( (*vToken)(1), (*vToken)(3) );
+                  }
+               }
+               
+            }
+         }
+         
+      }
+      else if (instruction == "INPUT" )
+      {
       }
       else
       {

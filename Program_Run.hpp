@@ -85,6 +85,40 @@ class Program_Run: public Terminal_Program
    };
    Vector <CodeLine*> vCodeLine;
    
+   // Simple table to lookup variable names and values
+   class VarTable
+   {
+      public:
+      Vector <std::string> vVarName;
+      Vector <std::string> vVarValue;
+      
+      VarTable()
+      {
+      }
+      
+      // Automatically adds the variable or updates it as required.
+      void update(std::string _varName, std::string _varValue)
+      {
+         
+         for (int i=0;i<vVarName.size();++i)
+         {
+            if ( vVarName(i) == _varName )
+            {
+               vVarValue(i) = _varValue;
+               return;
+            }
+         }
+         vVarName.push(_varName);
+         vVarValue.push(_varValue);
+      }
+      void clear()
+      {
+         vVarName.clear();
+         vVarValue.clear();
+      }
+   };
+   VarTable varTable;
+   
    File* fileToRead;
    std::string fileContent;
    int currentLine;

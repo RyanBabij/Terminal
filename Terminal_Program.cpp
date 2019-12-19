@@ -120,7 +120,7 @@ void Program_Write::cycle()
 void Program_Write::keyboardEvent (Keyboard* _keyboard)
 {
    if (!active) { return; }
-   std::string allowedInputs = " !@#$%^&*()\"\'\\";
+   std::string allowedInputs = " !@#$%^&*()\"\'\\=";
    if (_keyboard->keyWasPressed)
    {
       unsigned char c = _keyboard->lastKey;
