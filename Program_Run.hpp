@@ -19,6 +19,72 @@ class Program_Run: public Terminal_Program
 {
    public:
    
+   class CodeLine
+   {
+      public:
+      Vector <std::string> * vToken;
+      std::string label; // The label of the line if applicable.
+      
+      std::string strLine; // full code line
+      
+      CodeLine(std::string _strLine)
+      {
+         label="";
+         //strLine="";
+         
+         std::string strCurrentLine = _strLine;
+         vToken = Tokenize::tokenize(strCurrentLine,' ');
+         
+         strLine = strCurrentLine;
+         
+         if (vToken==0)
+         {
+            return;
+         }
+   
+         if ( vToken->size()>0)
+         {
+            // we have at least a basic instruction
+            std::string instruction = (*vToken)(0);
+            
+            if ( instruction == "PRINT" )
+            {
+
+            }
+            else if (instruction == "REM")
+            {
+            }
+            else if (instruction == "LABEL")
+            {
+               if (vToken->size()>1)
+               {
+                  label = (*vToken)(1);
+               }
+            }
+            else if (instruction == "GOTO")
+            {
+            }
+            else if (DataTools::isNumeric(instruction))
+            {
+               label=instruction;
+            }
+            else
+            { //invalid
+            }
+         }
+      }
+      
+      void process(std::string _line)
+      {
+      }
+      
+      ~CodeLine()
+      {
+         std::cout<<"Codeline died\n";
+      }
+   };
+   Vector <CodeLine*> vCodeLine;
+   
    File* fileToRead;
    std::string fileContent;
    int currentLine;
@@ -26,7 +92,7 @@ class Program_Run: public Terminal_Program
    std::string fileName;
    std::string output; /* Program output, typically from PRINT */
    
-   Vector <std::string> * vLine;
+   Vector <std::string> * vLine; // String for every line of the program, valid or not.
    
    //Program_Run();
    Program_Run(Terminal * ptrTerminal);

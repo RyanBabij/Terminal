@@ -19,7 +19,6 @@ Program_Run::Program_Run(Terminal * term): Terminal_Program(term)
 
 std::string Program_Run::init (Vector <std::string>* vArg)
 {
-   std::cout<<"RUN INIT\n";
    output="";
    active=false;
    if (vArg==0)
@@ -60,7 +59,7 @@ std::string Program_Run::init (Vector <std::string>* vArg)
                   delete vLine;
                }
 
-               vLine = Tokenize::tokenize(fileContent,'\n');
+               vLine = Tokenize::tokenize(fileContent,"\n\r");
                
                if ( vLine==0 )
                {
@@ -70,10 +69,27 @@ std::string Program_Run::init (Vector <std::string>* vArg)
                   return "";
                }
                
+               std::cout<<"Loading program:\n";
+               // Load up each line.
                for (int i=0;i<vLine->size();++i)
                {
+                  vCodeLine.push(new CodeLine((*vLine)(i)));
                   std::cout<<i<<" "<<(*vLine)(i)<<"\n";
                }
+               
+               std::cout<<"CODE LOADED SUCCESSFULLY\n";
+               
+               std::cout<<"All labels:\n";
+               
+               for (int i=0;i<vCodeLine.size();++i)
+               {
+                  if ( vCodeLine(i)->label != "" )
+                  {
+                     std::cout<<vCodeLine(i)->label<<"\n";
+                  }
+               }
+
+               
                output="RUNNING PROGRAM\n";
                return output;
             }
@@ -94,7 +110,7 @@ std::string Program_Run::init (Vector <std::string>* vArg)
 
 void Program_Run::cycle()
 {
-   std::cout<<"RUN CYCLE\n";
+   std::cout<<"cycle\n";
    
    //output+="CYCLE\n";
    
@@ -114,27 +130,32 @@ void Program_Run::cycle()
       return;
    }
    
-   std::cout<<"Executing line "<<currentLine<<": "<<(*vLine)(currentLine)<<"\n";
-   
-   Vector <std::string> * vToken = Tokenize::tokenize((*vLine)(currentLine),' ');
-   
-   std::cout<<"Tokenized:\n";
-   for (int i=0;i<vToken->size();++i)
+   if (currentLine < vCodeLine.size())
    {
-      std::cout<<(*vToken)(i)<<"\n";
+      std::cout<<" Vcodeline: "<<vCodeLine(currentLine)->strLine<<".\n";
+   }
+   
+   std::string strCurrentLine = (*vLine)(currentLine);
+   Vector <std::string> * vToken = Tokenize::tokenize(strCurrentLine,' ');
+   
+   if (vToken==0)
+   {
+      std::cout<<"NULL TOKEN\n";
+      return;
    }
    
    if ( vToken->size()>0)
    {
       // we have at least a basic instruction
+      std::string instruction = (*vToken)(0);
       
-      if ( (*vToken)(0) == "PRINT" )
+      if ( instruction == "PRINT" )
       {
-         std::cout<<"PRINT FOUND\n";
+         std::cout<<" PRINT \n";
          
          if ( vToken->size() >= 2 )
          {
-            std::cout<<"PRINTING: "<<(*vToken)(1)<<".\n";
+            //std::cout<<"PRINTING: "<<(*vToken)(1)<<".\n";
             output += (*vToken)(1)+"\n"; 
          }
          else
@@ -144,8 +165,32 @@ void Program_Run::cycle()
             //error("ERROR");
          }
       }
+      else if (instruction == "REM")
+      {
+         std::cout<<" REM \n";
+      }
+      else if (instruction == "LABEL")
+      {
+         std::cout<<" LABEL \n";
+      }
+      else if (instruction == "GOTO")
+      {
+         std::cout<<" GOTO \n";
+      }
+      else if (DataTools::isNumeric(instruction))
+      {
+         std::cout<<" LINE NUM \n";
+      }
+      else
+      {
+         std::cout<<" INVALID \n";
+      }
       
       
+   }
+   else
+   {
+      std::cout<<" NO TOKE \n";
    }
    
    ++currentLine;
