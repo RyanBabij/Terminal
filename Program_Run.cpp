@@ -169,9 +169,26 @@ void Program_Run::cycle()
          }
          
          //Print only strings enclosed in "
+         // The other tokens are variables.
          Vector <std::string> * vPrint = Tokenize::tokenize(strCurrentLine,'"');
          
          if ( vPrint==0 ) { return; }
+         
+         std::cout<<"All tokens:\n";
+         for (int i=0;i<vPrint->size();++i)
+         {
+            if ( i%2==0 ) // even
+            {
+               std::cout<<"Getting var: "<<(*vPrint)(i)<<"\n";
+               output+=varTable.get( (*vPrint)(i) );
+            }
+            else //odd
+            {
+               output+=(*vPrint)(i);
+            }
+            //std::cout<<(*vPrint)(i)<<"\n";
+            //output+=(*vPrint)(i);
+         }
          
          for (int i=1;i<vPrint->size();i+=2)
          {

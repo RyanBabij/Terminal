@@ -111,6 +111,17 @@ class Program_Run: public Terminal_Program
          vVarName.push(_varName);
          vVarValue.push(_varValue);
       }
+      std::string get(std::string _varName)
+      {
+         for (int i=0;i<vVarName.size();++i)
+         {
+            if (vVarName(i) == _varName)
+            {
+               return vVarValue(i);
+            }
+         }
+         return "";
+      }
       void clear()
       {
          vVarName.clear();
