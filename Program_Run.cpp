@@ -153,17 +153,31 @@ void Program_Run::cycle()
       {
          std::cout<<" PRINT \n";
          
-         if ( vToken->size() >= 2 )
+         // replace all instances of "\\n" with '\n'.
+         size_t index = 0;
+         while (true) //https://stackoverflow.com/questions/4643512/replace-substring-with-another-substring-c
          {
-            //std::cout<<"PRINTING: "<<(*vToken)(1)<<".\n";
-            output += (*vToken)(1)+"\n"; 
+              /* Locate the substring to replace. */
+              index = strCurrentLine.find("\\N", index);
+              if (index == std::string::npos) break;
+
+              /* Make the replacement. */
+              strCurrentLine.replace(index, 2, "\n");
+
+              /* Advance index forward so the next iteration doesn't pick it up as well. */
+              index += 2;
          }
-         else
+         
+         //Print only strings enclosed in "
+         Vector <std::string> * vPrint = Tokenize::tokenize(strCurrentLine,'"');
+         
+         if ( vPrint==0 ) { return; }
+         
+         for (int i=1;i<vPrint->size();i+=2)
          {
-            // RETURN ERROR
-            output += "ERROR";
-            //error("ERROR");
+            output+=(*vPrint)(i);
          }
+         delete vPrint;
       }
       else if (instruction == "REM")
       {
@@ -176,10 +190,32 @@ void Program_Run::cycle()
       else if (instruction == "GOTO")
       {
          std::cout<<" GOTO \n";
+         if (vToken->size() > 1)
+         {
+            std::string strJumpTarget = (*vToken)(1);
+            std::cout<<"JUMPING TO "<<strJumpTarget<<".\n";
+            for (int i=0;i<vCodeLine.size();++i)
+            {
+               if ( vCodeLine(i)->label == strJumpTarget )
+               {
+                  std::cout<<vCodeLine(i)->label<<"\n";
+                  currentLine = i;
+               }
+            }
+            
+         }
+
       }
       else if (DataTools::isNumeric(instruction))
       {
          std::cout<<" LINE NUM \n";
+      }
+      else if (instruction=="END")
+      {
+         output+="END OF PROGRAM\n";
+         active=false;
+         currentLine=0;
+         return;
       }
       else
       {
