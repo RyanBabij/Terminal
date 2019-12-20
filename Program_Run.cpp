@@ -43,6 +43,9 @@ std::string Program_Run::init (Vector <std::string>* vArg)
             fileContent = FileManagerStatic::load("storage/"+fileName);
             if (fileContent.size()>0)
             {
+               easi.load(fileContent);
+               
+               
                
                active=true;
                currentLine=0;
@@ -241,6 +244,9 @@ void Program_Run::cycle()
          
          // for now just require the following syntax:
          // LET VAR = VALUE
+         // LET VAR$ = "STRING"
+         // LET VAR = VALUE1 <+-/*> VALUE2
+         // Therefore there can be 4 or 6 tokens
          if (vToken->size() > 3)
          {
             if ( (*vToken)(2) == "=" )
@@ -263,6 +269,8 @@ void Program_Run::cycle()
       }
       else
       {
+         // If no keyword can be found, then it may be an expression. In this case we basically just use the "LET" code.
+         // We need to create an EASI module which takes lines of code.
          std::cout<<" INVALID \n";
       }
       

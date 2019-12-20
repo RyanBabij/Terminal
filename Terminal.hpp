@@ -73,6 +73,9 @@ Timer toneTimer; /* Keep track of when last tone was played */
 #include "Operator.hpp"
 //Operator op;
 
+// EASI interpreter
+#include "EASI.cpp"
+
 #include <String/ANSI.hpp>
 
 /* Class to store the Terminal's files which can be default system files,
