@@ -9,27 +9,22 @@
 */
 
 #include <limits.h> // We need ULONG_MAX for absolute coords.
-#define ABSOLUTE_COORDINATE_NULL ULONG_MAX // Used as null-value for absolute coordinates, which can't use negative value.
 
   // SYSTEM STRINGS
-const std::string VERSION = "0.0.047 Win32 dev";
+const std::string VERSION = "0.0.048 Win32 dev";
 const std::string G_WINDOW_TITLE = "Terminal";
 const std::string SAVE_FOLDER_PATH = "savedata";
 
 // WINDOW STUFF
 
-unsigned int RESOLUTIONX=800, RESOLUTIONY=600;
+unsigned int RESOLUTIONX=1024, RESOLUTIONY=768;
 const bool MAXIMISE_WINDOW = false;
 
   // MAIN MENU ENUMS
    // I use a global enum to decide what menu we are in. Makes like much easier.
-enum enumMenu { MENU_UNKNOWN, MENU_TITLE, MENU_OPTIONS, MENU_LOADGAME, MENU_WORLDGENERATOR, MENU_WORLDSIMULATOR, MENU_ADVENTUREMODE };
+enum enumMenu { MENU_UNKNOWN, MENU_TITLE };
 //Set the menu the game boots into
 enumMenu activeMenu = MENU_TITLE;
-
-
-
-bool RESET=false;
 
 bool HOTKEYS_ENABLED = false;
 
@@ -40,7 +35,7 @@ const bool OUTPUT_FRAMERATE = false;
 const int OUTPUT_FRAMERATE_SAMPLE_SIZE = 50;
 
 const bool LIMIT_FRAMERATE = true;
-const double FRAMERATE = 60; // SETTING IT TO A REASONABLE VALUE CAN GREATLY REDUCE STRESS ON GPU
+const double FRAMERATE = 30; // SETTING IT TO A REASONABLE VALUE CAN GREATLY REDUCE STRESS ON GPU
 const double POLLSPERSECOND = 30; // NOT CURRENTLY IMPLEMENTED
 double LOGIC_PER_SECOND = 1;
 const double PHYSICS_PER_SECOND = 10;

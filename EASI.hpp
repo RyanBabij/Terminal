@@ -24,6 +24,8 @@ class CodeLine
    
    CodeLine(std::string _strLine)
    {
+      std::cout<<"EASI: Evaluating line: "<<_strLine<<"\n";
+      
       label="";
       lineLabel="";
       keyword="";
@@ -35,6 +37,38 @@ class CodeLine
       bool isLineLabel = true;
       bool isKeyword = false;
       bool isExpression = false;
+      
+      // A line that starts with numbers  has a line number label
+      // A line that starts with characters is either a keyword or expression
+      // (an expression must start with a variable or keyword, and neither can contain numbers)
+      // If the line does not have a valid keyword, it will be evaluated as an expression
+      // If the expression is invalid, the code line is invalid.
+      // These rules mean that EASI and BASIC are whitespace independent,
+      // and you can strip all whitespace (except strings) and assume every char is significant
+      //_strLine = DataTools::strip(_strLine,"\n\r");
+      
+      // The main catch is that a colon indicates a new line of code, but this is easy to deal with.
+      // Simply replace every colon (not in a string) with a newline
+      
+      std::string _strNew = "";
+      bool isString=false;
+      // Strip all spaces which aren't between quotes
+      for (unsigned int i=0;i<_strLine.size();++i)
+      {
+         if ( _strLine[i] == '\"' )
+         {
+            isString=!isString;
+            _strNew+=_strLine[i];
+         }
+         else if ( _strLine[i] != ' ' )
+         {
+            _strNew+=_strLine[i];
+         }
+      }
+      _strLine=_strNew;
+      
+      std::cout<<"EASI: Stripped line: "<<_strLine<<"\n";
+      
       for (unsigned int i=0;i<_strLine.size();++i)
       {
          if (isLineLabel) // line labels can only be at the beginning of a string.
@@ -44,60 +78,63 @@ class CodeLine
                // switch to keyword mode.
                isLineLabel=false;
                isKeyword=true;
-               // if ( lineLabel.size() > 0 )
-               // {
-                  
-               // }
             }
             else if (DataTools::isNumeric(_strLine[i]))
             {
                lineLabel+=_strLine[i];
             }
-            else
+            else //invalid char, or maybe expression. Go back to start and try evaluate as expression.
             {
                lineLabel="";
+               i=0;
                isLineLabel=false;
-               //invalid code.
+               isExpression=true;
             }
          }
          if (isKeyword) // keywords can only be alpha
          {
-            if ( DataTools::isAlpha(_strLine[i]))
-            {
-               // build and check keyword. max keyword size is 7.
-               // check all keywords at once, otherwise we need to good
-               // back to evaluate expression.
-
                if (_strLine.rfind("PRINT",i,5) == i)
                {
-                  std::cout<<"FOUND PRINT\n";
+                  keyword = "PRINT";
+                  i+=5;
                }
                else if (_strLine.rfind("REM",i,3) == i)
                {
-                  std::cout<<"FOUND REM\n";
+                  keyword = "REM";
+                  i+=3;
                }
-            }
-            else if (DataTools::isNumeric(_strLine[i]))
-            {
+               else if (_strLine.rfind("LET",i,3) == i)
+               {
+                  keyword = "LET";
+                  i+=3;
+               }
+               else if (_strLine.rfind("END",i,3) == i)
+               {
+                  keyword = "END";
+                  i+=3;
+               }
+               else if (_strLine.rfind("LABEL",i,5) == i)
+               {
+                  keyword = "LABEL";
+                  i+=5;
+               }
                isKeyword=false;
                isExpression=true;
-            }
-            else
-            {
-               lineLabel="";
-               isLineLabel=false;
-               //invalid code.
-            }
          }
          if (isExpression) //expression is evaluated externally
          {
+            const std::string allowedInputs = " !@#$%^&*()\"\'\\=+-/";
+            if (DataTools::isAlphaNumeric(_strLine[i]) || allowedInputs.find(_strLine[i]) != std::string::npos)
+            {
+               expression+=_strLine[i];
+            }
          }
-         
-
-         
-         
-         
       }
+      
+      std::cout<<"EASI RESULTS\n";
+      std::cout<<"Label: "<<label<<".\n";
+      std::cout<<"Keyword: "<<keyword<<".\n";
+      std::cout<<"Expression: "<<expression<<".\n";
       
       vToken = Tokenize::tokenize(_strLine,' ');
       
