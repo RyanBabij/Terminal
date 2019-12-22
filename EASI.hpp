@@ -9,6 +9,52 @@
    
 */
 
+#include <stack> // for shunting-yard algorithm
+
+// Simple table to lookup variable names and values
+class VarTable
+{
+   public:
+   Vector <std::string> vVarName;
+   Vector <std::string> vVarValue;
+   
+   VarTable()
+   {
+   }
+   
+   // Automatically adds the variable or updates it as required.
+   void update(std::string _varName, std::string _varValue)
+   {
+      
+      for (int i=0;i<vVarName.size();++i)
+      {
+         if ( vVarName(i) == _varName )
+         {
+            vVarValue(i) = _varValue;
+            return;
+         }
+      }
+      vVarName.push(_varName);
+      vVarValue.push(_varValue);
+   }
+   std::string get(std::string _varName)
+   {
+      for (int i=0;i<vVarName.size();++i)
+      {
+         if (vVarName(i) == _varName)
+         {
+            return vVarValue(i);
+         }
+      }
+      return "";
+   }
+   void clear()
+   {
+      vVarName.clear();
+      vVarValue.clear();
+   }
+};
+
 class CodeLine
 {
    public:
@@ -136,96 +182,227 @@ class CodeLine
       std::cout<<"Keyword: "<<keyword<<".\n";
       std::cout<<"Expression: "<<expression<<".\n";
       
-      vToken = Tokenize::tokenize(_strLine,' ');
       
-      if (vToken==0)
-      {
-         return;
-      }
+      
+      
+      // vToken = Tokenize::tokenize(_strLine,' ');
+      
+      // if (vToken==0)
+      // {
+         // return;
+      // }
 
-      if ( vToken->size()>0)
-      {
-         // we have at least a basic instruction
-         std::string instruction = (*vToken)(0);
+      // if ( vToken->size()>0)
+      // {
+         // // we have at least a basic instruction
+         // std::string instruction = (*vToken)(0);
          
-         if ( instruction == "PRINT" )
+         // if ( instruction == "PRINT" )
+         // {
+
+         // }
+         // else if (instruction == "REM")
+         // {
+         // }
+         // else if (instruction == "LABEL")
+         // {
+            // if (vToken->size()>1)
+            // {
+               // label = (*vToken)(1);
+            // }
+         // }
+         // else if (instruction == "GOTO")
+         // {
+         // }
+         // else if (DataTools::isNumeric(instruction))
+         // {
+            // label=instruction;
+         // }
+         // else
+         // { //invalid
+         // }
+      // }
+   }
+   
+   // Evaluate the passed string as a BASIC expression. An expression may have some strings,
+   // variables and keywords mixed in, so it's not a simple process.
+   // Variables are subbed in with their values. Expressions between strings are evaluated, and
+   // the strings are appended.
+   // Each expression must first be converted to postfix notation using the shunting-yard algorithm
+   // which is slightly complicated by the presence of mathematical keywords like ABS().
+   std::string evaluate ( std::string _strExpression , VarTable* _vTable)
+   {
+      //Step 1: Sub all variables to prevent problems down the line with string variables
+         // variables are alphabet chars with no numbers or symbols, so they're easy to identify.
+         // strings end with a $.
+      //Step 2: Sort strings and expressions between strings.
+      //Step 3: Evaluate each expression.
+      //Step 4: Append results and strings and return final result.
+      
+      // strip strings and build vector of sub-expressions.
+      // expression always gets pushed first to preserve order.
+      
+      std::cout<<"EASI: Evaluating: "<<_strExpression<<".\n";
+      
+      if ( _vTable==0 )
+      { return ""; }
+      
+      
+      std::string _str = "";
+      std::string _strSubExpression = "";
+      
+      Vector <std::string> _vString;
+      Vector <std::string> _vSubExpression;
+      
+      
+      bool isString=false;
+      // we need to sub all variables here to prevent confusion with string variables in expressions.
+      // variables are alphabetical, so we just scan for any alphabetical chars.
+      // in future we must make sure we aren't reading in keywords or functions
+      std::string _strSubbedCode = "";
+      std::string _strVar = "";
+      
+            // need to account for assignment expressions here.
+            // assignment can have a single lvalue, but multiple rvalues.
+      std::string _strAssignment = "";
+      bool isLvalue=true; // only true for first element.
+      
+      //quick scan to see if this is an assignment expression. Basically a var and =.
+      // step 1 is to check for an =. step 2 is to scan in the var.
+      // alternatively all unknown vars can be replaced with "".
+      // for (unsigned int i=0;i<_strExpression.size();++i)
+      // {
+            // if ( DataTools::isAlpha(_strExpression[i]) )
+            // {
+               // _strAssignment+=_strExpression[i];
+            // }
+            // else if (_strExpression[i] == '$')
+            // {
+               // //STRING VAR
+               // _strAssignment+=_strExpression[i];
+               
+               // // there should be an = next, otherwise invalid.
+               // if ( 
+               
+            // }
+            // else
+            // {
+               // if ( _strExpression == '=' )
+               // {
+                  // if ( _strAssignment.size() > 0 )
+                  // {
+                     // //we are assigning to this var, so create the var and make it null value.
+                  // }
+               // }
+               // // variable terminates.
+               // if (_strVar != "")
+               // {
+                  // // pull from vartable.
+                  // _strSubbedCode += _vTable->get(_strVar);
+                  // _strVar="";
+               // }
+            // }
+      // }
+      
+            
+      for (unsigned int i=0;i<_strExpression.size();++i)
+      {
+         if ( _strExpression[i] == '\"' ) // flip between expression and string
          {
+            isString = !isString;
+            _strSubbedCode += '\"';
+            continue;
+         }
+            
+         if ( isString ) // ignore
+         {
+         }
+         else // scan for variables
+         {
+            // check is alpha
+            //check is dollarsign
+            
+            if ( DataTools::isAlpha(_strExpression[i]) )
+            {
+               _strVar+=_strExpression[i];
+            }
+            else if (_strExpression[i] == '$')
+            {
+               //STRING VAR
+               // pull from vartable
+               std::cout<<"Stringvar\n";
+               _strVar+='$';
+               _strSubbedCode += _vTable->get(_strVar);
+               _strVar="";
+            }
+            else
+            {
+               // variable terminates.
+               if (_strVar != "")
+               {
+                  // pull from vartable.
+                  _strSubbedCode += _vTable->get(_strVar);
+                  _strVar="";
+               }
+            }
 
          }
-         else if (instruction == "REM")
+      }
+      
+      isString=false;
+      for (unsigned int i=0;i<_strExpression.size();++i)
+      {
+         if ( _strExpression[i] == '\"' ) // flip between expression and string
          {
-         }
-         else if (instruction == "LABEL")
-         {
-            if (vToken->size()>1)
+            isString = !isString;
+            
+            if ( isString ) // push the expression
             {
-               label = (*vToken)(1);
+               _vSubExpression.push(_strSubExpression);
+               _strSubExpression="";
+            }
+            else // push the string
+            {
+               _vString.push(_str);
+               _str="";
             }
          }
-         else if (instruction == "GOTO")
+         else if (isString)
          {
-         }
-         else if (DataTools::isNumeric(instruction))
-         {
-            label=instruction;
+            _str += _strExpression[i];
          }
          else
-         { //invalid
+         {
+            _strSubExpression += _strExpression[i];
          }
       }
+      _vSubExpression.push(_strSubExpression);
+      
+      
+      // convert the subexpression to postfix notation.
+      // sub variables
+      std::string _strSubExpressionResult = "";
+      for (int i=0;i<_vSubExpression.size();++i)
+      {
+         
+         std::stack <int> stkValue;
+         std::stack <char> stkOperator;
+         
+      }
+      
+
+      
+      for (unsigned int i=0;i<_strExpression.size();++i)
+      {
+      }
+      
+      return "";
    }
    
-   void process(std::string _line)
-   {
-   }
-   
+
    ~CodeLine()
    {
       std::cout<<"Codeline died\n";
-   }
-};
-
-// Simple table to lookup variable names and values
-class VarTable
-{
-   public:
-   Vector <std::string> vVarName;
-   Vector <std::string> vVarValue;
-   
-   VarTable()
-   {
-   }
-   
-   // Automatically adds the variable or updates it as required.
-   void update(std::string _varName, std::string _varValue)
-   {
-      
-      for (int i=0;i<vVarName.size();++i)
-      {
-         if ( vVarName(i) == _varName )
-         {
-            vVarValue(i) = _varValue;
-            return;
-         }
-      }
-      vVarName.push(_varName);
-      vVarValue.push(_varValue);
-   }
-   std::string get(std::string _varName)
-   {
-      for (int i=0;i<vVarName.size();++i)
-      {
-         if (vVarName(i) == _varName)
-         {
-            return vVarValue(i);
-         }
-      }
-      return "";
-   }
-   void clear()
-   {
-      vVarName.clear();
-      vVarValue.clear();
    }
 };
 
@@ -233,16 +410,17 @@ class EASI
 {
    public:
    
+   int currentLine;
+   
+   Vector <CodeLine*> vCodeLine;
+   Vector <std::string> * vLine; // String for every line of the program, valid or not.
+   
    EASI();
    
    std::string load(std::string _code); /* Load stuff like labels */
    
    std::string cycle(); /* Execute one cycle of the code */
-   
-   int currentLine;
-   
-   Vector <CodeLine*> vCodeLine;
-   Vector <std::string> * vLine; // String for every line of the program, valid or not.
+
 };
 
 

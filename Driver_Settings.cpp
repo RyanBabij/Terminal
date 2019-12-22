@@ -11,7 +11,7 @@
 #include <limits.h> // We need ULONG_MAX for absolute coords.
 
   // SYSTEM STRINGS
-const std::string VERSION = "0.0.048 Win32 dev";
+const std::string VERSION = "0.0.049 Win32 dev";
 const std::string G_WINDOW_TITLE = "Terminal";
 const std::string SAVE_FOLDER_PATH = "savedata";
 

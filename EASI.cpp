@@ -29,7 +29,14 @@ std::string EASI::load(std::string _code)
    {
       vLine->clear();
       delete vLine;
+      vLine=0;
    }
+   
+   for (int i=0;i<vCodeLine.size();++i)
+   {
+      delete vCodeLine(i);
+      vCodeLine(i)=0;
+   } vCodeLine.clear();
 
    vLine = Tokenize::tokenize(_code,"\n\r");
    
@@ -52,7 +59,14 @@ std::string EASI::load(std::string _code)
 
 std::string EASI::cycle()
 {
+   //run the current line of code
    
+   if (vCodeLine.isSafe(currentLine)==false)
+   { return "END OF PROGRAM\n"; }
+
+
+//run line
+
    return "";
 }
 
