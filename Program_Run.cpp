@@ -43,57 +43,58 @@ std::string Program_Run::init (Vector <std::string>* vArg)
             fileContent = FileManagerStatic::load("storage/"+fileName);
             if (fileContent.size()>0)
             {
+               std::cout<<"EASI: Load\n";
                easi.load(fileContent);
-               
-               
-               
                active=true;
-               currentLine=0;
                
-               //EASI CODE MUST ALWAYS BE IN  U P P E R C A S E
-               for (auto & c: fileContent) c = toupper(c);
                
-               // TOKENIZE CODE INTO LINES BY NEWLINE
-               // TOKENISE EACH LINE INTO INSTRUCTIONS BY SPACES
                
-               if ( vLine )
-               {
-                  vLine->clear();
-                  delete vLine;
-               }
+               // currentLine=0;
+               
+               // //EASI CODE MUST ALWAYS BE IN  U P P E R C A S E
+               // for (auto & c: fileContent) c = toupper(c);
+               
+               // // TOKENIZE CODE INTO LINES BY NEWLINE
+               // // TOKENISE EACH LINE INTO INSTRUCTIONS BY SPACES
+               
+               // if ( vLine )
+               // {
+                  // vLine->clear();
+                  // delete vLine;
+               // }
 
-               vLine = Tokenize::tokenize(fileContent,"\n\r");
+               // vLine = Tokenize::tokenize(fileContent,"\n\r");
                
-               if ( vLine==0 )
-               {
-                  std::cout<<"ERROR: NO TOKENISE\n";
-                  active=false;
-                  currentLine=0;
-                  return "";
-               }
+               // if ( vLine==0 )
+               // {
+                  // std::cout<<"ERROR: NO TOKENISE\n";
+                  // active=false;
+                  // currentLine=0;
+                  // return "";
+               // }
                
-               std::cout<<"Loading program:\n";
-               // Load up each line.
-               for (int i=0;i<vLine->size();++i)
-               {
-                  vCodeLine.push(new CodeLine((*vLine)(i)));
-                  std::cout<<i<<" "<<(*vLine)(i)<<"\n";
-               }
+               // std::cout<<"Loading program:\n";
+               // // Load up each line.
+               // for (int i=0;i<vLine->size();++i)
+               // {
+                  // vCodeLine.push(new CodeLine((*vLine)(i)));
+                  // std::cout<<i<<" "<<(*vLine)(i)<<"\n";
+               // }
                
-               std::cout<<"CODE LOADED SUCCESSFULLY\n";
+               // std::cout<<"CODE LOADED SUCCESSFULLY\n";
                
-               std::cout<<"All labels:\n";
+               // std::cout<<"All labels:\n";
                
-               for (int i=0;i<vCodeLine.size();++i)
-               {
-                  if ( vCodeLine(i)->label != "" )
-                  {
-                     std::cout<<vCodeLine(i)->label<<"\n";
-                  }
-               }
+               // for (int i=0;i<vCodeLine.size();++i)
+               // {
+                  // if ( vCodeLine(i)->label != "" )
+                  // {
+                     // std::cout<<vCodeLine(i)->label<<"\n";
+                  // }
+               // }
 
                
-               output="RUNNING PROGRAM\n";
+               // output="RUNNING PROGRAM\n";
                return output;
             }
          }
@@ -111,11 +112,17 @@ std::string Program_Run::init (Vector <std::string>* vArg)
    return "NO U\n";
 }
 
-void Program_Run::cycle()
+void Program_Run::cycle() // for now this is being called directly before render()
 {
-   std::cout<<"cycle\n";
+   output += easi.cycle();
    
-   //output+="CYCLE\n";
+   if (easi.terminated)
+   {
+      currentLine=0;
+      active=false;
+   }
+   
+   return;
    
    if (vLine==0)
    {
@@ -286,24 +293,28 @@ void Program_Run::cycle()
 
 }
 
-void Program_Run::execute(int lineNumber)
-{
+// void Program_Run::execute(int lineNumber)
+// {
    
-}
+// }
 
+// Program can return update in text mode, or entire screen in graphics mode.
+// Output string should be wiped 
 std::string Program_Run::render()
 {
    // interpret and run program here.
    
+   // return a copy of output and wipe the output string.
+   std::string retRender = output;
+   output="";
    if (active)
    {
-      output="";
-      cycle();
-      std::cout<<"Current render state: "<<output<<"\n";
-      return output;
+      //std::cout<<"rendtest\n";
+      //return "test\n";
+      return retRender;
    }
    
-   return output;
+   return "";
 }
 
 #endif

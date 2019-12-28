@@ -11,6 +11,8 @@ Initialize main menus, start timers, initialise any important data.
 
 */
 
+#include <Algorithm/Shunting.cpp>
+
 #include "Driver_InitServers.hpp"
 
 void init()
@@ -80,6 +82,31 @@ void init()
    globalGuiManager.add(&menuTitle);
    
    initServers();
+   
+   std::cout<<"Running test cases\n";
+   
+   // SHUNT TEST CASES
+   //Shunting shunt;
+   //shunt.buildDefaults();
+   //shunt.shunt("-1+(1-2)*(4/2)");
+   //shunt.test();
+   
+   // EASI TEST CASES
+   std::cout<<" *** EASI TEST CASES ***\n";
+   EASI easi;
+   std::cout<<"loading\n";
+   easi.load("AYY");
+   std::cout<<"end loading\n";
+   
+   int i=0;
+   
+   while (easi.terminated==false && i++ < 1000)
+   {
+      easi.cycle();
+   }
+   
+   std::cout<<"TESTING DONE, EXITING\n";
+   exit(0);
    
 }
 

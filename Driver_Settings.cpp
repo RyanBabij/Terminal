@@ -11,13 +11,13 @@
 #include <limits.h> // We need ULONG_MAX for absolute coords.
 
   // SYSTEM STRINGS
-const std::string VERSION = "0.0.049 Win32 dev";
+const std::string VERSION = "0.0.050 Win32 dev";
 const std::string G_WINDOW_TITLE = "Terminal";
 const std::string SAVE_FOLDER_PATH = "savedata";
 
 // WINDOW STUFF
 
-unsigned int RESOLUTIONX=1024, RESOLUTIONY=768;
+unsigned int RESOLUTIONX=800, RESOLUTIONY=600;
 const bool MAXIMISE_WINDOW = false;
 
   // MAIN MENU ENUMS

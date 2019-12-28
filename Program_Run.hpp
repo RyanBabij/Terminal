@@ -11,6 +11,10 @@
    
       PRINT - Prints text, variables, and/or strings.
       LET - Set a variable value. Variables followed by $ are strings.
+      
+   Render and CPU cycles are decoupled, although the C64 I think was mostly tied to clock rate.
+   Render rate will probably be base framerate. However the amount of access to graphics RAM
+   will be limited.
    
 */
 
@@ -45,7 +49,7 @@ class Program_Run: public Terminal_Program
    
    //run the code for 1 emulated cycle returns possible output
    void cycle() override;
-   void execute(int lineNumber);
+   //void execute(int lineNumber);
 
 };
 

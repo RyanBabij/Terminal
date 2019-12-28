@@ -58,8 +58,9 @@ class Terminal_Program
    Return empty string if init successful, otherwise return error message */
    virtual std::string init (Vector <std::string>* vArg);
    
+   // Render and logic cycle are decoupled but will typically run at the same rate. */
    virtual std::string render(); /* render at set framerate */
-   virtual void cycle(); /* advance 1 game cycle */
+   virtual void cycle(); /* advance 1 game cycle. Maybe return a status. */
    
    virtual void keyboardEvent (Keyboard*);
 };

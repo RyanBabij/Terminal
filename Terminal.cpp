@@ -75,8 +75,8 @@ void Terminal::init()
    vProgram.push(new Program_Run(this));
 
    clearScreen();
-   strMainConsole = "                    *** SUDACHI SYSTEM 1 ***                    \n";
-
+   //strMainConsole = "                    *** SUDACHI SYSTEM 1 ***                    \n";
+   strMainConsole="";
 }
 
 void Terminal::loadAudio()
@@ -278,6 +278,9 @@ bool Terminal::renderProgram()
       // We really should just have a ptr to the active program (if any).
       if (vProgram(i)->active)
       {
+         // For now just cycle the program here
+         vProgram(i)->cycle();
+      
          if ( vProgram(i)->graphicsMode )
          {
             clearScreen();
@@ -473,6 +476,11 @@ bool Terminal::typeChar (const unsigned char c)
 
 void Terminal::backspace()
 {
+   if (cursorX==0 && cursorY==0)
+   {
+      return;
+   }
+   
    if ( strMainConsole[strMainConsole.size()-1] != '\n')
    {
       strMainConsole.pop_back();

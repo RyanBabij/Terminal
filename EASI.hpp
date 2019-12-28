@@ -46,7 +46,8 @@ class VarTable
             return vVarValue(i);
          }
       }
-      return "";
+      // BASIC and EASI assume unknown variables are 0.
+      return "0";
    }
    void clear()
    {
@@ -67,6 +68,7 @@ class CodeLine
    std::string strLine; // full code line
    
    std::string errorMessage;
+   
    
    CodeLine(std::string _strLine)
    {
@@ -259,6 +261,7 @@ class CodeLine
       // we need to sub all variables here to prevent confusion with string variables in expressions.
       // variables are alphabetical, so we just scan for any alphabetical chars.
       // in future we must make sure we aren't reading in keywords or functions
+      // BASIC and EASI set unknown variables to 0, this includes throwing /0 errors.
       std::string _strSubbedCode = "";
       std::string _strVar = "";
       
@@ -276,9 +279,8 @@ class CodeLine
             // {
                // _strAssignment+=_strExpression[i];
             // }
-            // else if (_strExpression[i] == '$')
+            // else if (_strExpression[i] == '$') // string var terminator
             // {
-               // //STRING VAR
                // _strAssignment+=_strExpression[i];
                
                // // there should be an = next, otherwise invalid.
@@ -349,6 +351,9 @@ class CodeLine
          }
       }
       
+      std::cout<<"All vars subbed. Here is result:\n";
+      std::cout<<_strSubbedCode<<"\n";
+      
       isString=false;
       for (unsigned int i=0;i<_strExpression.size();++i)
       {
@@ -415,11 +420,19 @@ class EASI
    Vector <CodeLine*> vCodeLine;
    Vector <std::string> * vLine; // String for every line of the program, valid or not.
    
+   bool terminated;
+   
+   VarTable varTable;
+   
    EASI();
    
    std::string load(std::string _code); /* Load stuff like labels */
    
    std::string cycle(); /* Execute one cycle of the code */
+   
+   std::string evaluate(CodeLine* _codeLine); // Run code line in current state
+   
+   std::string shunt(std::string input); /* convert expression to postfix notation */
 
 };
 
