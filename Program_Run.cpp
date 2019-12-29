@@ -263,7 +263,7 @@ void Program_Run::cycle() // for now this is being called directly before render
                   if ( DataTools::isNumeric( (*vToken)(3) ) )
                   {
                      std::cout<<"VARIABLE "<<(*vToken)(1)<<" WILL EQUAL "<<(*vToken)(3)<<".\n";
-                     varTable.update( (*vToken)(1), (*vToken)(3) );
+                     varTable.set( (*vToken)(1), (*vToken)(3) );
                   }
                }
                

@@ -22,16 +22,13 @@ EASI::EASI()
 
 std::string EASI::load(std::string _code)
 {
-   std::cout<<"EASI:load\n";
+   std::cout<<"EASI:load\n\n";
    std::cout<<_code<<"\n\n";
    
    terminated=false;
    
    //EASI CODE MUST ALWAYS BE IN  U P P E R C A S E
    _code = DataTools::toUpper(_code);
-   
-   // TOKENIZE CODE INTO LINES BY NEWLINE
-   // TOKENISE EACH LINE INTO INSTRUCTIONS BY SPACES
    
    if ( vLine != 0 )
    {
@@ -46,6 +43,7 @@ std::string EASI::load(std::string _code)
       vCodeLine(i)=0;
    } vCodeLine.clear();
    
+   // Tokenise by newline
    vLine = Tokenize::tokenize(_code,"\n\r");
    
    if ( vLine==0 )
@@ -53,20 +51,17 @@ std::string EASI::load(std::string _code)
       currentLine=0;
       return "";
    }
-   
-   std::cout<<"Loading program:\n";
+
    // Load up each line.
-   
-   std::cout<<"Codelines loaded:\n";
    for (int i=0;i<vLine->size();++i)
    {
       vCodeLine.push(new CodeLine((*vLine)(i)));
-      std::cout<<i<<" "<<(*vLine)(i)<<"\n";
    }
    
+   // Debug output of each CodeLine
    for (int i=0;i<vCodeLine.size();++i)
    {
-      std::cout<<"\nLine "<<i<<":\n";
+      std::cout<<"\nLine "<<i<<": "<<vCodeLine(i)->strLine<<" -> "<<vCodeLine(i)->strLineStripped<<"\n";
       std::cout<<"           Label:  "<<vCodeLine(i)->label<<"\n";
       std::cout<<"       Linelabel:  "<<vCodeLine(i)->lineLabel<<"\n";
       std::cout<<"         Keyword:  "<<vCodeLine(i)->keyword<<"\n";
@@ -100,9 +95,17 @@ std::string EASI::cycle()
 
 std::string EASI::evaluate(CodeLine* _codeLine)
 {   
+   if ( _codeLine == 0 )
+   {
+      return "ERROR: Null CodeLine ptr\n";
+   }
+
+   std::cout<<"Executing line: "<<_codeLine->strLineStripped<<"\n";
+
    // varTable.update("A","100");
    // varTable.update("B","2");
    // varTable.update("C","33");
+   // varTable.update("A$","AYY");
 
    //Step 1: Sub all variables to prevent problems down the line with string variables
       // variables are alphabet chars with no numbers or symbols, so they're easy to identify.
@@ -113,11 +116,52 @@ std::string EASI::evaluate(CodeLine* _codeLine)
    
    // strip strings and build vector of sub-expressions.
    // expression always gets pushed first to preserve order.
+
+
+   // sub all variables using token vector
+   // also check for positive/negative modifiers:
+   // at start of expression
+   // after any operator
+   for (int i=0;i<_codeLine->vExpressionToken.size();++i)
+   {
+      if ( varTable.isValid(_codeLine->vExpressionToken(i)) )
+      {
+         _codeLine->vExpressionToken(i) = varTable.get(_codeLine->vExpressionToken(i));
+      }
+   }
+
+   std::cout<<"Subbed expression: ";
+   // sub all variables using token vector
+   for (int i=0;i<_codeLine->vExpressionToken.size();++i)
+   {
+      std::cout<<_codeLine->vExpressionToken(i)<<" ";
+   }std::cout<<"\n";
    
-   //std::cout<<"EASI: Evaluating: "<<_strExpression<<".\n";
+   if ( _codeLine->assignmentVar != "" )
+   {
+      std::cout<<"Evaluating assignment expression\n";
+      
+      std::string strEvalExpression = "";
+      
+      for (int i=0;i<_codeLine->vExpressionToken.size();++i)
+      {
+         strEvalExpression += _codeLine->vExpressionToken(i);
+      }
+      std::cout<<"Evaluating expr: "<<strEvalExpression<<"\n";
+      shunt.shunt(strEvalExpression);
+      
+      std::string strResult = DataTools::toString(shunt.evaluate());
+      std::cout<<"Result: "<<strResult<<"\n";
+      varTable.set(_codeLine->assignmentVar,DataTools::toString(strResult));
+   }
    
-   if ( _codeLine==0 )
-   { return "ERROR"; }
+   std::cout<<"PRINTING VAR TABLE\n";
+   std::cout<<varTable.toString();
+   
+   return "";
+
+   
+   
 
    std::string _str = "";
    std::string _strSubExpression = "";
@@ -306,17 +350,16 @@ std::string EASI::evaluate(CodeLine* _codeLine)
 #include <list> 
 #include <iterator> 
 
-#include <Algorithm/Shunting.cpp>
+//#include <Algorithm/Shunting.cpp>
 
-std::string EASI::shunt(std::string _input)
-{
+// std::string EASI::shunt(std::string _input)
+// {
+   // //Shunting shunt;
+   // shunt.shunt(_input);
    
-   Shunting shunt;
-   shunt.shunt(_input);
-   
-   std::cout<<"EASI: shunted: "<<shunt.toString()<<".\n";
-   return shunt.toString();
+   // std::cout<<"EASI: shunted: "<<shunt.toString()<<".\n";
+   // return shunt.toString();
 
-}
+// }
 
 #endif      

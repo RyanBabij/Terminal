@@ -115,7 +115,7 @@ void init()
    }
    
    std::cout<<"TESTING DONE, EXITING\n";
-   exit(0);
+   //exit(0);
    
 }
 

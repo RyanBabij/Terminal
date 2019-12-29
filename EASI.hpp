@@ -23,9 +23,32 @@ class VarTable
    {
    }
    
-   // Automatically adds the variable or updates it as required.
-   void update(std::string _varName, std::string _varValue)
+   // return true if var is a valid numeric or string variable name
+   bool isValid(std::string _varName)
    {
+      if (_varName.size() == 0 )
+      { return false; }
+      
+      for (unsigned int i=0;i<_varName.size()-1;++i)
+      {
+         if ( _varName[i] < 65 || _varName[i] > 90 )
+         {
+            return false;
+         }
+      }
+      
+      if ( _varName.back() == '$'
+        || (_varName.back() > 64 && _varName.back() < 91) )
+      { return true; }
+ 
+      
+      return false;
+   }
+   
+   // Automatically adds the variable or updates it as required.
+   void set(std::string _varName, std::string _varValue)
+   {
+      std::cout<<"Set "<<_varName<<" -> "<<_varValue<<".\n";
       
       for (int i=0;i<vVarName.size();++i)
       {
@@ -55,6 +78,17 @@ class VarTable
       vVarName.clear();
       vVarValue.clear();
    }
+   
+   std::string toString()
+   {
+      std::string strRet = "";
+      for (int i=0;i<vVarName.size();++i)
+      {
+         strRet+=" "+vVarName(i)+": "+vVarValue(i)+"\n";
+      }
+      
+      return strRet;
+   }
 };
 
 // CodeLine reads and parses lines of EASI code, but does not execute them.
@@ -71,6 +105,7 @@ class CodeLine
    Vector <std::string> vExpressionToken;
    
    std::string strLine; // full code line
+   std::string strLineStripped; // above but with non-string whitespace removed.
    std::string errorMessage;
    std::string assignmentVar; // Only if expression is assignment.
    
@@ -122,6 +157,7 @@ class CodeLine
          }
       }
       _strLine=_strNew;
+      strLineStripped=_strNew;
       
       std::cout<<"EASI: Stripped line: "<<_strLine<<"\n";
       
@@ -224,7 +260,7 @@ class CodeLine
             // push operators
             else if ( expression[i] == '+' || expression[i] == '-' || expression[i] == '*'
                || expression[i] == '/' || expression[i] == '>' || expression[i] == '<'
-               || expression[i] == '=')
+               || expression[i] == '=' || expression[i] == '(' || expression[i] == ')')
             {
                
                if (strCurrent.size() > 0)
@@ -293,10 +329,14 @@ class CodeLine
    
 };
 
+#include <Algorithm/Shunting.cpp>
+
 // Maintains VarTable, CodeLines, and executes the lines.
 class EASI
 {
    public:
+   
+   Shunting shunt; // Constructs with default operators
    
    int currentLine;
    
@@ -309,13 +349,13 @@ class EASI
    
    EASI();
    
-   std::string load(std::string _code); /* Load stuff like labels */
+   std::string load(std::string _code); // Load code into the CodeLine Vector
    
-   std::string cycle(); /* Execute one cycle of the code */
+   std::string cycle(); // Execute one cycle of the code, return any output.
    
    std::string evaluate(CodeLine* _codeLine); // Run code line in current state
    
-   std::string shunt(std::string input); /* convert expression to postfix notation */
+   //std::string shunt(std::string input); // convert expression to postfix notation
 
 };
 
