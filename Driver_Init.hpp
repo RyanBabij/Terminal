@@ -95,14 +95,23 @@ void init()
    std::cout<<" *** EASI TEST CASES ***\n";
    EASI easi;
    std::cout<<"loading\n";
-   easi.load("AYY");
+   
+   std::string strTestProg = FileManagerStatic::load("testprog");
+   
+   
+   // std::string prog1 = "10 TEST\n
+   // 20 PRINT \"HELLO\"\n
+   // ";
+   
+   easi.load(strTestProg);
    std::cout<<"end loading\n";
    
    int i=0;
    
    while (easi.terminated==false && i++ < 1000)
    {
-      easi.cycle();
+      std::string strCycle = easi.cycle();
+      std::cout<<"cycle output: "<<strCycle<<"\n";
    }
    
    std::cout<<"TESTING DONE, EXITING\n";
