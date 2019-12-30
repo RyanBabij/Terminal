@@ -112,15 +112,17 @@ std::string EASI::evaluate(CodeLine* _codeLine)
    // 3: Evaluate and execute keywords.
 
    // sub all variables using token vector
-   for (int i=0;i<_codeLine->vExpressionToken.size();++i)
+   //  should be moved into a function
+   Vector <std::string> vSubbedToken = _codeLine->vExpressionToken;
+   for (int i=0;i<vSubbedToken.size();++i)
    {
-      if ( varTable.isRealVar(_codeLine->vExpressionToken(i)) ) // get variable as-is
+      if ( varTable.isRealVar(vSubbedToken(i)) ) // get variable as-is
       {
-         _codeLine->vExpressionToken(i) = varTable.get(_codeLine->vExpressionToken(i));
+         vSubbedToken(i) = varTable.get(vSubbedToken(i));
       }
-      else if ( varTable.isStringVar(_codeLine->vExpressionToken(i)) ) // add quotes to sub so we know it's a string
+      else if ( varTable.isStringVar(vSubbedToken(i)) ) // add quotes to sub so we know it's a string
       {
-         _codeLine->vExpressionToken(i) = "\"" + varTable.get(_codeLine->vExpressionToken(i)) + "\"";
+         vSubbedToken(i) = "\"" + varTable.get(vSubbedToken(i)) + "\"";
       }
    }
    
@@ -129,9 +131,9 @@ std::string EASI::evaluate(CodeLine* _codeLine)
    {
       // rebuild subbed expression into string
       std::string strEvalExpression = "";
-      for (int i=0;i<_codeLine->vExpressionToken.size();++i)
+      for (int i=0;i<vSubbedToken.size();++i)
       {
-         strEvalExpression += _codeLine->vExpressionToken(i);
+         strEvalExpression += vSubbedToken(i);
       }
       
       // real variable evaluation
@@ -173,6 +175,61 @@ std::string EASI::evaluate(CodeLine* _codeLine)
    else if ( _codeLine->keyword == "IF" )
    {
       // evaluate everything between IF and THEN.
+      std::cout<<"EVALUATING IF\n";
+      
+      // sub in vars
+      // sub all variables using token vector
+      vSubbedToken.clear();
+      vSubbedToken = _codeLine->vExpressionToken;
+      for (int i=0;i<vSubbedToken.size();++i)
+      {
+         if ( varTable.isRealVar(vSubbedToken(i)) ) // get variable as-is
+         {
+            vSubbedToken(i) = varTable.get(vSubbedToken(i));
+         }
+         else if ( varTable.isStringVar(vSubbedToken(i)) ) // add quotes to sub so we know it's a string
+         {
+            vSubbedToken(i) = "\"" + varTable.get(vSubbedToken(i)) + "\"";
+         }
+      }
+      // rebuild subbed expression into string
+      std::string strEvalExpression = "";
+      for (int i=0;i<vSubbedToken.size();++i)
+      {
+         strEvalExpression += vSubbedToken(i);
+      }
+      
+      shunt.shunt(strEvalExpression);
+      std::string strResult = DataTools::toString(shunt.evaluate());
+      //varTable.set(_codeLine->assignmentVar,DataTools::toString(strResult));
+      
+      std::cout<<"RESULT: "<<strResult<<"\n";
+      
+      // -1 is true, execute arg.
+      if (strResult == "-1")
+      {
+         std::cout<<"TRUE, EXECUTING ARG: "<<_codeLine->arg<<"\n";
+         // if arg is a number, jump to that label
+         
+         if (DataTools::isNumeric(_codeLine->arg))
+         {
+            std::cout<<"JUMP TO LINE : "<<_codeLine->arg<<"\n";
+            jumpToLabel(_codeLine->arg);
+         }
+         
+         // if arg is not a number, execute the line like a normal code line.
+      }
+      else
+      {
+         std::cout<<"FALSE, CONTINUING\n";
+      }
+
+      // 0 is false, continue next line.
+      
+   }
+   else if ( _codeLine->keyword == "GOTO" )
+   {
+      jumpToLabel(_codeLine->expression);
    }
    
    
@@ -208,29 +265,6 @@ std::string EASI::evaluate(CodeLine* _codeLine)
    
    Vector <std::string> expressionTokens; // vector of tokens in expression
    
-   
-   // Raw expression
-   if (_codeLine->keyword=="" ) // raw expression must have assignment, or it doesn't do anything
-   {
-      // split expression into tokens. A variable assignment cannot mix types.
-      // string assignment may only contain strings separated by + operator.
-      // integer/real assignment may contain expressions.
-      
-      if (_codeLine->assignmentVar.size() > 0 )
-      {
-         if (_codeLine->assignmentVar.back() == '$' )
-         {
-            // string assignment
-            // string expressions may only have strings and + operator.
-         }
-         else
-         {
-            // var assignment
-         }
-      }
-      
-
-   }
 
 
    
@@ -363,6 +397,18 @@ std::string EASI::evaluate(CodeLine* _codeLine)
 
    return _strExpression+"\n"+_strSubbedCode+"\n";
 
+}
+
+
+void EASI::jumpToLabel(std::string _label)
+{
+   for (int i=0;i<vCodeLine.size();++i)
+   {
+      if ( vCodeLine(i)->label == _label || vCodeLine(i)->lineLabel == _label )
+      {
+         currentLine = i;
+      }
+   }
 }
 
 #include <list> 

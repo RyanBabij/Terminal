@@ -249,7 +249,7 @@ class CodeLine
                      
                      arg = _strLine.substr(i);
                      
-                     return;
+                     break;
                   }
                   else
                   {
@@ -286,6 +286,11 @@ class CodeLine
                   keyword = "LABEL";
                   i+=5;
                }
+               else if (_strLine.rfind("GOTO",i,4) == i)
+               {
+                  keyword = "GOTO";
+                  i+=4;
+               } 
                //else
                //{
                   isKeyword=false;
@@ -380,7 +385,7 @@ class CodeLine
       // Strip assignment code and just keep assigment var.
       
       // Raw assignment expression
-      if ( vExpressionToken.size() > 1)
+      if ( keyword=="" && vExpressionToken.size() > 1)
       {
          if ( vExpressionToken(1) == "=" )
          {
@@ -433,6 +438,8 @@ class EASI
    std::string cycle(); // Execute one cycle of the code, return any output.
    
    std::string evaluate(CodeLine* _codeLine); // Run code line in current state
+   
+   void jumpToLabel(std::string _label);
    
    //std::string shunt(std::string input); // convert expression to postfix notation
 
