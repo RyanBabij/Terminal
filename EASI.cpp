@@ -124,9 +124,13 @@ std::string EASI::evaluate(CodeLine* _codeLine)
    // after any operator
    for (int i=0;i<_codeLine->vExpressionToken.size();++i)
    {
-      if ( varTable.isValid(_codeLine->vExpressionToken(i)) )
+      if ( varTable.isRealVar(_codeLine->vExpressionToken(i)) ) // get variable as-is
       {
          _codeLine->vExpressionToken(i) = varTable.get(_codeLine->vExpressionToken(i));
+      }
+      else if ( varTable.isStringVar(_codeLine->vExpressionToken(i)) ) // add quotes to sub so we know it's a string
+      {
+         _codeLine->vExpressionToken(i) = "\"" + varTable.get(_codeLine->vExpressionToken(i)) + "\"";
       }
    }
 
@@ -147,12 +151,42 @@ std::string EASI::evaluate(CodeLine* _codeLine)
       {
          strEvalExpression += _codeLine->vExpressionToken(i);
       }
-      std::cout<<"Evaluating expr: "<<strEvalExpression<<"\n";
-      shunt.shunt(strEvalExpression);
       
-      std::string strResult = DataTools::toString(shunt.evaluate());
-      std::cout<<"Result: "<<strResult<<"\n";
-      varTable.set(_codeLine->assignmentVar,DataTools::toString(strResult));
+      if ( varTable.isRealVar(_codeLine->assignmentVar) )
+      {
+         std::cout<<"Evaluating numeric expr: "<<strEvalExpression<<"\n";
+         shunt.shunt(strEvalExpression);
+         
+         std::string strResult = DataTools::toString(shunt.evaluate());
+         std::cout<<"Result: "<<strResult<<"\n";
+         varTable.set(_codeLine->assignmentVar,DataTools::toString(strResult));
+      }
+      else if (varTable.isStringVar(_codeLine->assignmentVar) )
+      {
+         // assigning string vars is simpler because there's only the + operator
+         std::cout<<"Assigning string to var: "<<_codeLine->assignmentVar<<"\n";
+         
+         bool isString = false;
+         std::string strVarAssignment = "";
+         
+         for (unsigned int i=0;i<strEvalExpression.size();++i)
+         {
+            if ( strEvalExpression[i] == '"' )
+            {
+               isString = !isString;
+               continue;
+            }
+            
+            if ( isString )
+            {
+               strVarAssignment += strEvalExpression[i];
+            }
+         }
+         
+         varTable.set(_codeLine->assignmentVar,strVarAssignment);
+      }
+      
+
    }
    
    std::cout<<"PRINTING VAR TABLE\n";

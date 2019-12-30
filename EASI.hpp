@@ -45,6 +45,45 @@ class VarTable
       return false;
    }
    
+   // real vars must be uppercase alpha characters only
+   bool isRealVar ( std::string _varName )
+   {
+      if ( _varName.size() == 0 )
+      { return false; }
+      
+      for (unsigned int i=0;i<_varName.size();++i)
+      {
+         if ( _varName[i] < 65 || _varName[i] > 90 )
+         {
+            return false;
+         }
+      }
+      
+      return true;
+   }
+
+   // string vars must be uppercase alpha and end with a $
+   bool isStringVar (std::string _varName)
+   {
+      if (_varName.size() == 0 )
+      { return false; }
+      
+      for (unsigned int i=0;i<_varName.size()-1;++i)
+      {
+         if ( _varName[i] < 65 || _varName[i] > 90 )
+         {
+            return false;
+         }
+      }
+      
+      if ( _varName.back() != '$' )
+      { return false; }
+ 
+      
+      return true;
+   }
+   
+   
    // Automatically adds the variable or updates it as required.
    void set(std::string _varName, std::string _varValue)
    {
