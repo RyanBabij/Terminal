@@ -532,7 +532,7 @@ bool Terminal::keyboardEvent(Keyboard* _keyboard)
 
    if (_keyboard->keyWasPressed)
    {
-   std::cout<<"Keypress: "<<(int) _keyboard->lastKey<<".\n";
+      //std::cout<<"Keypress: "<<(int) _keyboard->lastKey<<".\n";
 
    if ( typeChar(_keyboard->lastKey))
    {  }

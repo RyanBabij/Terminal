@@ -138,6 +138,7 @@ class CodeLine
    std::string lineLabel; //Optional line label
    std::string keyword;
    std::string expression;
+   std::string arg; // Commands or sub-code to be executed
    // vector of expression tokens: +-*/^ strings, values, variables.
    // useful because some operators change if they are in a different
    // position, for example = can be comparator or assignment.
@@ -152,12 +153,11 @@ class CodeLine
    // Load and parse line of code.
    CodeLine(std::string _strLine)
    {
-      std::cout<<"CodeLine: Loading line: "<<_strLine<<"\n";
-      
       label="";
       lineLabel="";
       keyword="";
       expression="";
+      arg="";
       strLine = _strLine;
       errorMessage="";
       
@@ -198,8 +198,6 @@ class CodeLine
       _strLine=_strNew;
       strLineStripped=_strNew;
       
-      std::cout<<"EASI: Stripped line: "<<_strLine<<"\n";
-      
       for (unsigned int i=0;i<_strLine.size();++i)
       {
          if (isLineLabel) // line labels can only be at the beginning of a string.
@@ -229,10 +227,49 @@ class CodeLine
                   keyword = "PRINT";
                   i+=5;
                }
+               else if (_strLine.rfind("IF",i,2) == i)
+               {
+                  std::size_t found = _strLine.find("THEN",i+2);
+                  
+                  // IF is only valid if followed by a THEN
+                  // Code between IF and THEN becomes an expression
+                  // Code after THEN becomes an arg.
+                  // THEN may be followed by a number, in which case EASI
+                  // jumps to that line if true, or continues if false.
+                  // THEN may instead be followed by a command like PRINT,
+                  // which executes if true, and does not execute if false.
+                  if ( found != std::string::npos )
+                  {
+                     std::cout<<" IF CONTAINS A THEN\n";
+                     keyword = "IF";
+                     i+=2;
+                     expression = _strLine.substr(i,found-i);
+                     std::cout<<"EXPRESSOIN: "<<expression<<"\n";
+                     i=found+4;
+                     
+                     arg = _strLine.substr(i);
+                     
+                     return;
+                  }
+                  else
+                  {
+                     std::cout<<" IF BUT NO THEN\n";
+                  }
+                  
+                  
+                  // expression is everything between IF and THEN.
+                  // after THEN can be line number or command.
+                  //keyword = "IF";
+                  
+                  
+               }
+               // REM - Remark
+               // A comment line, should be ignored by EASI.
                else if (_strLine.rfind("REM",i,3) == i)
                {
                   keyword = "REM";
                   i+=3;
+                  return;
                }
                else if (_strLine.rfind("LET",i,3) == i)
                {
@@ -249,8 +286,11 @@ class CodeLine
                   keyword = "LABEL";
                   i+=5;
                }
-               isKeyword=false;
-               isExpression=true;
+               //else
+               //{
+                  isKeyword=false;
+                  isExpression=true;
+               //}
          }
          if (isExpression) //expression is evaluated externally
          {

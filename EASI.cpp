@@ -22,13 +22,13 @@ EASI::EASI()
 
 std::string EASI::load(std::string _code)
 {
+   //EASI CODE MUST ALWAYS BE IN  U P P E R C A S E
+   _code = DataTools::toUpper(_code);
+   
    std::cout<<"EASI:load\n\n";
    std::cout<<_code<<"\n\n";
    
    terminated=false;
-   
-   //EASI CODE MUST ALWAYS BE IN  U P P E R C A S E
-   _code = DataTools::toUpper(_code);
    
    if ( vLine != 0 )
    {
@@ -67,6 +67,7 @@ std::string EASI::load(std::string _code)
       std::cout<<"         Keyword:  "<<vCodeLine(i)->keyword<<"\n";
       std::cout<<"  Assignment var:  "<<vCodeLine(i)->assignmentVar<<"\n";
       std::cout<<"      Expression:  "<<vCodeLine(i)->expression<<"\n";
+      std::cout<<"             Arg:  "<<vCodeLine(i)->arg<<"\n";
       
       
       std::cout<<"Expression tokens: ";
@@ -102,26 +103,15 @@ std::string EASI::evaluate(CodeLine* _codeLine)
 
    std::cout<<"Executing line: "<<_codeLine->strLineStripped<<"\n";
 
-   // varTable.update("A","100");
-   // varTable.update("B","2");
-   // varTable.update("C","33");
-   // varTable.update("A$","AYY");
-
-   //Step 1: Sub all variables to prevent problems down the line with string variables
-      // variables are alphabet chars with no numbers or symbols, so they're easy to identify.
-      // strings end with a $.
-   //Step 2: Sort strings and expressions between strings.
-   //Step 3: Evaluate each expression.
-   //Step 4: Append results and strings and return final result.
-   
-   // strip strings and build vector of sub-expressions.
-   // expression always gets pushed first to preserve order.
-
+   // 1: Sub all variables into expressions, replace uninitialized vars with 0 or null string.
+   // 2: Evaluate expression, assign if necessary.
+   //    There's no need to worry about combining strings and expressions except with PRINT,
+   //    as mixing of var types is forbidden.
+   //    todo: Account for positive/negative prefixes, which can be found either at the
+   //    start of an expression, or following other operators.
+   // 3: Evaluate and execute keywords.
 
    // sub all variables using token vector
-   // also check for positive/negative modifiers:
-   // at start of expression
-   // after any operator
    for (int i=0;i<_codeLine->vExpressionToken.size();++i)
    {
       if ( varTable.isRealVar(_codeLine->vExpressionToken(i)) ) // get variable as-is
@@ -133,39 +123,28 @@ std::string EASI::evaluate(CodeLine* _codeLine)
          _codeLine->vExpressionToken(i) = "\"" + varTable.get(_codeLine->vExpressionToken(i)) + "\"";
       }
    }
-
-   std::cout<<"Subbed expression: ";
-   // sub all variables using token vector
-   for (int i=0;i<_codeLine->vExpressionToken.size();++i)
-   {
-      std::cout<<_codeLine->vExpressionToken(i)<<" ";
-   }std::cout<<"\n";
    
+      // Assignment expression
    if ( _codeLine->assignmentVar != "" )
    {
-      std::cout<<"Evaluating assignment expression\n";
-      
+      // rebuild subbed expression into string
       std::string strEvalExpression = "";
-      
       for (int i=0;i<_codeLine->vExpressionToken.size();++i)
       {
          strEvalExpression += _codeLine->vExpressionToken(i);
       }
       
+      // real variable evaluation
       if ( varTable.isRealVar(_codeLine->assignmentVar) )
       {
-         std::cout<<"Evaluating numeric expr: "<<strEvalExpression<<"\n";
          shunt.shunt(strEvalExpression);
-         
          std::string strResult = DataTools::toString(shunt.evaluate());
-         std::cout<<"Result: "<<strResult<<"\n";
          varTable.set(_codeLine->assignmentVar,DataTools::toString(strResult));
       }
+      // string variable evaluation
       else if (varTable.isStringVar(_codeLine->assignmentVar) )
       {
          // assigning string vars is simpler because there's only the + operator
-         std::cout<<"Assigning string to var: "<<_codeLine->assignmentVar<<"\n";
-         
          bool isString = false;
          std::string strVarAssignment = "";
          
@@ -185,12 +164,17 @@ std::string EASI::evaluate(CodeLine* _codeLine)
          
          varTable.set(_codeLine->assignmentVar,strVarAssignment);
       }
-      
 
+   std::cout<<varTable.toString();
+   }
+   // IF <expression> THEN <linenumber>
+   // or:
+   // IF <expression> THEN <command>
+   else if ( _codeLine->keyword == "IF" )
+   {
+      // evaluate everything between IF and THEN.
    }
    
-   std::cout<<"PRINTING VAR TABLE\n";
-   std::cout<<varTable.toString();
    
    return "";
 
