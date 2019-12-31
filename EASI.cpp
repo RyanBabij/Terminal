@@ -179,19 +179,19 @@ std::string EASI::evaluate(CodeLine* _codeLine)
       
       // sub in vars
       // sub all variables using token vector
-      vSubbedToken.clear();
-      vSubbedToken = _codeLine->vExpressionToken;
-      for (int i=0;i<vSubbedToken.size();++i)
-      {
-         if ( varTable.isRealVar(vSubbedToken(i)) ) // get variable as-is
-         {
-            vSubbedToken(i) = varTable.get(vSubbedToken(i));
-         }
-         else if ( varTable.isStringVar(vSubbedToken(i)) ) // add quotes to sub so we know it's a string
-         {
-            vSubbedToken(i) = "\"" + varTable.get(vSubbedToken(i)) + "\"";
-         }
-      }
+      // vSubbedToken.clear();
+      // vSubbedToken = _codeLine->vExpressionToken;
+      // for (int i=0;i<vSubbedToken.size();++i)
+      // {
+         // if ( varTable.isRealVar(vSubbedToken(i)) ) // get variable as-is
+         // {
+            // vSubbedToken(i) = varTable.get(vSubbedToken(i));
+         // }
+         // else if ( varTable.isStringVar(vSubbedToken(i)) ) // add quotes to sub so we know it's a string
+         // {
+            // vSubbedToken(i) = "\"" + varTable.get(vSubbedToken(i)) + "\"";
+         // }
+      // }
       // rebuild subbed expression into string
       std::string strEvalExpression = "";
       for (int i=0;i<vSubbedToken.size();++i)
@@ -230,6 +230,95 @@ std::string EASI::evaluate(CodeLine* _codeLine)
    else if ( _codeLine->keyword == "GOTO" )
    {
       jumpToLabel(_codeLine->expression);
+   }
+   else if ( _codeLine->keyword == "PRINT" )
+   {
+      // PRINT can return strings, evaluate an expression, or a combination of both.
+      // Strings can be string var or text enclosed in quotes.
+      // adjacent strings are automatically appended, even without a + operator
+      // Any operations between strings and non-strings are invalid.
+      // PRINT will also evaluate normal expressions.
+      
+      // rebuild subbed expression into string
+      std::string strEvalExpression = "";
+      
+      std::string expressionToEvaluate="";
+      
+      bool lastWasString = false;
+      bool appendingString = false;
+      
+      for (int i=0;i<vSubbedToken.size();++i)
+      {
+         // replace all instances of "\\n" with '\n'.
+         size_t index = 0;
+         while (true) //https://stackoverflow.com/questions/4643512/replace-substring-with-another-substring-c
+         {
+              /* Locate the substring to replace. */
+              index = vSubbedToken(i).find("\\N", index);
+              if (index == std::string::npos) break;
+
+              /* Make the replacement. */
+              vSubbedToken(i).replace(index, 2, "\n");
+
+              /* Advance index forward so the next iteration doesn't pick it up as well. */
+              index += 2;
+         }
+         
+         //number variable
+         if (DataTools::isNumeric(vSubbedToken(i)))
+         {
+            std::cout<<"numeric\n";
+            //if last was string, then invalid operation.
+            if (appendingString) //invalid
+            {
+               return "ERROR\n";
+            }
+            else
+            {
+               //strEvalExpression+=vSubbedToken(i);
+               expressionToEvaluate+=vSubbedToken(i);
+            }
+         }
+         else if (vSubbedToken(i).size()>1 && vSubbedToken(i)[0] == '"' && vSubbedToken(i).back()=='"')
+         { // is a string
+            //this is a string, only appending is possible.
+            
+            
+            //EVALUATE EXPRESSION
+            if (expressionToEvaluate.size() > 0)
+            {
+               //EVALUATE
+               shunt.shunt(expressionToEvaluate);
+               std::string strResult = DataTools::toString(shunt.evaluate());
+               std::cout<<"     APPEND: "<<strResult<<"\n";
+               strEvalExpression+=strResult;
+               expressionToEvaluate="";
+            }
+            
+            // remove first and last char
+            strEvalExpression+=vSubbedToken(i).substr(1, vSubbedToken(i).size() - 2);
+            
+            //Strings can only be followed by + and another string, another string, or a number.
+            lastWasString=true;
+            appendingString=false;
+         }
+         else // operator or invalid.
+         {
+            expressionToEvaluate+=vSubbedToken(i);
+         }
+      }
+      
+      //FINAL CASE EVALUATE EXPRESSION
+      if (expressionToEvaluate.size() > 0)
+      {
+            //EVALUATE
+            shunt.shunt(expressionToEvaluate);
+            std::string strResult = DataTools::toString(shunt.evaluate());
+            std::cout<<"     APPEND2: "<<strResult<<"\n";
+            strEvalExpression+=strResult;
+            expressionToEvaluate="";
+      }
+      return strEvalExpression;
    }
    
    
