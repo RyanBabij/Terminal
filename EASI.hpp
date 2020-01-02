@@ -290,7 +290,12 @@ class CodeLine
                {
                   keyword = "GOTO";
                   i+=4;
-               } 
+               }
+               else if (_strLine.rfind("INPUT",i,5) == i)
+               {
+                  keyword = "INPUT";
+                  i+=5;
+               }
                //else
                //{
                   isKeyword=false;
@@ -428,6 +433,8 @@ class EASI
    Vector <std::string> * vLine; // String for every line of the program, valid or not.
    
    bool terminated;
+   bool isWaitingInput; // program is paused to get input
+   std::string inputVar; // variable to put input into
    
    VarTable varTable;
    

@@ -17,6 +17,7 @@ EASI::EASI()
 {
    currentLine=0;
    terminated=false;
+   isWaitingInput=false;
    vLine=0;
 }
 
@@ -82,6 +83,8 @@ std::string EASI::load(std::string _code)
 
 std::string EASI::cycle()
 {
+   
+   if (isWaitingInput) { return ""; }
    //run the current line of code
    
    if (vCodeLine.isSafe(currentLine)==false)
@@ -230,6 +233,18 @@ std::string EASI::evaluate(CodeLine* _codeLine)
    else if ( _codeLine->keyword == "GOTO" )
    {
       jumpToLabel(_codeLine->expression);
+   }
+   else if ( _codeLine->keyword == "INPUT" )
+   {
+      //Execution freezes until user presses enter.
+      // INPUT can contain string output, followed by ;.
+      // Multiple vars can be listed, separated by commas.
+      // Example: INPUT "PLEASE ENTER 2 NUMBERS"; A
+      // program will repeat input if a string is entered into a number var
+      // numbers can be entered as strings.
+      isWaitingInput=true;
+      
+      std::cout<<"Waiting for input\n";
    }
    else if ( _codeLine->keyword == "PRINT" )
    {
