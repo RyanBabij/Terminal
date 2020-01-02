@@ -18,6 +18,7 @@ EASI::EASI()
    currentLine=0;
    terminated=false;
    isWaitingInput=false;
+   inputVar="";
    vLine=0;
 }
 
@@ -85,6 +86,14 @@ std::string EASI::cycle()
 {
    
    if (isWaitingInput) { return ""; }
+   
+   if (isWaitingInput == false && input.size() > 0)
+   {
+      //user has just input something.
+      std::string retInput = input;
+      input = "";
+      return "INPUT: "+retInput+"\n";
+   }
    //run the current line of code
    
    if (vCodeLine.isSafe(currentLine)==false)
@@ -243,8 +252,10 @@ std::string EASI::evaluate(CodeLine* _codeLine)
       // program will repeat input if a string is entered into a number var
       // numbers can be entered as strings.
       isWaitingInput=true;
-      
+
       std::cout<<"Waiting for input\n";
+      
+      return _codeLine->vExpressionToken(0);
    }
    else if ( _codeLine->keyword == "PRINT" )
    {

@@ -120,7 +120,7 @@ void Program_Run::cycle() // for now this is being called directly before render
       if (input.size() > 0 )
       {
          // make sure EASI gets the input.
-         easi.inputVar=input;
+         easi.input=input;
          input="";
       }
       
@@ -316,6 +316,7 @@ void Program_Run::keyboardEvent (Keyboard* _keyboard)
       {
          easi.isWaitingInput=false;
          std::cout<<"INPUT is: "<<input<<"\n";
+         output+="\n";
          _keyboard->clearAll();
       }
       else if (_keyboard->lastKey == Keyboard::BACKSPACE)

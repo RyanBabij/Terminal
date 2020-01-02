@@ -153,6 +153,8 @@ class CodeLine
    // Load and parse line of code.
    CodeLine(std::string _strLine)
    {
+      std::cout<<"Loading line: "<<_strLine<<"\n";
+      
       label="";
       lineLabel="";
       keyword="";
@@ -190,13 +192,15 @@ class CodeLine
             isString=!isString;
             _strNew+=_strLine[i];
          }
-         else if ( _strLine[i] != ' ' )
+         else if (isString==true || _strLine[i] != ' ' )
          {
             _strNew+=_strLine[i];
          }
       }
       _strLine=_strNew;
       strLineStripped=_strNew;
+      
+      std::cout<<"Stripped to: "<<strLineStripped<<"\n";
       
       for (unsigned int i=0;i<_strLine.size();++i)
       {
@@ -293,8 +297,81 @@ class CodeLine
                }
                else if (_strLine.rfind("INPUT",i,5) == i)
                {
+                  std::cout<<"Found INPUT\n";
                   keyword = "INPUT";
                   i+=5;
+                  
+                  // INPUT may contain a string, which must be terminated with a ;.
+                  // INPUT may then contain multiple input variables, separated with commas.
+                  // The first expression token will be the output string.
+                  // Any following tokens will be variables to assign.
+                  
+                  std::string strOutput = "";
+                  
+                  if ( _strLine.size() > 5 )
+                  {
+                     if ( _strLine[5] == '\"' )
+                     {
+                        std::cout<<"INPUT contains a string\n";
+                        bool validOutput = false;
+                        //build the output string until we find terminating quote
+                        for (i=6;i<_strLine.size();++i)
+                        {
+                           if ( _strLine[i] == '\"' )
+                           {
+                              // output string is built.
+                              validOutput=true;
+                              break;
+                           }
+                           else
+                           {
+                              strOutput+=_strLine[i];
+                           }
+                        }
+                        if ( validOutput==false)
+                        {
+                           std::cout<<"Invalid output\n";
+                           // ERROR
+                           strOutput="";
+                        }
+                     }
+                  }
+                  
+                  // push output string, even if it's a null string.
+                  // so EASI can always print index 0.
+                  vExpressionToken.push(strOutput);
+                  
+                  // Put everything following INPUT into arg string
+                  
+                  //std::size_t found = _strLine.find("INPUT",i+5);
+                  
+                  // IF is only valid if followed by a THEN
+                  // Code between IF and THEN becomes an expression
+                  // Code after THEN becomes an arg.
+                  // THEN may be followed by a number, in which case EASI
+                  // jumps to that line if true, or continues if false.
+                  // THEN may instead be followed by a command like PRINT,
+                  // which executes if true, and does not execute if false.
+                  // if ( found != std::string::npos )
+                  // {
+                     // std::cout<<" IF CONTAINS A THEN\n";
+                     // keyword = "IF";
+                     // i+=2;
+                     // expression = _strLine.substr(i,found-i);
+                     // std::cout<<"EXPRESSOIN: "<<expression<<"\n";
+                     // i=found+4;
+                     
+                     // arg = _strLine.substr(i);
+                     
+                     // break;
+                  // }
+                  // else
+                  // {
+                     // std::cout<<" IF BUT NO THEN\n";
+                  // }
+                  
+                  //i+=5;
+                  return;
                }
                //else
                //{
@@ -435,6 +512,7 @@ class EASI
    bool terminated;
    bool isWaitingInput; // program is paused to get input
    std::string inputVar; // variable to put input into
+   std::string input; // user input
    
    VarTable varTable;
    
