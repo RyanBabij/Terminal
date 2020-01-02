@@ -321,6 +321,7 @@ class CodeLine
                            {
                               // output string is built.
                               validOutput=true;
+                              ++i;
                               break;
                            }
                            else
@@ -333,44 +334,64 @@ class CodeLine
                            std::cout<<"Invalid output\n";
                            // ERROR
                            strOutput="";
+                           vExpressionToken.clear();
+                           return;
                         }
                      }
+                  }
+                  std::cout<<"INPUT string built\n";
+                  
+                  //check for terminating semicolon
+                  if (i < _strLine.size() && _strLine[i] == ';')
+                  {
+                     std::cout<<"Advancing past semicolon\n";
+                     ++i;
                   }
                   
                   // push output string, even if it's a null string.
                   // so EASI can always print index 0.
+                  std::cout<<"Pushing output string: "<<strOutput<<"\n";
                   vExpressionToken.push(strOutput);
                   
-                  // Put everything following INPUT into arg string
+                  // build all vars, which should be separated by commas.
+                  // There must be at least 1 variable, otherwise the line
+                  // is invalid.
+                  // all chars should be alpha or comma.
                   
-                  //std::size_t found = _strLine.find("INPUT",i+5);
-                  
-                  // IF is only valid if followed by a THEN
-                  // Code between IF and THEN becomes an expression
-                  // Code after THEN becomes an arg.
-                  // THEN may be followed by a number, in which case EASI
-                  // jumps to that line if true, or continues if false.
-                  // THEN may instead be followed by a command like PRINT,
-                  // which executes if true, and does not execute if false.
-                  // if ( found != std::string::npos )
-                  // {
-                     // std::cout<<" IF CONTAINS A THEN\n";
-                     // keyword = "IF";
-                     // i+=2;
-                     // expression = _strLine.substr(i,found-i);
-                     // std::cout<<"EXPRESSOIN: "<<expression<<"\n";
-                     // i=found+4;
-                     
-                     // arg = _strLine.substr(i);
-                     
-                     // break;
-                  // }
-                  // else
-                  // {
-                     // std::cout<<" IF BUT NO THEN\n";
-                  // }
-                  
-                  //i+=5;
+                  std::string currentVarName = "";
+                  for (;i<_strLine.size();++i)
+                  {
+                     std::cout<<"current i: "<<i<<"\n";
+                     if ( _strLine[i] == ',' )
+                     {
+                        // add var
+                        if ( currentVarName.size() > 0 )
+                        {
+                           std::cout<<"Pushing var: "<<currentVarName<<"\n";
+                           vExpressionToken.push(currentVarName);
+                           currentVarName="";
+                        }
+                     }
+                     else if (DataTools::isAlpha(_strLine[i]) || _strLine[i]=='$') // build var
+                     {
+                        currentVarName+=_strLine[i];
+                     }
+                     else //invalid code
+                     {
+                        // ERROR
+                        std::cout<<"Error building var list. Fail char was: "<<(int)_strLine[i]<<"\n";
+                        vExpressionToken.clear();
+                        return;
+                     }
+                  }
+                  // add var
+                  if ( currentVarName.size() > 0 )
+                  {
+                     std::cout<<"Pushing var final: "<<currentVarName<<"\n";
+                     vExpressionToken.push(currentVarName);
+                     currentVarName="";
+                  }
+
                   return;
                }
                //else
@@ -510,9 +531,10 @@ class EASI
    Vector <std::string> * vLine; // String for every line of the program, valid or not.
    
    bool terminated;
-   bool isWaitingInput; // program is paused to get input
-   std::string inputVar; // variable to put input into
-   std::string input; // user input
+   short int isWaitingInput; // 0 = not waiting for input. other values are the number of inputs to get.
+   Vector <std::string> vInputVar; // variables to put input into
+   Vector <std::string> vInput; // user input from INPUT command. Can hold multiple inputs.
+   std::string input; // holds current input.
    
    VarTable varTable;
    

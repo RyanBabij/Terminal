@@ -48,7 +48,7 @@ class Terminal_Program
          otherwise render calls will be cumulative */
    bool graphicsMode;
    
-   bool isWaitingInput; // If the program is in ASCII mode, it must be able to flag for input.
+   //bool isWaitingInput; // If the program is in ASCII mode, it must be able to flag for input.
    
    std::string programName;
    

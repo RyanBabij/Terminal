@@ -115,7 +115,7 @@ std::string Program_Run::init (Vector <std::string>* vArg)
 void Program_Run::cycle() // for now this is being called directly before render()
 {
    
-   if ( easi.isWaitingInput == false )
+   if ( easi.isWaitingInput == 0 )
    {
       if (input.size() > 0 )
       {
@@ -310,12 +310,14 @@ void Program_Run::keyboardEvent (Keyboard* _keyboard)
 {
    if (!active) { return; }
    //std::string allowedInputs = " !@#$%^&*()\"\'\\=+-/";
-   if (easi.isWaitingInput && _keyboard->keyWasPressed)
+   if (easi.isWaitingInput > 0 && _keyboard->keyWasPressed)
    {
       if (_keyboard->lastKey == Keyboard::ENTER)
       {
-         easi.isWaitingInput=false;
+         easi.isWaitingInput--;
          std::cout<<"INPUT is: "<<input<<"\n";
+         easi.vInput.push(input);
+         input="";
          output+="\n";
          _keyboard->clearAll();
       }

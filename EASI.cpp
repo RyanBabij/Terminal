@@ -17,9 +17,12 @@ EASI::EASI()
 {
    currentLine=0;
    terminated=false;
-   isWaitingInput=false;
-   inputVar="";
+   isWaitingInput=0;
+   input = "";
    vLine=0;
+   
+   vInput.clear();
+   vInputVar.clear();
 }
 
 std::string EASI::load(std::string _code)
@@ -84,18 +87,39 @@ std::string EASI::load(std::string _code)
 
 std::string EASI::cycle()
 {
+   // Waiting for input, continue waiting
+   if (isWaitingInput > 0) { return ""; }
    
-   if (isWaitingInput) { return ""; }
-   
-   if (isWaitingInput == false && input.size() > 0)
+   // Inputs have been recieved. Process and clear.
+   if (isWaitingInput == 0 && vInput.size() > 0 )
    {
-      //user has just input something.
-      std::string retInput = input;
-      input = "";
-      return "INPUT: "+retInput+"\n";
+      // load each input into corresponding variable
+      for(int i=0;i<vInput.size();++i)
+      {
+         if ( vCodeLine.isSafe(currentLine-1) && vCodeLine(currentLine-1)->vExpressionToken.isSafe(i+1) )
+         {
+            varTable.set(vCodeLine(currentLine-1)->vExpressionToken(i+1),vInput(i));
+         }
+         else
+         {
+            std::cout<<"Error loading var table.\n";
+         }
+         
+
+      }
+      //std::cout<<"Loading inputs from line: "<<vCodeLine(currentLine-1)->strLine<<".\n";
+      
+      
+      std::string rString = "Inputs recieved:\n";
+      for(int i=0;i<vInput.size();++i)
+      {
+         rString+=vInput(i)+"\n";
+      }
+      vInput.clear();
+      return rString;
    }
-   //run the current line of code
    
+   // Run the current line of code
    if (vCodeLine.isSafe(currentLine)==false)
    {
       std::cout<<"EASI: End of program\n";
@@ -251,9 +275,16 @@ std::string EASI::evaluate(CodeLine* _codeLine)
       // Example: INPUT "PLEASE ENTER 2 NUMBERS"; A
       // program will repeat input if a string is entered into a number var
       // numbers can be entered as strings.
-      isWaitingInput=true;
-
-      std::cout<<"Waiting for input\n";
+      isWaitingInput=_codeLine->vExpressionToken.size()-1;
+      if ( isWaitingInput < 1)
+      {
+         std::cout<<"Error with INPUT command\n";
+         isWaitingInput=0;
+      }
+      else
+      {
+         std::cout<<"Waiting for input\n";
+      }
       
       return _codeLine->vExpressionToken(0);
    }
