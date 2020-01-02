@@ -114,7 +114,20 @@ std::string Program_Run::init (Vector <std::string>* vArg)
 
 void Program_Run::cycle() // for now this is being called directly before render()
 {
-   output += easi.cycle();
+   
+   if ( easi.isWaitingInput == false )
+   {
+      if (input.size() > 0 )
+      {
+         // make sure EASI gets the input.
+         easi.inputVar=input;
+         input="";
+      }
+      
+      output += easi.cycle();
+   }
+   
+
    
    if (easi.terminated)
    {
@@ -291,6 +304,34 @@ void Program_Run::cycle() // for now this is being called directly before render
    ++currentLine;
    
 
+}
+
+void Program_Run::keyboardEvent (Keyboard* _keyboard)
+{
+   if (!active) { return; }
+   //std::string allowedInputs = " !@#$%^&*()\"\'\\=+-/";
+   if (easi.isWaitingInput && _keyboard->keyWasPressed)
+   {
+      if (_keyboard->lastKey == Keyboard::ENTER)
+      {
+         easi.isWaitingInput=false;
+         std::cout<<"INPUT is: "<<input<<"\n";
+         _keyboard->clearAll();
+      }
+      else if (_keyboard->lastKey == Keyboard::BACKSPACE)
+      {
+         if ( input.size() > 0 ) { input.pop_back(); output+='\b'; }
+         _keyboard->clearAll();
+      }
+      // ANSI lets us pass backspaces, so we can just return whatever keys we recieve.
+      else if (DataTools::isAlphaNumeric(_keyboard->lastKey))
+      {
+         output+=_keyboard->lastKey;
+         input+=_keyboard->lastKey;
+         _keyboard->clearAll();
+         return;
+      }
+   }
 }
 
 // void Program_Run::execute(int lineNumber)

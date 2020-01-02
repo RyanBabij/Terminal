@@ -259,7 +259,7 @@ std::string EASI::evaluate(CodeLine* _codeLine)
       
       std::string expressionToEvaluate="";
       
-      bool lastWasString = false;
+      //bool lastWasString = false;
       bool appendingString = false;
       
       for (int i=0;i<vSubbedToken.size();++i)
@@ -314,7 +314,7 @@ std::string EASI::evaluate(CodeLine* _codeLine)
             strEvalExpression+=vSubbedToken(i).substr(1, vSubbedToken(i).size() - 2);
             
             //Strings can only be followed by + and another string, another string, or a number.
-            lastWasString=true;
+            //lastWasString=true;
             appendingString=false;
          }
          else // operator or invalid.

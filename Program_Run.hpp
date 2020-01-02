@@ -37,6 +37,7 @@ class Program_Run: public Terminal_Program
    
    std::string fileName;
    std::string output; /* Program output, typically from PRINT */
+   std::string input; // Stores keyboard input during INPUT command
    
    Vector <std::string> * vLine; // String for every line of the program, valid or not.
    
@@ -50,6 +51,8 @@ class Program_Run: public Terminal_Program
    //run the code for 1 emulated cycle returns possible output
    void cycle() override;
    //void execute(int lineNumber);
+   
+   void keyboardEvent (Keyboard* _keyboard) override;
 
 };
 
