@@ -93,7 +93,15 @@ class VarTable
       {
          if ( vVarName(i) == _varName )
          {
-            vVarValue(i) = _varValue;
+            if ( DataTools::isNumeric(_varValue)==false && isRealVar(_varName) )
+            {
+               // convert invalid values to 0.
+               vVarValue(i) = "0";
+            }
+            else
+            { vVarValue(i) = _varValue;
+            }
+            
             return;
          }
       }

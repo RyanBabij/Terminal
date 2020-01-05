@@ -377,6 +377,11 @@ std::string EASI::evaluate(CodeLine* _codeLine)
       }
       return strEvalExpression;
    }
+   else if ( _codeLine->keyword == "END" )
+   { // Get off Mr Bones' Wild Ride
+      terminated=true;
+      currentLine=0;
+   }
    
    
    return "";
