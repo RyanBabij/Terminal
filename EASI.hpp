@@ -15,9 +15,24 @@
 // VarTable is held by EASI.
 class VarTable
 {
+   class VarTableArray
+   {
+      public:
+      std::string name; // Name of the array
+      Vector <unsigned short int> vDims; // list of dimensions
+      Vector <int> vValues; // vector of array values, initialised to 0.
+      
+      VarTableArray()
+      {
+         name="";
+      }
+   };
+   
    public:
    Vector <std::string> vVarName;
    Vector <std::string> vVarValue;
+   
+   Vector <VarTableArray*> vArray;
    
    VarTable()
    {
@@ -119,6 +134,10 @@ class VarTable
       }
       // BASIC and EASI assume unknown variables are 0.
       return "0";
+   }
+   bool hasVar(std::string _varName)
+   {
+      return vVarName.contains(_varName);
    }
    void clear()
    {
@@ -303,6 +322,22 @@ class CodeLine
                   keyword = "GOTO";
                   i+=4;
                }
+               else if (_strLine.rfind("DIM",i,3) == i)
+               {
+                  // DIM allocates an array of up to 255 dimensions.
+                  // Example: DIM A(5,5,5)
+                  // Indices can be 0 - 32767. (16-pit pointer)
+                  
+                  //Once an array is dimensioned, it cannot be redimensioned.
+                  //Arrays are automatically dimensioned to 10 if referenced,
+                  // the number of dimensions is equal to the reference. For example:
+                  // Q(5,5,5)=1 will allocate a 3D array with indices 0-10.
+                  
+                  // Indices may be referenced using expressions, for example:
+                  // Q(N*2,I,J) = 100
+                  keyword = "DIM";
+                  i+=3;
+               }
                else if (_strLine.rfind("INPUT",i,5) == i)
                {
                   std::cout<<"Found INPUT\n";
@@ -410,7 +445,7 @@ class CodeLine
          }
          if (isExpression) //expression is evaluated externally
          {
-            const std::string allowedInputs = " !@#$%^&*()\"\'\\=+-/";
+            const std::string allowedInputs = " ,!@#$%^&*()\"\'\\=+-/";
             if (DataTools::isAlphaNumeric(_strLine[i]) || allowedInputs.find(_strLine[i]) != std::string::npos)
             {
                expression+=_strLine[i];
@@ -452,7 +487,7 @@ class CodeLine
                strCurrent+=expression[i];
             }
             
-            // push operators
+            // push operators or comma
             else if ( expression[i] == '+' || expression[i] == '-' || expression[i] == '*'
                || expression[i] == '/' || expression[i] == '>' || expression[i] == '<'
                || expression[i] == '=' || expression[i] == '(' || expression[i] == ')')
@@ -470,6 +505,21 @@ class CodeLine
                }
                
                
+               vExpressionToken.push(std::string(1,expression[i]));
+            }
+            else if ( expression[i] == ',' )
+            { // push non-operator tokens
+         
+               if (strCurrent.size() > 0)
+               {
+                  vExpressionToken.push(strCurrent);
+                  strCurrent="";
+               }
+               if (strCurrentVar.size() > 0)
+               {
+                  vExpressionToken.push(strCurrentVar);
+                  strCurrentVar="";
+               }
                vExpressionToken.push(std::string(1,expression[i]));
             }
             else if (!isString2) // build var

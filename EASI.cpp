@@ -149,16 +149,23 @@ std::string EASI::evaluate(CodeLine* _codeLine)
 
    // sub all variables using token vector
    //  should be moved into a function
+   
+   // only sub existing vars
+   // note that BASIC assumes any non-system keyword is a var,
+   // so maybe we will change this later.
    Vector <std::string> vSubbedToken = _codeLine->vExpressionToken;
    for (int i=0;i<vSubbedToken.size();++i)
    {
-      if ( varTable.isRealVar(vSubbedToken(i)) ) // get variable as-is
+      if ( varTable.hasVar(vSubbedToken(i)) )
       {
-         vSubbedToken(i) = varTable.get(vSubbedToken(i));
-      }
-      else if ( varTable.isStringVar(vSubbedToken(i)) ) // add quotes to sub so we know it's a string
-      {
-         vSubbedToken(i) = "\"" + varTable.get(vSubbedToken(i)) + "\"";
+         if ( varTable.isRealVar(vSubbedToken(i)) ) // get variable as-is
+         {
+            vSubbedToken(i) = varTable.get(vSubbedToken(i));
+         }
+         else if ( varTable.isStringVar(vSubbedToken(i)) ) // add quotes to sub so we know it's a string
+         {
+            vSubbedToken(i) = "\"" + varTable.get(vSubbedToken(i)) + "\"";
+         }
       }
    }
    
@@ -262,6 +269,91 @@ std::string EASI::evaluate(CodeLine* _codeLine)
 
       // 0 is false, continue next line.
       
+   }
+   else if ( _codeLine->keyword == "DIM" )
+   {
+      // token 2 must be a var.
+      // token 3 must be an opening paren
+      // remaining tokens are array dimension expressions, comma delimited
+      // final token is closing paren
+      
+      std::string strEvalExpression = "";
+      for (int i=0;i<vSubbedToken.size();++i)
+      {
+         strEvalExpression += vSubbedToken(i);
+      }
+      std::cout<<"EVAL: "<<strEvalExpression<<"\n";
+      
+      if ( vSubbedToken.size()>2)
+      {
+         if ( vSubbedToken(1) == "(" )
+         {
+            std::cout<<"Valid DIM\n";
+            
+            // build sub-expressions and push results to array dim vector
+            Vector <unsigned short int> vArrayDim;
+            std::string currentExpression = "";
+            for (int i=2;i<vSubbedToken.size();++i)
+            {
+               if ( vSubbedToken(i) == "," )
+               {
+                  // evaluate expr and continue
+                  if (currentExpression.size() == 0 )
+                  { // something went wrong
+                     std::cout<<"Error building array\n";
+                     return "";
+                  }
+                  
+                  std::cout<<"evaluating sub expressoin: "<<currentExpression<<"\n";
+                  Shunting sh;
+                  sh.shunt(currentExpression);
+                  vArrayDim.push(sh.evaluate());
+                  currentExpression="";
+                  
+                  
+               }
+               else if (vSubbedToken(i) == ")")
+               {
+                  // evaluate final expressoin and finished.
+                  // evaluate expr and continue
+                  if (currentExpression.size() == 0 )
+                  { // something went wrong
+                     std::cout<<"Error building array\n";
+                     return "";
+                  }
+                  
+                  std::cout<<"evaluating sub expressoin: "<<currentExpression<<"\n";
+                  Shunting sh;
+                  sh.shunt(currentExpression);
+                  vArrayDim.push(sh.evaluate());
+                  currentExpression="";
+                  std::cout<<"finished building array\n";
+               }
+               else
+               {
+                  currentExpression+=vSubbedToken(i);
+               }
+            }
+            std::cout<<"DIMs are: ";
+            for (int i=0;i<vArrayDim.size();++i)
+            { std::cout<<vArrayDim(i)<<", ";
+            } std::cout<<"\n";
+            
+            
+            
+            return "";
+         }
+         else
+         {
+            std::cout<<"INVALID DIM\n";
+            return "";
+         }
+      }
+      else
+      {
+         std::cout<<"INVALID DIM\n";
+         return "";
+      }
    }
    else if ( _codeLine->keyword == "GOTO" )
    {
@@ -577,4 +669,4 @@ void EASI::jumpToLabel(std::string _label)
 
 // }
 
-#endif      
+#endif
