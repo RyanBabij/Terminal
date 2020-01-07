@@ -19,12 +19,24 @@ class VarTable
    {
       public:
       std::string name; // Name of the array
-      Vector <unsigned short int> vDims; // list of dimensions
-      Vector <int> vValues; // vector of array values, initialised to 0.
+      Vector <unsigned short int> vDim; // list of dimensions
+      Vector <int> vValue; // vector of array values, initialised to 0.
       
       VarTableArray()
       {
          name="";
+      }
+      void init(std::string _name, Vector <unsigned short int> _vDim)
+      {
+         name=_name;
+         vDim=_vDim;
+         for (int i=0;i<vDim.size();++i)
+         {
+            for (int i2=0;i2<vDim(i);++i2)
+            {
+               vValue.push(0);
+            }
+         }
       }
    };
    
@@ -36,6 +48,14 @@ class VarTable
    
    VarTable()
    {
+   }
+   
+   void addArray(std::string strArrayName, Vector <unsigned short int> vDim)
+   {
+      std::cout<<"Vartable: Building array: "<<strArrayName<<"\n";
+      VarTableArray* vta = new VarTableArray;
+      vta->init(strArrayName,vDim);
+      vArray.push(vta);
    }
    
    // return true if var is a valid numeric or string variable name
@@ -151,6 +171,15 @@ class VarTable
       for (int i=0;i<vVarName.size();++i)
       {
          strRet+=" "+vVarName(i)+": "+vVarValue(i)+"\n";
+      }
+      
+      for (int i=0;i<vArray.size();++i)
+      {
+         std::cout<<"  "<<vArray(i)->name<<"(";
+         for (int i2=0;i2<vArray(i)->vDim.size();++i2)
+         {
+            std::cout<<vArray(i)->vDim(i2)<<",";
+         }std::cout<<")\n";
       }
       
       return strRet;
@@ -503,8 +532,7 @@ class CodeLine
                   vExpressionToken.push(strCurrentVar);
                   strCurrentVar="";
                }
-               
-               
+
                vExpressionToken.push(std::string(1,expression[i]));
             }
             else if ( expression[i] == ',' )
@@ -546,12 +574,22 @@ class CodeLine
       // Strip assignment code and just keep assigment var.
       
       // Raw assignment expression
+      // can be a variable or an array
+      // in future it might be a function call, so beware.
+      // in some corner cases it might be a standalone expression, although
+      // it would be rare or invalid. For example -(RAND(10))
       if ( keyword=="" && vExpressionToken.size() > 1)
       {
-         if ( vExpressionToken(1) == "=" )
+         if ( vExpressionToken(1) == "=")
          {
             assignmentVar = vExpressionToken(0);
             vExpressionToken.eraseSlot(0);
+            vExpressionToken.eraseSlot(0);
+         }
+         else if (vExpressionToken(1) == "(")
+         {
+            // maybe we should include brackets in assignment?
+            assignmentVar = vExpressionToken(0);
             vExpressionToken.eraseSlot(0);
          }
       }

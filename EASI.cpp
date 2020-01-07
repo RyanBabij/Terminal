@@ -288,6 +288,14 @@ std::string EASI::evaluate(CodeLine* _codeLine)
       {
          if ( vSubbedToken(1) == "(" )
          {
+            if (varTable.isValid(vSubbedToken(0)))
+            {
+            }
+            else
+            {
+               std::cout<<"Error: Invalid var name.\n";
+               return "";
+            }
             std::cout<<"Valid DIM\n";
             
             // build sub-expressions and push results to array dim vector
@@ -327,7 +335,12 @@ std::string EASI::evaluate(CodeLine* _codeLine)
                   sh.shunt(currentExpression);
                   vArrayDim.push(sh.evaluate());
                   currentExpression="";
+                  
+                  varTable.addArray(vSubbedToken(0),vArrayDim);
+                  
                   std::cout<<"finished building array\n";
+                  
+                  std::cout<<"Vartable:\n"<<varTable.toString()<<"\n";
                }
                else
                {
