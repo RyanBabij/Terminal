@@ -28,15 +28,64 @@ class VarTable
       }
       void init(std::string _name, Vector <unsigned short int> _vDim)
       {
+         if (_vDim.size()==0)
+         {
+            std::cout<<"Error: Constructing null array dims\n";
+            return;
+         }
+         
          name=_name;
          vDim=_vDim;
+         
+         unsigned long int totalIndex=vDim(0);
+         for (int i=1;i<vDim.size();++i)
+         {
+            totalIndex*=vDim(i);
+         }
+         for (unsigned int i=0;i<totalIndex;++i)
+         {
+            vValue.push(0);
+         }
+      }
+      void set(Vector<unsigned short int> vAddress, std::string _value)
+      {
+         if (vAddress.size() != vDim.size())
+         {
+            std::cout<<"Incorrect array index\n";
+            return;
+         }
          for (int i=0;i<vDim.size();++i)
          {
-            for (int i2=0;i2<vDim(i);++i2)
+            if (vAddress(i) >= vDim(i))
             {
-               vValue.push(0);
+               std::cout<<"Error: array index out of bounds\n";
+               return;
             }
          }
+         //we can safely set this value.
+         // start with final index value, and multiply it to (n*n_max) and so on.
+         //unsigned long int index=vAddress(vAddress.size()-1);
+         unsigned long int index=vAddress(0);
+         std::cout<<"The initial offset is: "<<index<<"\n";
+         // for (int i=vDim.size()-2;i>=0;--i)
+         // {
+            // index += (vAddress(i)*vDim(i));
+         // }
+         for (int i=1;i<vDim.size();++i)
+         {
+            index += (vAddress(i)*vDim(i));
+         }
+         std::cout<<"Final index: "<<index<<"\n";
+         vValue(index)=1;
+      }
+      std::string toString()
+      {
+         std::string strRet = "";
+         for (int i=0;i<vValue.size();++i)
+         {
+            strRet+=DataTools::toString(vValue(i))+",";
+         }
+         return strRet;
       }
    };
    
@@ -143,6 +192,27 @@ class VarTable
       vVarName.push(_varName);
       vVarValue.push(_varValue);
    }
+   // Same but for array
+   // If array doesn't exist, it will be automatically initialised with 11 indexes on each dimension.
+   void set(std::string _varName, Vector <unsigned short int> vDim, std::string _varValue)
+   {
+      std::cout<<"Set array "<<_varName<<" -> "<<_varValue<<".\n";
+      
+      for (int i=0;i<vArray.size();++i)
+      {
+         if ( vArray(i)->name == _varName )
+         {
+            vArray(i)->set(vDim,_varValue);
+            return;
+         }
+      }
+      // initialise here
+      std::cout<<"Array not found, initialise here\n";
+      // vVarName.push(_varName);
+      // vVarValue.push(_varValue);
+   }
+   
+   
    std::string get(std::string _varName)
    {
       for (int i=0;i<vVarName.size();++i)
@@ -173,6 +243,8 @@ class VarTable
          strRet+=" "+vVarName(i)+": "+vVarValue(i)+"\n";
       }
       
+      std::cout<<"Arrays:\n";
+      
       for (int i=0;i<vArray.size();++i)
       {
          std::cout<<"  "<<vArray(i)->name<<"(";
@@ -180,7 +252,10 @@ class VarTable
          {
             std::cout<<vArray(i)->vDim(i2)<<",";
          }std::cout<<")\n";
+         
+         std::cout<<"Array content: "<<vArray(i)->toString()<<"\n";
       }
+      
       
       return strRet;
    }

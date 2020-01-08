@@ -196,6 +196,9 @@ std::string EASI::evaluate(CodeLine* _codeLine)
             }
             vArrayIndex.push(index);
          }
+         
+         varTable.set(_codeLine->assignmentVar,vArrayIndex,"TEST");
+         
          return "";
          
          std::string strEvalExpression = "";
