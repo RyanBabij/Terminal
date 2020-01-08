@@ -71,6 +71,11 @@ std::string EASI::load(std::string _code)
       std::cout<<"       Linelabel:  "<<vCodeLine(i)->lineLabel<<"\n";
       std::cout<<"         Keyword:  "<<vCodeLine(i)->keyword<<"\n";
       std::cout<<"  Assignment var:  "<<vCodeLine(i)->assignmentVar<<"\n";
+      std::cout<<"   Array indices:  ";
+      for (int i2=0;i2<vCodeLine(i)->vAssignmentIndices.size();++i2)
+      {
+         std::cout<<vCodeLine(i)->vAssignmentIndices(i2)<<",";
+      }std::cout<<"\n";
       std::cout<<"      Expression:  "<<vCodeLine(i)->expression<<"\n";
       std::cout<<"             Arg:  "<<vCodeLine(i)->arg<<"\n";
       
@@ -172,6 +177,72 @@ std::string EASI::evaluate(CodeLine* _codeLine)
       // Assignment expression
    if ( _codeLine->assignmentVar != "" )
    {
+      if ( _codeLine->vAssignmentIndices.size() > 0 )
+      {
+         // this is an array assignment
+         // each dim must be evaluated
+         std::cout<<"ARRAY ASSIGNMENT\n";
+         Vector <unsigned short int> vArrayIndex;
+         
+         // evaluate each index and push result to index vector
+         for (int i=0;i<_codeLine->vAssignmentIndices.size();++i)
+         {
+            shunt.shunt(_codeLine->vAssignmentIndices(i));
+            long int index = shunt.evaluate();
+            if ( index > 256 )
+            {
+               std::cout<<"ARRAY OUT OF BOUNDS\n";
+               return "";
+            }
+            vArrayIndex.push(index);
+         }
+         return "";
+         
+         std::string strEvalExpression = "";
+         for (int i=1;i<vSubbedToken.size();++i)
+         {
+            if (vSubbedToken(i)==",")
+            {
+               //evaluate index and keep going
+               shunt.shunt(strEvalExpression);
+               strEvalExpression="";
+               long int index = shunt.evaluate();
+               if ( index > 256 )
+               {
+                  std::cout<<"ARRAY OUT OF BOUNDS\n";
+                  return "";
+               }
+               vArrayIndex.push(index);
+               continue;
+            }
+            if ( vSubbedToken(i) == "=" )
+            {
+            }
+            strEvalExpression += vSubbedToken(i);
+         }
+         
+         //evaluate final index
+         shunt.shunt(strEvalExpression);
+         strEvalExpression="";
+         long int index = shunt.evaluate();
+         if ( index > 256 )
+         {
+            std::cout<<"ARRAY OUT OF BOUNDS\n";
+            return "";
+         }
+         vArrayIndex.push(index);
+         
+         // assign array value
+         std::cout<<"Assigning array var\n";
+         varTable.set(_codeLine->assignmentVar,"1");
+         
+         
+         return "";
+      }
+      else
+      {
+      }
+      
       // rebuild subbed expression into string
       std::string strEvalExpression = "";
       for (int i=0;i<vSubbedToken.size();++i)

@@ -204,6 +204,7 @@ class CodeLine
    std::string strLineStripped; // above but with non-string whitespace removed.
    std::string errorMessage;
    std::string assignmentVar; // Only if expression is assignment.
+   Vector <std::string> vAssignmentIndices; // Vector of array indices for assignment var.
    
    
    // Load and parse line of code.
@@ -218,7 +219,6 @@ class CodeLine
       arg="";
       strLine = _strLine;
       errorMessage="";
-      
       assignmentVar="";
       
       // Evaluate the line
@@ -591,6 +591,64 @@ class CodeLine
             // maybe we should include brackets in assignment?
             assignmentVar = vExpressionToken(0);
             vExpressionToken.eraseSlot(0);
+            vExpressionToken.eraseSlot(0);
+            // build assignmentIndices don't include brackets
+            
+            std::string currentAssignmentIndex = "";
+            
+            int bracketCounter=1;
+            while(vExpressionToken.size()>0)
+            {
+               if(vExpressionToken(0) == "(")
+               {
+                  ++bracketCounter;
+                  vExpressionToken.eraseSlot(0);
+               }
+               else if ( vExpressionToken(0) == ")")
+               {
+                  --bracketCounter;
+                  if (bracketCounter==0)
+                  { // closing bracket, stop processing
+                     vExpressionToken.eraseSlot(0);
+                     break;
+                  }
+               }
+               else if ( vExpressionToken(0) == "," )
+               {
+                  vExpressionToken.eraseSlot(0);
+                  // add expression to vector
+                  if ( currentAssignmentIndex.size() > 0 )
+                  {
+                     vAssignmentIndices.push(currentAssignmentIndex);
+                     currentAssignmentIndex="";
+                  }
+                  else
+                  {
+                     std::cout<<"ERROR, bad vector\n";
+                     vAssignmentIndices.clear();
+                     return;
+                  }
+               }
+               else
+               {
+                  currentAssignmentIndex+=vExpressionToken(0);
+                  vExpressionToken.eraseSlot(0);
+               }
+            }
+            
+            // add expression to vector
+            if ( currentAssignmentIndex.size() > 0 )
+            {
+               vAssignmentIndices.push(currentAssignmentIndex);
+               currentAssignmentIndex="";
+            }
+            else
+            {
+               std::cout<<"ERROR, bad vector\n";
+               vAssignmentIndices.clear();
+               return;
+            }
+            
          }
       }
       
