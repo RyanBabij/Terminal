@@ -62,20 +62,21 @@ class VarTable
                return;
             }
          }
-         //we can safely set this value.
-         // start with final index value, and multiply it to (n*n_max) and so on.
-         //unsigned long int index=vAddress(vAddress.size()-1);
-         unsigned long int index=vAddress(0);
-         std::cout<<"The initial offset is: "<<index<<"\n";
-         // for (int i=vDim.size()-2;i>=0;--i)
-         // {
-            // index += (vAddress(i)*vDim(i));
-         // }
-         for (int i=1;i<vDim.size();++i)
+         // we can safely set this value.
+         // Set the value using the following algorithm:
+         //    [ index(1)*( S2* S3* S4 * ... * Sn) + index(2)*( S3* S4* S5 * ... * Sn)
+         //    + ... + index(n-1)*Sn + index(n) ] 
+         unsigned long int index=0;
+         for (int i=0;i<vDim.size()-1;++i)
          {
-            index += (vAddress(i)*vDim(i));
+            long int totalMult = vAddress(i);
+            for (int i2=i+1;i2<vDim.size();++i2)
+            {
+               totalMult*=vDim(i2);
+            }
+            index+=totalMult;
          }
-         std::cout<<"Final index: "<<index<<"\n";
+         index+=vAddress(vAddress.size()-1);
          vValue(index)=1;
       }
       std::string toString()
@@ -101,7 +102,7 @@ class VarTable
    
    void addArray(std::string strArrayName, Vector <unsigned short int> vDim)
    {
-      std::cout<<"Vartable: Building array: "<<strArrayName<<"\n";
+      //std::cout<<"Vartable: Building array: "<<strArrayName<<"\n";
       VarTableArray* vta = new VarTableArray;
       vta->init(strArrayName,vDim);
       vArray.push(vta);
@@ -171,7 +172,7 @@ class VarTable
    // Automatically adds the variable or updates it as required.
    void set(std::string _varName, std::string _varValue)
    {
-      std::cout<<"Set "<<_varName<<" -> "<<_varValue<<".\n";
+      //std::cout<<"Set "<<_varName<<" -> "<<_varValue<<".\n";
       
       for (int i=0;i<vVarName.size();++i)
       {
@@ -196,7 +197,7 @@ class VarTable
    // If array doesn't exist, it will be automatically initialised with 11 indexes on each dimension.
    void set(std::string _varName, Vector <unsigned short int> vDim, std::string _varValue)
    {
-      std::cout<<"Set array "<<_varName<<" -> "<<_varValue<<".\n";
+      //std::cout<<"Set array "<<_varName<<" -> "<<_varValue<<".\n";
       
       for (int i=0;i<vArray.size();++i)
       {
@@ -285,7 +286,7 @@ class CodeLine
    // Load and parse line of code.
    CodeLine(std::string _strLine)
    {
-      std::cout<<"Loading line: "<<_strLine<<"\n";
+      //std::cout<<"Loading line: "<<_strLine<<"\n";
       
       label="";
       lineLabel="";
@@ -331,7 +332,7 @@ class CodeLine
       _strLine=_strNew;
       strLineStripped=_strNew;
       
-      std::cout<<"Stripped to: "<<strLineStripped<<"\n";
+      //std::cout<<"Stripped to: "<<strLineStripped<<"\n";
       
       for (unsigned int i=0;i<_strLine.size();++i)
       {

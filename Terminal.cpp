@@ -421,6 +421,15 @@ void Terminal::blinkCursor()
    {
       if (isSafe(cursorX,cursorY))
       {
+         // check if a program is busy, and have solid cursor if true
+         for (int i=0;i<vProgram.size();++i)
+         {
+            if ( vProgram(i)->active && vProgram(i)->isBusy )
+            {
+               cursorBlink = 0;
+            }
+         }
+         
          if (++cursorBlink > 40)
          {
             cursorBlink = 0;

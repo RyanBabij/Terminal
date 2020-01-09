@@ -64,6 +64,7 @@ std::string EASI::load(std::string _code)
    }
    
    // Debug output of each CodeLine
+   #ifdef EASI_OUTPUT_CODE
    for (int i=0;i<vCodeLine.size();++i)
    {
       std::cout<<"\nLine "<<i<<": "<<vCodeLine(i)->strLine<<" -> "<<vCodeLine(i)->strLineStripped<<"\n";
@@ -87,6 +88,7 @@ std::string EASI::load(std::string _code)
       } std::cout<<"\n";
       
    }
+   #endif
    return "";
 }
 
@@ -142,7 +144,7 @@ std::string EASI::evaluate(CodeLine* _codeLine)
       return "ERROR: Null CodeLine ptr\n";
    }
 
-   std::cout<<"Executing line: "<<_codeLine->strLineStripped<<"\n";
+   //std::cout<<"Executing line: "<<_codeLine->strLineStripped<<"\n";
 
    // 1: Sub all variables into expressions, replace uninitialized vars with 0 or null string.
    // 2: Evaluate expression, assign if necessary.
@@ -181,7 +183,6 @@ std::string EASI::evaluate(CodeLine* _codeLine)
       {
          // this is an array assignment
          // each dim must be evaluated
-         std::cout<<"ARRAY ASSIGNMENT\n";
          Vector <unsigned short int> vArrayIndex;
          
          // evaluate each index and push result to index vector
@@ -284,7 +285,7 @@ std::string EASI::evaluate(CodeLine* _codeLine)
          varTable.set(_codeLine->assignmentVar,strVarAssignment);
       }
 
-   std::cout<<varTable.toString();
+   //std::cout<<varTable.toString();
    }
    // IF <expression> THEN <linenumber>
    // or:
@@ -356,7 +357,7 @@ std::string EASI::evaluate(CodeLine* _codeLine)
       {
          strEvalExpression += vSubbedToken(i);
       }
-      std::cout<<"EVAL: "<<strEvalExpression<<"\n";
+      //std::cout<<"EVAL: "<<strEvalExpression<<"\n";
       
       if ( vSubbedToken.size()>2)
       {
@@ -370,7 +371,7 @@ std::string EASI::evaluate(CodeLine* _codeLine)
                std::cout<<"Error: Invalid var name.\n";
                return "";
             }
-            std::cout<<"Valid DIM\n";
+            //std::cout<<"Valid DIM\n";
             
             // build sub-expressions and push results to array dim vector
             Vector <unsigned short int> vArrayDim;
@@ -386,7 +387,7 @@ std::string EASI::evaluate(CodeLine* _codeLine)
                      return "";
                   }
                   
-                  std::cout<<"evaluating sub expressoin: "<<currentExpression<<"\n";
+                  //std::cout<<"evaluating sub expressoin: "<<currentExpression<<"\n";
                   Shunting sh;
                   sh.shunt(currentExpression);
                   vArrayDim.push(sh.evaluate());
@@ -404,7 +405,7 @@ std::string EASI::evaluate(CodeLine* _codeLine)
                      return "";
                   }
                   
-                  std::cout<<"evaluating sub expressoin: "<<currentExpression<<"\n";
+                  //std::cout<<"evaluating sub expressoin: "<<currentExpression<<"\n";
                   Shunting sh;
                   sh.shunt(currentExpression);
                   vArrayDim.push(sh.evaluate());
@@ -412,19 +413,19 @@ std::string EASI::evaluate(CodeLine* _codeLine)
                   
                   varTable.addArray(vSubbedToken(0),vArrayDim);
                   
-                  std::cout<<"finished building array\n";
+                  //std::cout<<"finished building array\n";
                   
-                  std::cout<<"Vartable:\n"<<varTable.toString()<<"\n";
+                  //std::cout<<"Vartable:\n"<<varTable.toString()<<"\n";
                }
                else
                {
                   currentExpression+=vSubbedToken(i);
                }
             }
-            std::cout<<"DIMs are: ";
-            for (int i=0;i<vArrayDim.size();++i)
-            { std::cout<<vArrayDim(i)<<", ";
-            } std::cout<<"\n";
+            // std::cout<<"DIMs are: ";
+            // for (int i=0;i<vArrayDim.size();++i)
+            // { std::cout<<vArrayDim(i)<<", ";
+            // } std::cout<<"\n";
             
             
             

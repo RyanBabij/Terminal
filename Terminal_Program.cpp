@@ -19,6 +19,7 @@ Terminal_Program::Terminal_Program(Terminal * termPtr)
    active=false;
    programName="";
    graphicsMode=false;
+   isBusy=false;
 }
 
 // Terminal_Program::Terminal_Program()

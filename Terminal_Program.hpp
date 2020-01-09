@@ -49,6 +49,7 @@ class Terminal_Program
    bool graphicsMode;
    
    //bool isWaitingInput; // If the program is in ASCII mode, it must be able to flag for input.
+   bool isBusy; // flag to terminal to indicate work
    
    std::string programName;
    
