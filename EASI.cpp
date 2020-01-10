@@ -64,6 +64,7 @@ std::string EASI::load(std::string _code)
    }
    
    // Debug output of each CodeLine
+   #define EASI_OUTPUT_CODE
    #ifdef EASI_OUTPUT_CODE
    for (int i=0;i<vCodeLine.size();++i)
    {
@@ -79,7 +80,11 @@ std::string EASI::load(std::string _code)
       }std::cout<<"\n";
       std::cout<<"      Expression:  "<<vCodeLine(i)->expression<<"\n";
       std::cout<<"             Arg:  "<<vCodeLine(i)->arg<<"\n";
-      
+      std::cout<<"      Arg vector:  ";
+      for (int i2=0;i2<vCodeLine(i)->vArg.size();++i2)
+      {
+         std::cout<<vCodeLine(i)->vArg(i2)<<",";
+      }std::cout<<"\n";
       
       std::cout<<"Expression tokens: ";
       for (int i2=0; i2<vCodeLine(i)->vExpressionToken.size(); ++i2)
@@ -96,6 +101,8 @@ std::string EASI::cycle()
 {
    // Waiting for input, continue waiting
    if (isWaitingInput > 0) { return ""; }
+   
+   std::cout<<"cycle\n";
    
    // Inputs have been recieved. Process and clear.
    if (isWaitingInput == 0 && vInput.size() > 0 )
@@ -114,9 +121,7 @@ std::string EASI::cycle()
          
 
       }
-      //std::cout<<"Loading inputs from line: "<<vCodeLine(currentLine-1)->strLine<<".\n";
-      
-      
+
       std::string rString = "Inputs recieved:\n";
       for(int i=0;i<vInput.size();++i)
       {
@@ -134,7 +139,9 @@ std::string EASI::cycle()
       currentLine=0;
       return "END OF PROGRAM\n";
    }
-   return evaluate (vCodeLine(currentLine++));
+   std::string strEval = evaluate (vCodeLine(currentLine));
+   ++currentLine;
+   return strEval;
 }
 
 std::string EASI::evaluate(CodeLine* _codeLine)
@@ -176,8 +183,10 @@ std::string EASI::evaluate(CodeLine* _codeLine)
       }
    }
    
-      // Assignment expression
-   if ( _codeLine->assignmentVar != "" )
+   // Assignment expression
+   // Checking for "FOR" is not good. In future we should insert "LET"
+   // into raw expressions.
+   if ( _codeLine->assignmentVar != "" && _codeLine->keyword != "FOR")
    {
       if ( _codeLine->vAssignmentIndices.size() > 0 )
       {
@@ -468,6 +477,12 @@ std::string EASI::evaluate(CodeLine* _codeLine)
       
       return _codeLine->vExpressionToken(0);
    }
+   else if ( _codeLine->keyword == "NEXT" )
+   {
+      //scan up until we find a FOR keyword.
+      forCycle();
+      return "";
+   }
    else if ( _codeLine->keyword == "PRINT" )
    {
       // PRINT can return strings, evaluate an expression, or a combination of both.
@@ -740,6 +755,56 @@ void EASI::jumpToLabel(std::string _label)
          currentLine = i;
       }
    }
+}
+
+void EASI::forCycle()
+{ // move up until we find a FOR loop. Set the current line to that for loop
+   // we should also increment the variable
+   // Also we need the vars from the NEXT line
+   std::cout<<"forcycle\n";
+   if ( vCodeLine(currentLine)->hasKeyword("NEXT") )
+   {
+      // get all the vars to STEP
+      Vector <std::string> vStep;
+      for (int i=1;i<vCodeLine(currentLine)->vArg.size();++i)
+      {
+         vStep.push(vCodeLine(currentLine)->vArg(i));
+      }
+      
+      while (currentLine > 0 )
+      {
+         if ( vCodeLine(currentLine)->vArg.size() > 3 && vCodeLine(currentLine)->vArg(0) == "FOR" )
+         {
+            // Get target var name
+            std::string targetVarName = vCodeLine(currentLine)->vArg(1);
+                        std::cout<<"Steppy steppy var: "<<targetVarName<<"\n";
+            // step the variables.
+            long int stepAmount = DataTools::toInt(vCodeLine(currentLine)->vArg(3));
+            for (int i=0;i<vStep.size();++i)
+            {
+               int var = DataTools::toInt(varTable.get(vStep(i)));
+               var+=stepAmount;
+               varTable.set(vStep(i),DataTools::toString(var));
+               
+               
+               
+            }
+            
+            
+            return;
+         }
+         --currentLine;
+      }
+      return;
+   }
+   else
+   {
+      std::cout<<"ERROR: No NEXT here.\n";
+      std::cout<<"Line: "<<vCodeLine(currentLine)->strLine<<"\n";
+      return;
+   }
+   
+
 }
 
 #include <list> 

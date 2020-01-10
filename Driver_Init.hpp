@@ -60,8 +60,8 @@ void init()
    logicRateTimer.start();
    physicsRateTimer.init();
    physicsRateTimer.start();
-  animationTimer.init();
-  animationTimer.start();
+   animationTimer.init();
+   animationTimer.start();
    debugTimer.init();
    debugTimer.start();
   
@@ -85,37 +85,47 @@ void init()
    
    std::cout<<"Running test cases\n";
    
-   // SHUNT TEST CASES
-   //Shunting shunt;
-   //shunt.buildDefaults();
-   //shunt.shunt("-1+(1-2)*(4/2)");
-   //shunt.test();
+   //SHUNT TEST CASES
+   Shunting shunt;
+   shunt.buildDefaults();
+      // some errors to fix
+   //shunt.shunt("-(1*2*-3)-(5+5)+-(2)");
+   //shunt.shunt("-ABS(-100)=-ABS(100-200)");
+   //shunt.shunt("--ABS(-100)=ABS(100-200)");
+   //shunt.shunt("ABS(-100)=ABS(-50)-100");
+   shunt.shunt("RND(100)<RND(100)");
+   //shunt.evaluate();
+
+
+   std::cout<<"Shunt: "<<shunt.toString()<<"\n";
+   shunt.evaluate();
+   
+   //exit(0);
    
    // EASI TEST CASES
    std::cout<<" *** EASI TEST CASES ***\n";
    EASI easi;
-   std::cout<<"loading\n";
+   // // std::cout<<"loading\n";
    
-   std::string strTestProg = FileManagerStatic::load("testprog");
+   std::string strTestProg = FileManagerStatic::load("storage/LOOP");
    
    
-   // std::string prog1 = "10 TEST\n
-   // 20 PRINT \"HELLO\"\n
-   // ";
+   // // std::string prog1 = "10 TEST\n
+   // // 20 PRINT \"HELLO\"\n
+   // // ";
    
    easi.load(strTestProg);
-   std::cout<<"end loading\n";
+   // // std::cout<<"end loading\n";
    
-   int i=0;
-   
-   while (easi.terminated==false && i++ < 1000)
+
+   for (int i=0; easi.terminated==false && i < 1000; ++i)
    {
       std::string strCycle = easi.cycle();
-      std::cout<<"cycle output: "<<strCycle<<"\n";
    }
+   //std::cout<<"Final var table:\n"<<easi.varTable.toString()<<"\n";
    
    std::cout<<"TESTING DONE, EXITING\n";
-   //exit(0);
+   exit(0);
    
 }
 

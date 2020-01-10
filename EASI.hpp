@@ -7,6 +7,11 @@
    
    The EASI language interpreter.
    
+   EASI is a basic interpreted programming language designed to be similar to BASIC. The ultimate
+   goal is for EASI to run any BASIC program, but BASIC may not run any EASI program, as EASI will
+   have expanded functionality. The purpose of EASI is for use in programming and hacking games, but
+   it could potentially also be used for scripting.
+   
 */
 
 #include <stack> // for shunting-yard algorithm
@@ -15,6 +20,7 @@
 // VarTable is held by EASI.
 class VarTable
 {
+   private:
    class VarTableArray
    {
       public:
@@ -263,19 +269,32 @@ class VarTable
 };
 
 // CodeLine reads and parses lines of EASI code, but does not execute them.
+// Technically I think the C64 executes lines at it reads them.
 class CodeLine
 {
    public:
-   std::string label; // The label of the line if applicable.
+   std::string label; // The label of the line if applicable -> should be moved to keyword and vector.
    std::string lineLabel; //Optional line label
    std::string keyword;
    std::string expression;
-   std::string arg; // Commands or sub-code to be executed
+   std::string arg; // Commands or sub-code to be executed, should probably be a vector.
    // vector of expression tokens: +-*/^ strings, values, variables.
    // useful because some operators change if they are in a different
    // position, for example = can be comparator or assignment.
    Vector <std::string> vExpressionToken;
-   
+
+   // Note: I'm planning to remove all strings except line number
+   // and pushing the parsed args to a vector.
+   // For example a for loop will be : "FOR",<ASSIGNMENTVAR>,"TO",<EXPR>,"STEP",<VALUE>
+   // It should be easy to evaluate because everything will be in a predictable order.
+   // We can even strip the keywords, so the for loop will become something like:
+   // FOR,<ASSIGNMENTVAR>,<EXPR>,<STEP VALUE>
+   // In future we can also push the line number and have it implicit and always on slot 0.
+   // The only issue is how to handle sub-commands like:
+   // IF <EXPR> THEN PRINT A+B+C
+   // But I already have code for that so I should be fine.
+   Vector <std::string> vArg;
+
    std::string strLine; // full code line
    std::string strLineStripped; // above but with non-string whitespace removed.
    std::string errorMessage;
@@ -296,6 +315,7 @@ class CodeLine
       strLine = _strLine;
       errorMessage="";
       assignmentVar="";
+      vArg.clear();
       
       // Evaluate the line
       bool isLineLabel = true;
@@ -331,8 +351,6 @@ class CodeLine
       }
       _strLine=_strNew;
       strLineStripped=_strNew;
-      
-      //std::cout<<"Stripped to: "<<strLineStripped<<"\n";
       
       for (unsigned int i=0;i<_strLine.size();++i)
       {
@@ -398,6 +416,87 @@ class CodeLine
                   //keyword = "IF";
                   
                   
+               }
+               else if (_strLine.rfind("FOR",i,3) == i)
+               {
+                  // FOR loop. Allows automatic incrementing of a variable
+                  // FOR <Counter-Variable>=<Startnumber> TO <Endnumber> [ STEP <step-size-number>] NEXT
+                  // FOR will use the new vArg system.
+                  // Note that mixing int and size_t is bad practise, so we should fix it.
+                  
+                  keyword = "FOR";
+                  vArg.push("FOR");
+                  // substring to '=' for assignment var.
+                  unsigned short int i2=i+3;
+                  for(;i2<_strLine.size()&&_strLine[i2]!='=';++i2)
+                  {
+                     assignmentVar+=_strLine[i2];
+                  } ++i2;
+                  vArg.push(assignmentVar);
+                  //vArg.push("=");
+                  // substring from '=' to TO for assignment expression
+                  std::size_t found = _strLine.find("TO",i2);
+                  if (found==std::string::npos)
+                  {
+                     std::cout<<"Syntax error\n";
+                     return;
+                  }
+                  expression = _strLine.substr(i2,found-i2);
+                  vArg.push(expression);
+                  //vArg.push("TO");
+                  i2=found+2;
+                  // Read in the next number.
+                  std::string strTo="";
+                  for(;i2<_strLine.size()&&std::isdigit(_strLine[i2]);++i2)
+                  {
+                     strTo+=_strLine[i2];
+                  }
+                  vArg.push(strTo);
+                  
+                  //STEP (optional) push step amount to arg
+                  std::size_t foundStep = _strLine.find("STEP",i2);
+                  if (foundStep!=std::string::npos)
+                  {
+                     //vArg.push("STEP");
+                     vArg.push(_strLine.substr(foundStep+4,_strLine.size()-1));
+                  }
+                  else
+                  {
+                     // the step implicitly becomes 1
+                     vArg.push("1");
+                  }
+                  i+=3;
+                  return;
+               }
+               // NEXT - Increment the current FOR loop by STEP amount
+               // Additional variables can be specified
+               else if (_strLine.rfind("NEXT",i,4) == i)
+               {
+                  keyword = "NEXT";
+                  vArg.push("NEXT");
+                  i+=4;
+                  
+                  std::string currentArg = "";
+                  for (;i<_strLine.size();++i)
+                  {
+                     if ( _strLine[i] == ' ' && currentArg.size() > 0 )
+                     {
+                        // push to arg vector
+                        vArg.push(currentArg);
+                        currentArg="";
+                     }
+                     else
+                     {
+                        currentArg+=_strLine[i];
+                     }
+                     
+                  }
+                  if ( currentArg.size() > 0 )
+                  {
+                     vArg.push(currentArg);
+                  }
+                  
+                  return;
                }
                // REM - Remark
                // A comment line, should be ignored by EASI.
@@ -744,6 +843,15 @@ class CodeLine
    ~CodeLine()
    { }
    
+   bool hasKeyword(const std::string _keyword)
+   { // return true if this codeline has the given keyword
+      if ( vArg.size() > 0 && ( vArg(0) == _keyword || keyword == _keyword ) )
+      {
+         return true;
+      }
+      return false;
+   }
+   
 };
 
 #include <Algorithm/Shunting.cpp>
@@ -777,6 +885,7 @@ class EASI
    std::string evaluate(CodeLine* _codeLine); // Run code line in current state
    
    void jumpToLabel(std::string _label);
+   void forCycle(); // Move currentLine up to a FOR loop
    
    //std::string shunt(std::string input); // convert expression to postfix notation
 

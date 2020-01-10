@@ -16,7 +16,7 @@
 unsigned short int PROGRAM_CYCLES_PER_TICK = 10;
 
   // SYSTEM STRINGS
-const std::string VERSION = "0.0.066 Win32 dev";
+const std::string VERSION = "0.0.067 Win32 dev";
 const std::string G_WINDOW_TITLE = "Terminal";
 const std::string SAVE_FOLDER_PATH = "savedata";
 
