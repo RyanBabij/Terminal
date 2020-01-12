@@ -102,30 +102,25 @@ void init()
    
    //exit(0);
    
-   // EASI TEST CASES
+   //#define EASI_TEST_CASES
+   #ifdef EASI_TEST_CASES
+
    std::cout<<" *** EASI TEST CASES ***\n";
    EASI easi;
-   // // std::cout<<"loading\n";
    
    std::string strTestProg = FileManagerStatic::load("storage/LOOP");
-   
-   
-   // // std::string prog1 = "10 TEST\n
-   // // 20 PRINT \"HELLO\"\n
-   // // ";
-   
-   easi.load(strTestProg);
-   // // std::cout<<"end loading\n";
-   
 
-   for (int i=0; easi.terminated==false && i < 1000; ++i)
+   easi.load(strTestProg);
+
+   for (int i=0; easi.terminated==false && i < 50; ++i)
    {
       std::string strCycle = easi.cycle();
    }
-   //std::cout<<"Final var table:\n"<<easi.varTable.toString()<<"\n";
-   
+
    std::cout<<"TESTING DONE, EXITING\n";
    exit(0);
+   
+   #endif
    
 }
 

@@ -462,7 +462,7 @@ class CodeLine
                   }
                   else
                   {
-                     // the step implicitly becomes 1
+                     // the step implicitly becomes +1
                      vArg.push("1");
                   }
                   i+=3;
@@ -863,7 +863,7 @@ class EASI
    
    Shunting shunt; // Constructs with default operators
    
-   int currentLine;
+   long int currentLine;
    
    Vector <CodeLine*> vCodeLine;
    Vector <std::string> * vLine; // String for every line of the program, valid or not.

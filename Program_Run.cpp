@@ -57,7 +57,7 @@ std::string Program_Run::init (Vector <std::string>* vArg)
          fileContent="";
          fileName="";
          active=false;
-         return "ERROR: FILENAME MUST BE ALPHANUMERIC\n";
+         return "ERROR: FILENAME: "+fileName+" IS NOT ALPHANUMERIC 2\n";
       }
    }
    
@@ -86,8 +86,6 @@ void Program_Run::cycle() // for now this is being called directly before render
    {
       isBusy=false;
    }
-   
-
    
    if (easi.terminated)
    {
@@ -131,28 +129,20 @@ void Program_Run::keyboardEvent (Keyboard* _keyboard)
    }
 }
 
-// void Program_Run::execute(int lineNumber)
-// {
-   
-// }
-
 // Program can return update in text mode, or entire screen in graphics mode.
 // Output string should be wiped 
 std::string Program_Run::render()
 {
-   // interpret and run program here.
+   //Protip: We can't necessarily return if inactive, because there may be a final render call
+   // or batch cycles.
+   // Intead just check if we have output to return.
+   if ( output.size()==0 )
+   { return ""; }
    
    // return a copy of output and wipe the output string.
    std::string retRender = output;
    output="";
-   if (active)
-   {
-      //std::cout<<"rendtest\n";
-      //return "test\n";
-      return retRender;
-   }
-   
-   return "";
+   return retRender;
 }
 
 #endif

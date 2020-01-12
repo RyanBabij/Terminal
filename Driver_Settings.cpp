@@ -13,10 +13,10 @@
    // GAME FLAGS
    // number of times to cycle a running program each tick. Default 1.
    // Higher value will make programs run faster.
-unsigned short int PROGRAM_CYCLES_PER_TICK = 10;
+unsigned short int PROGRAM_CYCLES_PER_TICK = 5;
 
   // SYSTEM STRINGS
-const std::string VERSION = "0.0.067 Win32 dev";
+const std::string VERSION = "0.0.068 Win32 dev";
 const std::string G_WINDOW_TITLE = "Terminal";
 const std::string SAVE_FOLDER_PATH = "savedata";
 

@@ -99,10 +99,9 @@ std::string EASI::load(std::string _code)
 
 std::string EASI::cycle()
 {
+   if (terminated) { return ""; }
    // Waiting for input, continue waiting
    if (isWaitingInput > 0) { return ""; }
-   
-   std::cout<<"cycle\n";
    
    // Inputs have been recieved. Process and clear.
    if (isWaitingInput == 0 && vInput.size() > 0 )
@@ -519,7 +518,6 @@ std::string EASI::evaluate(CodeLine* _codeLine)
          //number variable
          if (DataTools::isNumeric(vSubbedToken(i)))
          {
-            std::cout<<"numeric\n";
             //if last was string, then invalid operation.
             if (appendingString) //invalid
             {
@@ -542,7 +540,6 @@ std::string EASI::evaluate(CodeLine* _codeLine)
                //EVALUATE
                shunt.shunt(expressionToEvaluate);
                std::string strResult = DataTools::toString(shunt.evaluate());
-               std::cout<<"     APPEND: "<<strResult<<"\n";
                strEvalExpression+=strResult;
                expressionToEvaluate="";
             }
@@ -566,7 +563,6 @@ std::string EASI::evaluate(CodeLine* _codeLine)
             //EVALUATE
             shunt.shunt(expressionToEvaluate);
             std::string strResult = DataTools::toString(shunt.evaluate());
-            std::cout<<"     APPEND2: "<<strResult<<"\n";
             strEvalExpression+=strResult;
             expressionToEvaluate="";
       }
@@ -761,7 +757,10 @@ void EASI::forCycle()
 { // move up until we find a FOR loop. Set the current line to that for loop
    // we should also increment the variable
    // Also we need the vars from the NEXT line
-   std::cout<<"forcycle\n";
+
+   // save the NEXT line in case we need to exit the loop.
+   long int nextLine = currentLine;
+   
    if ( vCodeLine(currentLine)->hasKeyword("NEXT") )
    {
       // get all the vars to STEP
@@ -771,29 +770,41 @@ void EASI::forCycle()
          vStep.push(vCodeLine(currentLine)->vArg(i));
       }
       
-      while (currentLine > 0 )
+      while (currentLine >= 0 )
       {
          if ( vCodeLine(currentLine)->vArg.size() > 3 && vCodeLine(currentLine)->vArg(0) == "FOR" )
-         {
+         { // Found matching FOR
             // Get target var name
             std::string targetVarName = vCodeLine(currentLine)->vArg(1);
-                        std::cout<<"Steppy steppy var: "<<targetVarName<<"\n";
+            // Push the target var to the vector if it isn't already.
+            vStep.pushUnique(targetVarName);
+            
+            long int targetVarValue = DataTools::toInt(vCodeLine(currentLine)->vArg(3));
+
             // step the variables.
-            long int stepAmount = DataTools::toInt(vCodeLine(currentLine)->vArg(3));
+            long int stepAmount = DataTools::toInt(vCodeLine(currentLine)->vArg(4));
+
             for (int i=0;i<vStep.size();++i)
             {
-               int var = DataTools::toInt(varTable.get(vStep(i)));
+               long int var = DataTools::toInt(varTable.get(vStep(i)));
                var+=stepAmount;
                varTable.set(vStep(i),DataTools::toString(var));
-               
-               
-               
             }
-            
-            
+            // check if the target var has incremented to or past its target.
+            long int var = DataTools::toInt(varTable.get(targetVarName));
+            if ( var > targetVarValue ) // Note that loops use inclusive ranges.
+            {
+               currentLine=nextLine;
+               return;
+            }
+
             return;
          }
          --currentLine;
+      }
+      if (currentLine<0)
+      {
+         std::cout<<"Error: Couldn't find matching FOR for NEXT\n";
       }
       return;
    }
