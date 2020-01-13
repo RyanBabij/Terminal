@@ -41,6 +41,14 @@
       [48][64] -> ASCII space, 8 bit
       [48][64] -> colour space, 8 bit. 4 bit foreground, 4 bit background.
       However in Terminal you can set all of these with a single op.
+      
+      Pixel mode uses 4x4 pixels -> 160*120. This will fit best with the 8x8 character set. The array will need (160*120)/2 bytes. 9,600 bytes. C64 uses some creative techniques to ensure the screen is able to update regularly... Mainly the use of playfields and sprites.
+      
+      However Terminal will allow people to make a large number of rendering operations.
+      
+      C64 has a 16 colour pallete, using hex values 0-F. Terminal will allow the ASCII mode to be overlaid on the pixel mode.
+      
+      Alternatively we could stick with ASCII games.
 
       GRAPHICS MODE
       Old computers would sometimes have multiple graphics modes for different purposes. For example
@@ -97,14 +105,16 @@ class File
 
 #include "Terminal_Program.hpp"
 
+#include "MemoryMap.hpp"
+
 // This needs to become timer-based
 #define TERM_GLYPH_DELAY 4
 
 class Terminal: public GUI_Interface, public LogicTickInterface
 {
    // Full RAM space, contains screen RAM etc. In future probably contains OS etc.
-   char memory [65536]; // = full c64 memory space.
-
+   //char memory [65536]; // = full c64 memory space.
+   MemoryMap ram;
    
    
    char aGlyph [48][64]; /* Beware. The x and y are  flipped here because C++ stores arrays in row major. */

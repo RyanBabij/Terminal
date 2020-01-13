@@ -498,6 +498,47 @@ class CodeLine
                   
                   return;
                }
+               else if (_strLine.rfind("POKE",i,4) == i)
+               {
+                  // POKE is 2 expressions separated by commas.
+                  std::cout<<"FOUND POKE\n";
+                  
+                  keyword = "POKE";
+                  vArg.push("POKE");
+                  i+=4;
+                  std::string strAdd = "";
+                  for (;i<_strLine.size() && _strLine[i]!=',';++i)
+                  {
+                     if ( DataTools::isNumeric(_strLine[i]) )
+                     {
+                        strAdd+=_strLine[i];
+                     }
+                     else
+                     {
+                        std::cout<<"ERROR: Invalid poke addr\n";
+                        return;
+                     }
+                  } ++i;
+                  vArg.push(strAdd);
+                  strAdd="";
+
+                  for (;i<_strLine.size();++i)
+                  {
+                     if ( DataTools::isNumeric(_strLine[i]) )
+                     {
+                        strAdd+=_strLine[i];
+                     }
+                     else
+                     {
+                        std::cout<<"ERROR: Invalid poke num\n";
+                        return;
+                     }
+                  }
+                  vArg.push(strAdd);
+                  return;
+                  
+                  
+               }
                // REM - Remark
                // A comment line, should be ignored by EASI.
                else if (_strLine.rfind("REM",i,3) == i)

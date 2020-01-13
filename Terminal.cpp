@@ -462,7 +462,7 @@ bool Terminal::typeChar (const unsigned char c)
 {
    //if ( _keyboard->isAlphaNumeric(_keyboard->lastKey) || _keyboard->lastKey == Keyboard::SPACE)
   
-   std::string allowedInputs = " !@#$%^&*()\"\'";
+   std::string allowedInputs = " !@#$%^&*()\"\',";
 
    if (DataTools::isAlphaNumeric(c) || allowedInputs.find(c) != std::string::npos)
    {
