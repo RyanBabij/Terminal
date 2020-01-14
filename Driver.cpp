@@ -153,6 +153,7 @@ Keyboard globalKeyboard;
 
 #include <Time/Timer.hpp>
 Timer frameRateTimer;
+Timer frameRateTimer2; // Using this till I fix fps output
 Timer pollRateTimer;
 Timer logicRateTimer;
 Timer physicsRateTimer;

@@ -16,7 +16,7 @@
 unsigned short int PROGRAM_CYCLES_PER_TICK = 5;
 
   // SYSTEM STRINGS
-const std::string VERSION = "0.0.069 Win32 dev";
+const std::string VERSION = "0.0.070 Win32 dev";
 const std::string G_WINDOW_TITLE = "Terminal";
 const std::string SAVE_FOLDER_PATH = "savedata";
 
@@ -36,12 +36,13 @@ bool HOTKEYS_ENABLED = false;
 bool CLEAN_SAVES_ON_EXIT = true;
 
 /* Will output the framerate. */
-const bool OUTPUT_FRAMERATE = false;
+const bool OUTPUT_FRAMERATE = true;
 const int OUTPUT_FRAMERATE_SAMPLE_SIZE = 50;
+int FRAME_COUNTER=0;
 
-const bool LIMIT_FRAMERATE = true;
-const double FRAMERATE = 30; // SETTING IT TO A REASONABLE VALUE CAN GREATLY REDUCE STRESS ON GPU
-const double POLLSPERSECOND = 30; // NOT CURRENTLY IMPLEMENTED
+const bool LIMIT_FRAMERATE = false;
+const double FRAMERATE = 60; // SETTING IT TO A REASONABLE VALUE CAN GREATLY REDUCE STRESS ON GPU
+const double POLLSPERSECOND = 60; // NOT CURRENTLY IMPLEMENTED
 double LOGIC_PER_SECOND = 1;
 const double PHYSICS_PER_SECOND = 10;
 double ANIMATION_PER_SECOND = 10; // SETS SPEED OF ANIMATIONS
@@ -61,7 +62,7 @@ int CURRENT_ANIMATION_FRAME = 0; /* 0 - 99 */
   // RENDER AND FRAME STUFF
 
 /* Double buffering will make the frame transitions smoother, but it is slower. */
-const bool DOUBLE_BUFFERING = true;
+const bool DOUBLE_BUFFERING = false;
 
 /* BUSY_WAIT will cause the program to enter a busy wait if rendering is almost ready. Not sure if it works very well. */
 const bool BUSY_WAIT = false;
@@ -75,6 +76,8 @@ const unsigned int RELINQUISH_CPU_TIMEOUT = 100; /* Anywhere from 10-100 seems t
 
 bool RENDER_NEXT_FRAME=true; /* If there has been no input or state change, there's no need to render */
 const bool LAZY_RENDERING=false; /* Only render if something happened */
+
+const bool COMPRESS_TEXTURES = false; /* Probably saves graphics memory, however seems to significantly slow rendering */
 
 
 // GLOBAL FLAGS

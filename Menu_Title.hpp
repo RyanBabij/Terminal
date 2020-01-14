@@ -83,9 +83,10 @@ class Menu_Title: public GUI_Interface, public LogicTickInterface
       Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,&TEX_TERMINAL_BKG,true);
       glColor4ub(terminalFlicker,terminalFlicker,terminalFlicker,255);
       
-      Renderer::placeTexture4(centerX-385,centerY+305,centerX+385,centerY-305,backgroundTexture,false);
-      //Renderer::placeTexture4(centerX-320,centerY+240,centerX+320,centerY-240,&TEX_TERMINAL_GRID,false);
-
+      //Renderer::placeTexture4(centerX-385,centerY+305,centerX+385,centerY-305,backgroundTexture,false);
+      Renderer::placeTexture4(centerX-384,centerY+210,centerX+384,centerY-290,backgroundTexture,false);
+      //Renderer::placeTexture4(centerX-320,centerY+200,centerX+320,centerY-200,&TEX_TERMINAL_GRID,false);
+   
     glColor4ub(255,255,255,255);
       // RENDER TERMINAL
    

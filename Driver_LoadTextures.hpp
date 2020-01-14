@@ -32,6 +32,8 @@ static Texture TEX_TERMINAL;
 static Texture TEX_TERMINAL_GRID;
 static Texture TEX_TERMINAL_BKG;
 
+Texture texRuntime; /* Test of runtime graphics creation. */
+
 
 void loadTextureVerbose(const std::string _path, Texture* _texture)
 {
@@ -89,9 +91,11 @@ void loadTextures() // Testing some multithreading here. Probably shouldn't beca
   t2.join();
 #endif
 
-  bindNearestNeighbour(&TEX_TERMINAL);
-  bindNearestNeighbour(&TEX_TERMINAL_GRID);
-  bindNearestNeighbour(&TEX_TERMINAL_BKG);
+  bindNearestNeighbour(&TEX_TERMINAL,COMPRESS_TEXTURES);
+  bindNearestNeighbour(&TEX_TERMINAL_GRID,COMPRESS_TEXTURES);
+  bindNearestNeighbour(&TEX_TERMINAL_BKG,COMPRESS_TEXTURES);
+  
+  texRuntime.create(320,200,0,true);
 
     
 }

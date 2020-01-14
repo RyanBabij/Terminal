@@ -54,6 +54,8 @@ void init()
    /* Start timers. */
    frameRateTimer.init();
    frameRateTimer.start();
+   frameRateTimer2.init();
+   frameRateTimer2.start();
    pollRateTimer.init();
    pollRateTimer.start();
    logicRateTimer.init();

@@ -379,6 +379,25 @@ void Terminal::render()
       //clearScreen(true);
       errorScreen();
    }
+   
+   
+   //generate a runtime texture as a test.
+   
+   Timer lTimer;
+   lTimer.init();
+   lTimer.start();
+   
+   for (int i2=0;i2<256000;i2+=Random::randomInt(10))
+   {
+      texRuntime.data[i2]=Random::randomInt(255);
+   }
+   
+   bindNearestNeighbour(&texRuntime);
+   //Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,&texRuntime,false);
+   const int scalingFactor = 2;
+   Renderer::placeTexture4(panelX1,panelY1,panelX1+320*scalingFactor,panelY1+200*scalingFactor,&texRuntime,false);
+   
+   unbind(&texRuntime);
 }
 
 // Simply placing the cursor over a glyph will erase it, which is kinda cool

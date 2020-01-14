@@ -306,8 +306,10 @@ static void GL_keyboardEvent(const unsigned char key, const int x, const int y)
 long int logicLateness=0;
 long int frameLateness=0;
 
+int IDLE_COUNTER=0;
 void GL_idle()
 {
+   ++IDLE_COUNTER;
    if(QUIT_FLAG==true)
    {
       shutDown();
@@ -405,19 +407,21 @@ void GL_idle()
    
 }
 
-double aFrameTime [OUTPUT_FRAMERATE_SAMPLE_SIZE];
-int iFrameTime=0;
-
-double rollingAverage=0;
 
 void GL_display()
 {
-  float frameTime = 0;
+  if (OUTPUT_FRAMERATE && ++FRAME_COUNTER%60==0)
+  {
+     frameRateTimer2.update();
+     double varFPS = frameRateTimer2.fullSeconds;
+     std::cout<<"FPS: "<<FRAME_COUNTER/varFPS<<"\n";
+     std::cout<<"nIdles: "<<IDLE_COUNTER<<"\n";
+     std::cout<<"nFrames: "<<FRAME_COUNTER<<"\n";
+  }
   
   if (OUTPUT_FRAMERATE)
   {
     frameRateTimer.update();
-    frameTime = frameRateTimer.fullSeconds;
   }
   
   if (SLOW_FRAMERATE_ACTIVE)
@@ -457,31 +461,6 @@ void GL_display()
     }
    }
 
-
-  
-
-
-  if( OUTPUT_FRAMERATE )
-  {
-    aFrameTime[iFrameTime] = frameTime;
-    ++iFrameTime;
-    if(iFrameTime==OUTPUT_FRAMERATE_SAMPLE_SIZE)
-    {
-      float totalFrameTime = 0;
-      for (int i=0;i<OUTPUT_FRAMERATE_SAMPLE_SIZE;++i)
-      {
-        totalFrameTime+=aFrameTime[i];
-      }
-      totalFrameTime/=OUTPUT_FRAMERATE_SAMPLE_SIZE;
-      std::cout<<"SPF: "<<totalFrameTime<<". ";
-      float frameRate = 1/totalFrameTime;
-      std::cout<<"FPS: "<<frameRate<<".\n";
-    
-      iFrameTime=0;
-    }
-    
-  }
-  
    if (LAZY_RENDERING == false )
    {
       glClear(GL_COLOR_BUFFER_BIT);
