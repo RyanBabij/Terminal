@@ -51,8 +51,10 @@ class Stream
     operator std::string() const { return ss_.str(); }
 };
 
-
-#include <GL/GLee.h> // THIS CURRENTLY FIXES LINKER CRAP. Also allows RGBA_COMPRESSED, it would seem.
+#define GLEW_STATIC
+// Need to figure out which of this is better. I think GLEW is more supported.
+#include <GL/glew.h> // THIS CURRENTLY FIXES LINKER CRAP. Also allows RGBA_COMPRESSED, it would seem.
+#define FREEGLUT_STATIC 
 #include <GL/freeglut.h> //
 
 
