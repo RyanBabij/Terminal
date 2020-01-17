@@ -42,6 +42,18 @@ void Terminal::init()
          aGlyphDelay[_y][_x]=TERM_GLYPH_DELAY;
       }
    }
+   
+   // New Terminal pixel screen
+   for (int _y=0;_y<200;++_y)
+   {
+      for (int _x=0;_x<320;++_x)
+      {
+         aNewGlyph[_y][_x]=0;
+         aNewGlyphBacklog[_y][_x]=0;
+      }
+   }
+   
+
 
    cursorX = -1; cursorY = -1;
    cursorBlink = 0;
@@ -382,22 +394,49 @@ void Terminal::render()
    
    
    //generate a runtime texture as a test.
+   // this should be moved out of render in future.
    
    Timer lTimer;
    lTimer.init();
    lTimer.start();
    
-   for (int i2=0;i2<256000;i2+=Random::randomInt(10))
+   // second pass
+   // for (int i2=0;i2<256000;i2+=Random::randomInt(10))
+   // {
+      // int variance = (int) *aGlyph[i2] + 10;
+      // if ( variance > 255 ) {variance = 255; }
+      // texRuntime.data[i2]=variance;
+   // }
+
+   // load the Terminal text with fade effect.
+   for (int _y=0;_y<25;++_y)
    {
-      texRuntime.data[i2]=Random::randomInt(255);
+      for (int _x=0;_x<40;++_x)
+      {
+         texRuntime.morphDown(font8x8.aTexFont[(unsigned char)aGlyph[_y][_x]],8*_x,8*_y,22);
+      }
    }
    
+   // we can add a glow effect by adding brightness to dark pixels that are next to bright pixels.
+   texRuntime.bloom();
+   
    bindNearestNeighbour(&texRuntime);
-   //Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,&texRuntime,false);
    const int scalingFactor = 2;
    Renderer::placeTexture4(panelX1,panelY1,panelX1+320*scalingFactor,panelY1+200*scalingFactor,&texRuntime,false);
    
+   
+   // draw terminal LCD lines effect. In future it'll be a texture overlay.
+   for (int _y=panelY1;_y<panelY1+200*scalingFactor;_y+=scalingFactor)
+   {
+      Renderer::placeLineAlpha(0,0,0,80,panelX1,_y,panelX1+320*scalingFactor,_y);
+   }
+   for (int _x=panelX1;_x<panelX1+320*scalingFactor;_x+=scalingFactor)
+   {
+      Renderer::placeLineAlpha(0,0,0,80,_x,panelY1,_x,panelY1+200*scalingFactor);
+   }
+   
    unbind(&texRuntime);
+   
 }
 
 // Simply placing the cursor over a glyph will erase it, which is kinda cool

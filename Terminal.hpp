@@ -117,6 +117,11 @@ class Terminal: public GUI_Interface, public LogicTickInterface
    MemoryMap ram;
    
    
+   // Need to change to 40x25 (8x8 font). = 1000 chars. 48x64 = 3,072.
+   //unsigned char aNewGlyph[25][40];
+   unsigned char aNewGlyph[200][320]; // Actual state of Terminal screen
+   unsigned char aNewGlyphBacklog[200][320]; // Desired state of Terminal screen
+   
    char aGlyph [48][64]; /* Beware. The x and y are  flipped here because C++ stores arrays in row major. */
    char* pGlyph;
 

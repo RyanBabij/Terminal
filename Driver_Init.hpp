@@ -34,7 +34,7 @@ void init()
    /* Load font */
    Png fontPng;
    int fileSize;
-   unsigned char* fileData = FileManager::getFile("Textures/Font/10x10/10x10 white v4.png",&fileSize);   
+   unsigned char* fileData = FileManager::getFile("Textures/Font/8x8/8x8 Transparent v4 plus junk white.png",&fileSize);   
    
    if ( fileData == 0 )
    {
@@ -43,7 +43,7 @@ void init()
    else
    {   
       fontPng.load(fileData,fileSize);
-      if(font8x8.loadData(&fontPng,10,10)==false)
+      if(font8x8.loadData(&fontPng,8,8)==false)
       { std::cout<<"ERROR: Font did not load.\n"; }
       delete [] fileData;
    }
