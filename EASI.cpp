@@ -138,8 +138,16 @@ std::string EASI::cycle()
       currentLine=0;
       return "END OF PROGRAM\n";
    }
+   
+   int oldLine = currentLine;
+   
    std::string strEval = evaluate (vCodeLine(currentLine));
-   ++currentLine;
+   
+   if ( currentLine == oldLine )
+   { // only increment linenumber if it hasn't been modified by the code
+      ++currentLine;
+   }
+
    return strEval;
 }
 

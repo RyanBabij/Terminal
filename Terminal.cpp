@@ -382,7 +382,7 @@ void Terminal::render()
    {
       for (int _x=0;_x<64;++_x)
       {
-         font8x8.putChar(aGlyph[_y][_x],panelX1+(10*_x),panelY2-(10*_y),foregroundColour[_y][_x]);
+         //font8x8.putChar(aGlyph[_y][_x],panelX1+(10*_x),panelY2-(10*_y),foregroundColour[_y][_x]);
       }
    }
 
@@ -568,7 +568,8 @@ void Terminal::backspace()
 
 bool Terminal::isSafe(int _x, int _y)
 {
-   return ( _x >= 0 && _x <= 63 && _y  >= 0 && _y <= 47);
+   return ( _x >= 0 && _x <= 39 && _y  >= 0 && _y <= 19);
+   //return ( _x >= 0 && _x <= 63 && _y  >= 0 && _y <= 47);
 }
 
 bool Terminal::keyboardEvent(Keyboard* _keyboard)
