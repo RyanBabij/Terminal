@@ -12,6 +12,8 @@
    have expanded functionality. The purpose of EASI is for use in programming and hacking games, but
    it could potentially also be used for scripting.
    
+   Todo: Shift from named strings to predictable token Vector.
+   
 */
 
 #include <stack> // for shunting-yard algorithm
@@ -560,6 +562,12 @@ class CodeLine
                else if (_strLine.rfind("LABEL",i,5) == i)
                {
                   keyword = "LABEL";
+                  label="";
+                  // build the label name into label.
+                  for (unsigned int i2=5;i2<_strLine.size();++i2)
+                  {
+                     label+=_strLine[i2];
+                  }
                   i+=5;
                }
                else if (_strLine.rfind("GOTO",i,4) == i)
@@ -895,7 +903,7 @@ class CodeLine
    
 };
 
-#include <Algorithm/Shunting.cpp>
+#include <Math/Shunting/Shunting.cpp>
 
 // Maintains VarTable, CodeLines, and executes the lines.
 class EASI

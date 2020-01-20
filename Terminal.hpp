@@ -71,7 +71,7 @@ AudioPlayer_OpenAL globalAudioPlayer;
 Sound * dialTone[10];
 Sound* sRing;
 
-#include <Time/Timer.hpp>
+#include <System/Time/Timer.hpp>
 Timer toneTimer; /* Keep track of when last tone was played */
 
 #include <Data/Tokenize.hpp> // Tokenize console commands
@@ -84,7 +84,7 @@ Timer toneTimer; /* Keep track of when last tone was played */
 // EASI interpreter
 #include "EASI.cpp"
 
-#include <String/ANSI.hpp>
+#include <Container/String/ANSI.hpp>
 
 /* Class to store the Terminal's files which can be default system files,
 or created/modified by the user. Files will be read/written to disk
@@ -103,12 +103,14 @@ class File
    }
 };
 
-#include "Terminal_Program.hpp"
+#include "Terminal_Program.cpp"
 
 #include "MemoryMap.hpp"
 
 // This needs to become timer-based
 #define TERM_GLYPH_DELAY 4
+
+//#include "Terminal_Screen.hpp"
 
 class Terminal: public GUI_Interface, public LogicTickInterface
 {

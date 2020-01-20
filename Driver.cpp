@@ -11,7 +11,7 @@
 //#define WILDCAT_USE_DIRECT3D
 
    // What OS we are compiling for. Currently only Windows and Linux are supported cos I don't got a Mac.
-#include <Wildcat/Windows.hpp> //#define WILDCAT_WINDOWS
+#include <System/Windows.hpp> //#define WILDCAT_WINDOWS
 //#define WILDCAT_LINUX
 
    // DYNAMICALLY GENERATED HEADER FILE WITH STRING WHICH COUNTS COMPILATIONS.
@@ -53,12 +53,12 @@ class Stream
 
 #define GLEW_STATIC
 // Need to figure out which of this is better. I think GLEW is more supported.
-#include <GL/glew.h> // THIS CURRENTLY FIXES LINKER CRAP. Also allows RGBA_COMPRESSED, it would seem.
+#include <Graphics/OpenGL/glew.h> // THIS CURRENTLY FIXES LINKER CRAP. Also allows RGBA_COMPRESSED, it would seem.
 #define FREEGLUT_STATIC 
-#include <GL/freeglut.h> //
+#include <Graphics/OpenGL/freeglut.h> //
 
 
-#include <Render/Renderer.cpp>
+#include <Graphics/Render/Renderer.cpp>
 
 #include <Graphics/Texture/Texture.hpp>
 #include <Graphics/Texture/TextureLoader.hpp>
@@ -95,7 +95,7 @@ void pauseGame()
    PAUSE_LOGIC=true;
 }
 
-#include <Time/Timer.hpp>
+#include <System/Time/Timer.hpp>
 
 /* This object exploits the c++ guarantee that the destructor is always called, in order to deal with unanticipated shutdowns, such as the player clicking the X. However, it seems the destructor guarantee does not apply in some cases, such as ending the process using the task manager, or using ctrl+c from the console. */
 class QuitChecker
@@ -153,7 +153,7 @@ Mouse globalMouse;
 Keyboard globalKeyboard;
 
 
-#include <Time/Timer.hpp>
+#include <System/Time/Timer.hpp>
 Timer frameRateTimer;
 Timer frameRateTimer2; // Using this till I fix fps output
 Timer pollRateTimer;
@@ -183,18 +183,18 @@ MouseInterfaceManager mouseInterfaceManager;
 /* Global keyboard interface manager. To handle all objects that recieve keyboard events. */
 KeyboardInterfaceManager keyboardInterfaceManager;
 
-# include <GUI/GUI_Manager.hpp>
-#include <GUI/GUI.hpp>
+#include <Graphics/GUI/GUI_Manager.hpp>
+#include <Graphics/GUI/GUI.hpp>
 /* GUI manager. Manages all GUI controls. */
 GUI_Manager globalGuiManager;
 
 
-#include <LogicTick/LogicTickInterface.hpp>
-#include <LogicTick/LogicTickManager.hpp>
+#include <Interface/LogicTick/LogicTickInterface.hpp>
+#include <Interface/LogicTick/LogicTickManager.hpp>
 LogicTickManager logicTickManager;
 
-#include <IdleTick/IdleTickInterface.hpp>
-#include <IdleTick/IdleTickManager.hpp>
+#include <Interface/IdleTick/IdleTickInterface.hpp>
+#include <Interface/IdleTick/IdleTickManager.hpp>
 IdleTickManager idleManager;
 
 
@@ -212,7 +212,7 @@ Menu_Title menuTitle;
 /* OpenGL function hooks go here. */
 #include "Driver_GLHooks.hpp"
 
-#include <Misc/ArgReader.hpp>
+#include <Data/ArgReader.hpp>
 
 
 
