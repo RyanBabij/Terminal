@@ -14,7 +14,7 @@
 #include "Terminal.cpp"
 #include "Terminal_Program.cpp"
 
-class Menu_Title: public GUI_Interface, public LogicTickInterface
+class Menu_Title: public GUI_Interface, public LogicTickInterface, public IdleTickInterface
 {
    public:
 
@@ -45,14 +45,15 @@ class Menu_Title: public GUI_Interface, public LogicTickInterface
    void setFont(Wildcat::Font* _font)
    {
       font = _font;
-      guiManager.setFont(_font);
+      terminal.setFont(_font);
+      //guiManager.setFont(_font);
    }
 
    void eventResize()
    {
       int centerX = panelX1 + (panelNX / 2);
       int centerY = panelY1 + (panelNY / 2);
-      terminal.setPanel(centerX-320,centerY-240,centerX+320,centerY+240);
+      terminal.setPanel(centerX-320,centerY-200,centerX+320,centerY+200);
    }
    
    void init()
@@ -137,6 +138,11 @@ class Menu_Title: public GUI_Interface, public LogicTickInterface
          ++terminalFlicker;
          if (terminalFlicker > 255 ) { terminalFlicker = 255; }
       }
+   }
+   
+   void idleTick() override
+   {
+      terminal.idleTick();
    }
    
 };

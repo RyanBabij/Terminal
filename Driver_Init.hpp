@@ -82,6 +82,7 @@ void init()
 
    mouseInterfaceManager.add(&menuTitle);
    globalGuiManager.add(&menuTitle);
+   idleManager.add(&menuTitle);
    
    initServers();
    

@@ -112,11 +112,15 @@ class File
 
 //#include "Terminal_Screen.hpp"
 
-class Terminal: public GUI_Interface, public LogicTickInterface
+#include <Graphics/PixelScreen/PixelScreen.cpp>
+
+class Terminal: public GUI_Interface, public LogicTickInterface, public IdleTickInterface
 {
    // Full RAM space, contains screen RAM etc. In future probably contains OS etc.
    //char memory [65536]; // = full c64 memory space.
    MemoryMap ram;
+   
+   PixelScreen pixelScreen;
    
    
    // Need to change to 40x25 (8x8 font). = 1000 chars. 48x64 = 3,072.
@@ -196,9 +200,6 @@ class Terminal: public GUI_Interface, public LogicTickInterface
 
    void randomFill();
 
-   void render();
-   bool renderProgram();
-
    void putCursor(int, int);
 
    // User has pressed enter and console either goes down by 1, or shuffles everything up by 1.
@@ -214,8 +215,6 @@ class Terminal: public GUI_Interface, public LogicTickInterface
    void backspace();
 
    bool isSafe(int /* _x */, int /* _y */);
-
-   bool keyboardEvent(Keyboard* /* _keyboard */);
 
    void introStep();
 
@@ -255,11 +254,16 @@ class Terminal: public GUI_Interface, public LogicTickInterface
    void shiftUp(int amount); //scroll the terminal down by shifting all characters up
 
 
-   // void screenConnect(std::string _number1="", std::string _number2="")
-   // {
-   // clearScreen();
-   // writeString(0,0,"DIALING...");
-   // }
+   // GUI STUFF
+
+   void render() override;
+   bool renderProgram();
+   bool keyboardEvent(Keyboard* /* _keyboard */) override;
+   void eventResize() override;
+   void idleTick() override;
+   void setFont(Wildcat::Font* _font) override;
+
+
 
 };
 

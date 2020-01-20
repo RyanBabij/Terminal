@@ -8,7 +8,7 @@
 
 #include "Terminal.hpp"
 
-Terminal::Terminal()
+Terminal::Terminal(): pixelScreen(320,200)
 {
    pGlyph = &aGlyph[0][0];
    pGlyphBacklog = &aGlyphBacklog[0][0];
@@ -378,10 +378,11 @@ void Terminal::render()
    //Update: Glyphs now render on a grid instead of using error-prone string.
    // Also foreground colour support added.
    int i=0;
-   for (int _y=0;_y<48;++_y)
+   for (int _y=0;_y<25;++_y)
    {
-      for (int _x=0;_x<64;++_x)
+      for (int _x=0;_x<40;++_x)
       {
+         pixelScreen.putChar(_x,_y,aGlyph[_y][_x]);
          //font8x8.putChar(aGlyph[_y][_x],panelX1+(10*_x),panelY2-(10*_y),foregroundColour[_y][_x]);
       }
    }
@@ -400,43 +401,8 @@ void Terminal::render()
    lTimer.init();
    lTimer.start();
    
-   // second pass
-   // for (int i2=0;i2<256000;i2+=Random::randomInt(10))
-   // {
-      // int variance = (int) *aGlyph[i2] + 10;
-      // if ( variance > 255 ) {variance = 255; }
-      // texRuntime.data[i2]=variance;
-   // }
 
-   // load the Terminal text with fade effect.
-   for (int _y=0;_y<25;++_y)
-   {
-      for (int _x=0;_x<40;++_x)
-      {
-         texRuntime.morphDown(font8x8.aTexFont[(unsigned char)aGlyph[_y][_x]],8*_x,8*_y,22);
-      }
-   }
-   
-   // we can add a glow effect by adding brightness to dark pixels that are next to bright pixels.
-   texRuntime.bloom();
-   
-   bindNearestNeighbour(&texRuntime);
-   const int scalingFactor = 2;
-   Renderer::placeTexture4(panelX1,panelY1,panelX1+320*scalingFactor,panelY1+200*scalingFactor,&texRuntime,false);
-   
-   
-   // draw terminal LCD lines effect. In future it'll be a texture overlay.
-   for (int _y=panelY1;_y<panelY1+200*scalingFactor;_y+=scalingFactor)
-   {
-      Renderer::placeLineAlpha(0,0,0,80,panelX1,_y,panelX1+320*scalingFactor,_y);
-   }
-   for (int _x=panelX1;_x<panelX1+320*scalingFactor;_x+=scalingFactor)
-   {
-      Renderer::placeLineAlpha(0,0,0,80,_x,panelY1,_x,panelY1+200*scalingFactor);
-   }
-   
-   unbind(&texRuntime);
-   
+   pixelScreen.render();   
 }
 
 // Simply placing the cursor over a glyph will erase it, which is kinda cool
@@ -1061,6 +1027,22 @@ void Terminal::shiftUp(int amount)
       putCursor(0,47);
    }
 
+}
+
+void Terminal::eventResize()
+{
+   pixelScreen.setPanel(panelX1,panelY1,panelX2,panelY2);
+}
+
+void Terminal::idleTick()
+{
+   pixelScreen.idleTick();
+}
+
+void Terminal::setFont(Wildcat::Font* _font)
+{
+   font = _font;
+   pixelScreen.setFont(_font);
 }
 
 #endif
