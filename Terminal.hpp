@@ -82,7 +82,7 @@ Timer toneTimer; /* Keep track of when last tone was played */
 //Operator op;
 
 // EASI interpreter
-#include "EASI.cpp"
+#include <Game/EASI/EASI.cpp>
 
 #include <Container/String/ANSI.hpp>
 
