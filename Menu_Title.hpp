@@ -22,10 +22,10 @@ class Menu_Title: public GUI_Interface, public LogicTickInterface, public IdleTi
    int terminalFlicker;
    
    /* Colours / theme. */
-   Colour cNormal;
-   Colour cSelected;
-   Colour cDropPanel;
-   Colour cHighlight;
+   ColourRGBA <unsigned char> cNormal;
+   ColourRGBA <unsigned char> cSelected;
+   ColourRGBA <unsigned char> cDropPanel;
+   ColourRGBA <unsigned char> cHighlight;
    
    /* GUI manager. Manages all GUI controls for this menu. */
    GUI_Manager guiManager;
@@ -42,21 +42,21 @@ class Menu_Title: public GUI_Interface, public LogicTickInterface, public IdleTi
       terminalFlicker=255;
    }
    
-   void setFont(Wildcat::Font* _font)
+   void setFont(Wildcat::Font* _font) override
    {
       font = _font;
       terminal.setFont(_font);
       //guiManager.setFont(_font);
    }
 
-   void eventResize()
+   void eventResize() override
    {
       int centerX = panelX1 + (panelNX / 2);
       int centerY = panelY1 + (panelNY / 2);
       terminal.setPanel(centerX-320,centerY-200,centerX+320,centerY+200);
    }
    
-   void init()
+   void init() override
    {
       cNormal.set(200,200,200);
       cSelected.set(180,180,180);
@@ -70,10 +70,10 @@ class Menu_Title: public GUI_Interface, public LogicTickInterface, public IdleTi
 
    }
    /* DisplayInterface:: */
-   void render()
+   void render() override
    {
-    /* Background image. Stretch to fit, preserve aspect ratio. */
-    //Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,backgroundTexture,false);
+		/* Background image. Stretch to fit, preserve aspect ratio. */
+		Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,backgroundTexture,false);
    
       //flicker();
       //place terminal text indicator panel
@@ -88,33 +88,33 @@ class Menu_Title: public GUI_Interface, public LogicTickInterface, public IdleTi
       //Renderer::placeTexture4(centerX-384,centerY+210,centerX+384,centerY-290,backgroundTexture,false);
       //Renderer::placeTexture4(centerX-320,centerY+200,centerX+320,centerY-200,&TEX_TERMINAL_GRID,false);
    
-    glColor4ub(255,255,255,255);
-      // RENDER TERMINAL
-   
-      terminal.render();
+		glColor4ub(255,255,255,255);
+		// RENDER TERMINAL
 
-      
-    guiManager.render();
+		terminal.render();
+
+
+		guiManager.render();
    }
   
    /* MouseInterface:: */
-   bool mouseEvent (Mouse* _mouse)
+   bool mouseEvent (Mouse* _mouse) override
    {
       return false;
    }
    
-   void logicTick()
+   void logicTick() override
    {
 
    }
    
-   bool keyboardEvent(Keyboard* _keyboard)
+   bool keyboardEvent(Keyboard* _keyboard) override
    {
       terminal.keyboardEvent(_keyboard);
       return false;
    }
    
-   bool stealKeyboard()
+   bool stealKeyboard() override
    {
       return guiManager.stealKeyboard();
    }

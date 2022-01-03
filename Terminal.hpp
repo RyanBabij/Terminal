@@ -141,7 +141,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface, public IdleTick
    short int aGlyphDelay[48][64]; /* number of random glyphs to cycle before displaying correct one. */
    short int * pGlyphDelay;
 
-   Colour foregroundColour [48][64]; /* Keep track of colour for this glyph */
+   ColourRGBA <unsigned char> foregroundColour [48][64]; /* Keep track of colour for this glyph */
 
    int cursorX,cursorY;
    int cursorBlink; /* counts up from zero */
@@ -179,7 +179,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface, public IdleTick
    Terminal();
    ~Terminal();
 
-   void init();
+   void init() override; // note that this overrides GUI_Interface::init().
 
    void loadAudio();
 

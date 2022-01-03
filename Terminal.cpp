@@ -28,7 +28,6 @@ Terminal::~Terminal()
    globalAudioPlayer.close();
 }
 
-
 void Terminal::init()
 {
    int i=0;
@@ -335,6 +334,7 @@ bool Terminal::renderProgram()
 // Terminal only renders text, not any decoration.
 void Terminal::render()
 {
+	std::cout<<"RENDER\n";
    //loadChar();
    //loadChar();   
    loadChar3();
@@ -768,7 +768,7 @@ void Terminal::errorScreen(std::string strError)
    
    char errorBorder = ' ';
 
-   Colour currentColour;
+   ColourRGBA <unsigned char> currentColour;
    
    // Note: Colours are currently broken on some systems
    currentColour.set(255,255,255,255);

@@ -1,6 +1,8 @@
 /* Terminal: Driver
   
    Main file for Terminal. Created by Ryan Babij (https://github.com/RyanBabij/Terminal)
+	
+	TERMINAL CODE SEEMS TO HAVE BEEN PORTED TO WILDCAT FOR MCOM. I NEED TO MANUALLY REVIEW THIS.
   
   License: CC0
 */
