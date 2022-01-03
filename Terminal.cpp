@@ -334,7 +334,11 @@ bool Terminal::renderProgram()
 // Terminal only renders text, not any decoration.
 void Terminal::render()
 {
-	std::cout<<"RENDER\n";
+   
+   //Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,&TEX_TERMINAL_BKG,true);
+   Renderer::placeColour4(0,0,125,panelX1,panelY1,panelX2,panelY2);
+	//std::cout<<"RENDER\n";
+   
    //loadChar();
    //loadChar();   
    loadChar3();
@@ -401,7 +405,8 @@ void Terminal::render()
    lTimer.init();
    lTimer.start();
    
-
+   //std::cout<<"Render pscreen\n";
+   pixelScreen.setPixel(Random::randomInt(panelNX-1),Random::randomInt(panelNY-1),Random::randomInt(255),Random::randomInt(255),Random::randomInt(255));
    pixelScreen.render();   
 }
 
@@ -441,6 +446,7 @@ void Terminal::newLine()
 
 void Terminal::blinkCursor()
 {
+   cursorVisible=true;
    if ( cursorVisible)
    {
       if (isSafe(cursorX,cursorY))
@@ -540,6 +546,7 @@ bool Terminal::isSafe(int _x, int _y)
 
 bool Terminal::keyboardEvent(Keyboard* _keyboard)
 {
+   std::cout<<"kb\n";
    for (int i=0;i<vProgram.size();++i)
    {
       if (vProgram(i)->active)

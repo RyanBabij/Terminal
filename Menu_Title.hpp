@@ -51,9 +51,36 @@ class Menu_Title: public GUI_Interface, public LogicTickInterface, public IdleTi
 
    void eventResize() override
    {
-      int centerX = panelX1 + (panelNX / 2);
-      int centerY = panelY1 + (panelNY / 2);
-      terminal.setPanel(centerX-320,centerY-200,centerX+320,centerY+200);
+      const int centerX = panelX1 + (panelNX / 2);
+      const int centerY = panelY1 + (panelNY / 2);
+      // terminal.setPanel(centerX-320,centerY-200,centerX+320,centerY+200);
+      
+      double  multiplier = 1;
+      
+      int currentX = 640;
+      int currentY = 400;
+      
+      while (true)
+      {
+         
+         if (currentX * multiplier+80 < panelNX 
+            && currentY * multiplier+80 < panelNY )
+         {
+            //okay.
+         }
+         else
+         {
+            multiplier-=0.5;
+            break;
+         }
+         multiplier+=0.5;
+      }
+      
+       currentX = (currentX * multiplier)/2;
+       currentY = (currentY * multiplier)/2;
+      
+
+      terminal.setPanel(centerX-currentX,centerY-currentY,centerX+currentX,centerY+currentY);
    }
    
    void init() override
@@ -67,13 +94,16 @@ class Menu_Title: public GUI_Interface, public LogicTickInterface, public IdleTi
       eventResize();
       
       setFont(font);
+      
+      terminal.init();
 
    }
    /* DisplayInterface:: */
    void render() override
    {
 		/* Background image. Stretch to fit, preserve aspect ratio. */
-		Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,backgroundTexture,false);
+		//Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,backgroundTexture,false);
+		//Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,&TEX_TERMINAL_BKG,true);
    
       //flicker();
       //place terminal text indicator panel
@@ -81,7 +111,7 @@ class Menu_Title: public GUI_Interface, public LogicTickInterface, public IdleTi
       int centerX = panelX1 + (panelNX / 2);
       int centerY = panelY1 + (panelNY / 2);
       
-      //Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,&TEX_TERMINAL_BKG,true);
+      Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,&TEX_TERMINAL_BKG,true);
       glColor4ub(terminalFlicker,terminalFlicker,terminalFlicker,255);
       
       //Renderer::placeTexture4(centerX-385,centerY+305,centerX+385,centerY-305,backgroundTexture,false);
