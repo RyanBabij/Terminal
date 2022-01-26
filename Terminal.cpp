@@ -178,7 +178,7 @@ void Terminal::writeString(int _x, int _y, std::string _str, bool moveCursor)
    }
    cursorX=ansiGrid.cursorX;
    cursorY=ansiGrid.cursorY;
-   //putCursor(ansiGrid.cursorX,ansiGrid.cursorY);
+	//putCursor(ansiGrid.cursorX,ansiGrid.cursorY);
 }
 
 void Terminal::loadChar()
@@ -334,11 +334,8 @@ bool Terminal::renderProgram()
 // Terminal only renders text, not any decoration.
 void Terminal::render()
 {
-   
-   //Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,&TEX_TERMINAL_BKG,true);
-   Renderer::placeColour4(0,0,125,panelX1,panelY1,panelX2,panelY2);
 	//std::cout<<"RENDER\n";
-   
+	//std::cout<<"STRMAINCONSOLE: "<<strMainConsole<<"\n";
    //loadChar();
    //loadChar();   
    loadChar3();
@@ -374,7 +371,7 @@ void Terminal::render()
    
    if (renderProgram() == false)
    {
-      clearScreen();
+      //clearScreen();
       writeString(0,0,strMainConsole,true);
    }
 
@@ -405,8 +402,7 @@ void Terminal::render()
    lTimer.init();
    lTimer.start();
    
-   //std::cout<<"Render pscreen\n";
-   pixelScreen.setPixel(Random::randomInt(panelNX-1),Random::randomInt(panelNY-1),Random::randomInt(255),Random::randomInt(255),Random::randomInt(255));
+
    pixelScreen.render();   
 }
 
@@ -446,7 +442,6 @@ void Terminal::newLine()
 
 void Terminal::blinkCursor()
 {
-   cursorVisible=true;
    if ( cursorVisible)
    {
       if (isSafe(cursorX,cursorY))
@@ -546,7 +541,6 @@ bool Terminal::isSafe(int _x, int _y)
 
 bool Terminal::keyboardEvent(Keyboard* _keyboard)
 {
-   std::cout<<"kb\n";
    for (int i=0;i<vProgram.size();++i)
    {
       if (vProgram(i)->active)
@@ -673,14 +667,22 @@ char Terminal::getRandomChar()
 void Terminal::loadHelpScreen()
 {
    clearScreen();
+	strMainConsole="";
    //randomFill();
-   writeString(0,0,"                    *** SUDACHI SYSTEM 1 ***                    ");
+   writeString(0,0,"        *** SUDACHI SYSTEM 1 ***        ");
    writeString(0,2,"CATALOG - LIST PROGRAMS");
    writeString(0,3,"LIST - LIST FILES");
    writeString(0,4,"RUN - RUN PROGRAM");
    writeString(0,5,"REBOOT - REBOOT COMPUTER");
    writeString(0,6,"POWEROFF - POWER OFF COMPUTER");
 
+}
+
+void Terminal::printTest()
+{
+	clearScreen();
+	strMainConsole="";
+	writeString(0,0,"The character set was largely designed by Leonard Tramiel (the son of Commodore CEO Jack Tramiel) and PET designer Chuck Peddle. The graphic characters of PETSCII were one of the extensions Commodore specified for Commodore BASIC when laying out desired changes to Microsoft's existing 6502 BASIC to Microsoft's Ric Weiland in 1977.[1] The VIC-20 used the same pixel-for-pixel font as the PET, although the characters appeared wider due to the VIC's 22-column screen. The Commodore 64, however, used a slightly re-designed, heavy upper-case font, essentially a thicker version of the PET's, in order to avoid color artifacts created by the machine's higher resolution screen. The C64's lowercase characters are identical to the lowercase characters in the Atari 800's system font (released several years earlier). Peddle claims the inclusion of card suit symbols was spurred by the demand that it should be easy to write card games on the PET (as part of the specification list he received).[2]");
 }
 
 void Terminal::loadCatalog()
@@ -903,6 +905,14 @@ std::cout<<"vtoken size: "<<vToken->size()<<".\n";
       command = "";
       loadHelpScreen();
    }
+	else if (command == "TEST")
+	{
+      helpScreen=true;
+      bootScreen=false;
+      debugConsole=false;
+      command = "";
+      printTest();
+	}
    else if (command == "REBOOT" || command == "RESET")
    {
       init();

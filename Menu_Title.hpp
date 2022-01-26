@@ -111,7 +111,7 @@ class Menu_Title: public GUI_Interface, public LogicTickInterface, public IdleTi
       int centerX = panelX1 + (panelNX / 2);
       int centerY = panelY1 + (panelNY / 2);
       
-      Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,&TEX_TERMINAL_BKG,true);
+      //Renderer::placeTexture4(panelX1,panelY1,panelX2,panelY2,&TEX_TERMINAL_BKG,true);
       glColor4ub(terminalFlicker,terminalFlicker,terminalFlicker,255);
       
       //Renderer::placeTexture4(centerX-385,centerY+305,centerX+385,centerY-305,backgroundTexture,false);

@@ -11,6 +11,22 @@
 
       Terminal is currently hardcoded with 10x10 font and 64x48 character area, in a 640x480 resolution.
       I'll probably need to add the ability to scale it up otherwise it'll look tiny on huge monitors.
+		The "10x10" font is currently just the 8x8 with 1 pixel margin on all sides.
+		
+		
+		
+		It's important to note that the C64 font also included spacing, so no padding needed to be added. The letter M
+		for example is actually 7x7 pixels. This means the C64 font added a 1px margin to each row and column.
+		
+		640x480 is chosen because it's a standard resolution and should scale up nicely onto any modern monitor.
+		
+		Note that the original C64 was 200x320, and 25x40 characters. Font therefore was 8x8.
+		
+		C64 display will probably just be simulated as a subset of Termina. Basically C64 text will take up a
+		smaller part of the screen. I think upscaling is worth it otherwise reading large amounts of text will be
+		annoying.
+		
+		UPDATE: It seems the previous info was wrong and Terminal actually copies the C64 resolution.
 
       We'll probably stick with an ASCII table of 256 characters. 128 standard and 128 extended.
       Not sure about colour and other modifiers.
@@ -41,6 +57,7 @@
       [48][64] -> ASCII space, 8 bit
       [48][64] -> colour space, 8 bit. 4 bit foreground, 4 bit background.
       However in Terminal you can set all of these with a single op.
+		(I think these are higher than the base C64 spec, need to check)
       
       Pixel mode uses 4x4 pixels -> 160*120. This will fit best with the 8x8 character set. The array will need (160*120)/2 bytes. 9,600 bytes. C64 uses some creative techniques to ensure the screen is able to update regularly... Mainly the use of playfields and sprites.
       
@@ -222,6 +239,9 @@ class Terminal: public GUI_Interface, public LogicTickInterface, public IdleTick
    char getRandomChar();
 
    void loadHelpScreen();
+	
+	// Print some demo text to test reading
+   void printTest();
 
 
    /* Show a menu of all the programs available on this computer.

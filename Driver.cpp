@@ -65,6 +65,11 @@ class Stream
 #include <Graphics/Texture/Texture.hpp>
 #include <Graphics/Texture/TextureLoader.hpp>
 
+#include <Graphics/Font/Font.hpp>
+
+// This is the global font for now.
+Wildcat::Font font8x8;
+
 
 #include "Driver_LoadTextures.hpp"
 
@@ -143,11 +148,6 @@ QuitChecker quitChecker;
 #include <stdio.h>
 #include <Math/Random/GlobalRandom.hpp>
 /* No need for a globalRandom object. Just use Random:: */
-
-#include <Graphics/Font/Font.hpp>
-
-// This is the global font for now.
-Wildcat::Font font8x8;
 
 #include <Device/Mouse/Mouse.hpp>
 Mouse globalMouse;
@@ -229,9 +229,14 @@ int main(int nArgs, char ** arg)
       printHelp();
       return 0;
    }
-  
+	
+
   
    std::cout<<"\nTerminal "<<VERSION<<". Warning: This is not a stable release.\n";
+
+	#ifdef BUILD
+	std::cout<<"BUILD\n";
+	#endif
 
    GL_init(nArgs, arg);
    

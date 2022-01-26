@@ -29,24 +29,10 @@ void init()
    globalKeyboard.init(); 
 
    /* Load textures (Tex pointers from Driver_TextureList.hpp). */
+	// Font loading has been moved into here.
    loadTextures();
   
-   /* Load font */
-   Png fontPng;
-   int fileSize;
-   unsigned char* fileData = FileManager::getFile("Textures/Font/8x8/8x8 Transparent v4 plus junk white.png",&fileSize);   
-   
-   if ( fileData == 0 )
-   {
-      std::cout<<"ERROR: Font PNG did not load.\n";
-   }
-   else
-   {   
-      fontPng.load(fileData,fileSize);
-      if(font8x8.loadData(&fontPng,8,8)==false)
-      { std::cout<<"ERROR: Font did not load.\n"; }
-      delete [] fileData;
-   }
+
    
    
 
@@ -86,6 +72,9 @@ void init()
    
    initServers();
    
+   //#define EASI_TEST_CASES
+   #ifdef EASI_TEST_CASES
+	
    std::cout<<"Running test cases\n";
    
    //SHUNT TEST CASES
@@ -104,9 +93,6 @@ void init()
    shunt.evaluate();
    
    //exit(0);
-   
-   //#define EASI_TEST_CASES
-   #ifdef EASI_TEST_CASES
 
    std::cout<<" *** EASI TEST CASES ***\n";
    EASI easi;
@@ -124,6 +110,8 @@ void init()
    exit(0);
    
    #endif
+	
+	std::cout<<"\n\n*** BEGIN MAIN ***\n\n\n";
    
 }
 

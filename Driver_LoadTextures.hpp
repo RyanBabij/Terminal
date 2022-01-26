@@ -28,9 +28,16 @@ void SetColor(int value){
 }
 
 
+
 static Texture TEX_TERMINAL;
 static Texture TEX_TERMINAL_GRID;
 static Texture TEX_TERMINAL_BKG;
+
+static Texture TEX_MCOM_CITY;
+static Texture TEX_MCOM_CITY_RIP;
+static Texture TEX_MCOM_MISSILE;
+static Texture TEX_MCOM_MISSILE_RIGHT;
+static Texture TEX_MCOM_MISSILE_RIP;
 
 Texture texRuntime; /* Test of runtime graphics creation. */
 
@@ -63,6 +70,12 @@ void preloadTextureVerbose(const std::string _path, Texture* _texture)
 
 void loadTextures() // Testing some multithreading here. Probably shouldn't because a texture atlas would be better
 {
+		if(const char* env_p = std::getenv("WILDCAT_TEXTURES"))
+	std::cout << "Your PATH is: " << env_p << '\n';
+
+static std::string texPath = std::getenv("WILDCAT_TEXTURES");
+texPath+="\\Terminal\\";
+std::cout<<"texpath: "<<texPath<<"\n";
   
 //#undef THREADED_TEXTURE_LOADING
 #if defined THREAD_ALL || defined THREADED_TEXTURE_LOADING
@@ -70,9 +83,15 @@ void loadTextures() // Testing some multithreading here. Probably shouldn't beca
   {
 #endif
       // LOAD MENU TEXTURES
-    preloadTextureVerbose("Textures/HaruhiTerminal2.png",&TEX_TERMINAL);
-    preloadTextureVerbose("Textures/43Grid.png",&TEX_TERMINAL_GRID);
-    preloadTextureVerbose("Textures/Background5.png",&TEX_TERMINAL_BKG);
+    preloadTextureVerbose(texPath+"HaruhiTerminal2.png",&TEX_TERMINAL);
+    preloadTextureVerbose(texPath+"43Grid.png",&TEX_TERMINAL_GRID);
+    preloadTextureVerbose(texPath+"Background5.png",&TEX_TERMINAL_BKG);
+	 
+    // preloadTextureVerbose("Textures/Game/cityt2.png",&TEX_MCOM_CITY);
+    // preloadTextureVerbose("Textures/Game/cityrip.png",&TEX_MCOM_CITY_RIP);
+    // preloadTextureVerbose("Textures/Game/missilet2.png",&TEX_MCOM_MISSILE);
+    // preloadTextureVerbose("Textures/Game/missilert.png",&TEX_MCOM_MISSILE_RIGHT);
+    // preloadTextureVerbose("Textures/Game/missileript.png",&TEX_MCOM_MISSILE_RIP);
 
 #if defined THREAD_ALL || defined THREADED_TEXTURE_LOADING
   });
@@ -97,6 +116,24 @@ void loadTextures() // Testing some multithreading here. Probably shouldn't beca
   
   texRuntime.create(320,200,0,true);
 
+// load font
+   /* Load font */
+   Png fontPng;
+   int fileSize;
+   //unsigned char* fileData = FileManager::getFile(texPath+"Font/8x8/8x8 Transparent v4 plus junk white.png",&fileSize);   
+   unsigned char* fileData = FileManager::getFile(texPath+"Font/8x8/C64-6.png",&fileSize);   
+   
+   if ( fileData == 0 )
+   {
+      std::cout<<"ERROR: Font PNG did not load.\n";
+   }
+   else
+   {   
+      fontPng.load(fileData,fileSize);
+      if(font8x8.loadData(&fontPng,8,8)==false)
+      { std::cout<<"ERROR: Font did not load.\n"; }
+      delete [] fileData;
+   }
     
 }
 

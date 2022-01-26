@@ -407,16 +407,17 @@ void GL_idle()
    
 }
 
-
 void GL_display()
 {
   if (OUTPUT_FRAMERATE && ++FRAME_COUNTER%60==0)
   {
      frameRateTimer2.update();
      double varFPS = frameRateTimer2.fullSeconds;
-     std::cout<<"FPS: "<<FRAME_COUNTER/varFPS<<"\n";
-     std::cout<<"nIdles: "<<IDLE_COUNTER<<"\n";
-     std::cout<<"nFrames: "<<FRAME_COUNTER<<"\n";
+	  #ifdef OUTPUT_FRAME_STATS
+		  std::cout<<"FPS: "<<FRAME_COUNTER/varFPS<<"\n";
+		  std::cout<<"nIdles: "<<IDLE_COUNTER<<"\n";
+		  std::cout<<"nFrames: "<<FRAME_COUNTER<<"\n";
+	  #endif
   }
   
   if (OUTPUT_FRAMERATE)
