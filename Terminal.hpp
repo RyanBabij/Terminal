@@ -138,15 +138,13 @@ class Terminal: public GUI_Interface, public LogicTickInterface, public IdleTick
    MemoryMap ram;
    
    PixelScreen pixelScreen;
-   
-   
-   // Need to change to 40x25 (8x8 font). = 1000 chars. 48x64 = 3,072.
-   //unsigned char aNewGlyph[25][40];
-   unsigned char aNewGlyph[200][320]; // Actual state of Terminal screen
-   unsigned char aNewGlyphBacklog[200][320]; // Desired state of Terminal screen
-   
-   char aGlyph [48][64]; /* Beware. The x and y are  flipped here because C++ stores arrays in row major. */
-   char* pGlyph;
+	
+	int nCharX, nCharY; // the number of chars which can fit in terminal, calced when font is loaded.
+	
+	ArrayS2 <char> aGlyph2;
+
+   //char aGlyph [48][64]; /* Beware. The x and y are  flipped here because C++ stores arrays in row major. */
+   //char* pGlyph;
 
    char aGlyphBacklog[48][64]; /* Character to be loaded onto the screen*/
    char* pGlyphBacklog;

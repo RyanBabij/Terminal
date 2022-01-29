@@ -10,7 +10,7 @@
 
 Terminal::Terminal(): pixelScreen(320,200)
 {
-   pGlyph = &aGlyph[0][0];
+   //pGlyph = &aGlyph[0][0];
    pGlyphBacklog = &aGlyphBacklog[0][0];
    pCorrupt = &aCorrupt[0][0];
    pGlyphDelay = &aGlyphDelay[0][0];
@@ -31,26 +31,31 @@ Terminal::~Terminal()
 void Terminal::init()
 {
    int i=0;
+	
+	aGlyph2.init(0,0,' ');
+	
    for (int _y=0;_y<48;++_y)
    {
       for (int _x=0;_x<64;++_x)
       {
-         aGlyph[_y][_x] = ' ';
+         //aGlyph2(_x,_y) = ' ';
          aGlyphBacklog[_y][_x] = ' ';
          aCorrupt[_y][_x] = ' ';
          aGlyphDelay[_y][_x]=TERM_GLYPH_DELAY;
+			
+			foregroundColour [_y][_x].set(255,255,255,255);
       }
    }
    
    // New Terminal pixel screen
-   for (int _y=0;_y<200;++_y)
-   {
-      for (int _x=0;_x<320;++_x)
-      {
-         aNewGlyph[_y][_x]=0;
-         aNewGlyphBacklog[_y][_x]=0;
-      }
-   }
+   // for (int _y=0;_y<200;++_y)
+   // {
+      // for (int _x=0;_x<320;++_x)
+      // {
+         // aNewGlyph[_y][_x]=0;
+         // aNewGlyphBacklog[_y][_x]=0;
+      // }
+   // }
    
 
 
@@ -144,15 +149,16 @@ void Terminal::loadAudio()
 void Terminal::clearScreen(bool forced) /* forced will instantly clear the screen, instead of using backlog */
 {
    int i=0;
-   for (int _y=0;_y<48;++_y)
+   for (int _y=0;_y<nCharY;++_y)
    {
-      for (int _x=0;_x<64;++_x)
+      for (int _x=0;_x<nCharX;++_x)
       {
          aGlyphBacklog[_y][_x] = ' ';
          ansiGrid.aGlyph[_y][_x]=' ';
          if ( forced )
          {
-            aGlyph[_y][_x] = ' ';
+            //aGlyph[_y][_x] = ' ';
+				aGlyph2(_x,_y)=' ';
          }
       }
    }
@@ -168,9 +174,9 @@ void Terminal::writeString(int _x, int _y, std::string _str, bool moveCursor)
    ansiGrid.cursorY=_y;
    ansiGrid.read(_str);
 
-   for (int _y2=0;_y2<48;++_y2)
+   for (int _y2=0;_y2<nCharY;++_y2)
    {
-      for (int _x2=0;_x2<64;++_x2)
+      for (int _x2=0;_x2<nCharX;++_x2)
       {
          aGlyphBacklog[_y2][_x2] = ansiGrid.aGlyph[_y2][_x2];
          foregroundColour[_y2][_x2] = ansiGrid.aColour[_y2][_x2];
@@ -188,15 +194,15 @@ void Terminal::loadChar()
    {
       if ( isSafe(loadX,loadY) )
       {
-         if ( aGlyph[loadY][loadX] != aGlyphBacklog[loadY][loadX] )
+         if ( aGlyph2(loadX,loadY) != aGlyphBacklog[loadY][loadX] )
          {
-            aGlyph[loadY][loadX] = aGlyphBacklog[loadY][loadX];
+            aGlyph2(loadX,loadY) = aGlyphBacklog[loadY][loadX];
             maxSkip=0;
          }
          ++loadX;
-         if (loadX > 63)
+         if (loadX > nCharX-1)
          {
-            if ( loadY < 47 )
+            if ( loadY < nCharY-1 )
             {
                loadX=0; ++loadY;
             }
@@ -211,14 +217,14 @@ void Terminal::loadChar()
 
 void Terminal::corrupt()
 {
-   int rY = Random::randomInt(47);
-   int rX = Random::randomInt(63);
+   // int rY = Random::randomInt(47);
+   // int rX = Random::randomInt(63);
 
-   aGlyph[rY][rX]-= Random::randomInt(10);
-   if (aGlyph[rY][rX] < 0)
-   {
-      aGlyph[rY][rX] = 0;
-   }
+   // aGlyph[rY][rX]-= Random::randomInt(10);
+   // if (aGlyph[rY][rX] < 0)
+   // {
+      // aGlyph[rY][rX] = 0;
+   // }
 }
 
 //Variant which loads all of screen at once, but cycles each character through the
@@ -226,55 +232,79 @@ void Terminal::corrupt()
 // This should cycle through random chars to get consistent timing.
 void Terminal::loadChar2(int nIterations /* =1 */)
 {
-   for (int i2=0;i2<nIterations;++i2)
-   {
-      // fill terminal with random glyphs.
-      for (int i=0;i<3072;++i)
-      {
-         if (pGlyph[i] != pGlyphBacklog[i])
-         {
-            pGlyph[i]++;
-            if (pGlyph[i] < 0) { pGlyph[i]=0; }
-            if (pGlyph[i] == '\n') { pGlyph[i]++; }
-         }
-      }
-   }
+   // for (int i2=0;i2<nIterations;++i2)
+   // {
+      // // fill terminal with random glyphs.
+      // for (int i=0;i<3072;++i)
+      // {
+         // if (pGlyph[i] != pGlyphBacklog[i])
+         // {
+            // pGlyph[i]++;
+            // if (pGlyph[i] < 0) { pGlyph[i]=0; }
+            // if (pGlyph[i] == '\n') { pGlyph[i]++; }
+         // }
+      // }
+   // }
 }
 
 //Variant which loads all of screen at once, but cycles each character through the
 // TERM_GLYPH_DELAY random characters before hitting the right one
 void Terminal::loadChar3()
 {
-   for (int i=0;i<3072;++i)
-   {
-      if (pGlyph[i] != pGlyphBacklog[i])
-      {
-         if ( pGlyphDelay[i]==0 )
-         {
-            pGlyph[i] = pGlyphBacklog[i];
-            pGlyphDelay[i]=TERM_GLYPH_DELAY;
-         }
-         else
-         {
-            pGlyphDelay[i]--;
-            unsigned char randGlyph = Random::randomInt(253);
-            if (randGlyph == '\n') { randGlyph=255; }
-            if (randGlyph == pGlyphBacklog[i]) { randGlyph=254; }
-            pGlyph[i]=randGlyph;
-         }
-      }
-   }
+	for (int _x = 0; _x<nCharX; ++_x)
+	{
+		for (int _y=0; _y<nCharY; ++_y)
+		{
+			if (aGlyph2(_x,_y) != aGlyphBacklog[_y][_x])
+			{
+				if ( aGlyphDelay[_y][_x]==0 )
+				{
+					aGlyph2(_x,_y) = aGlyphBacklog[_y][_x];
+					aGlyphDelay[_y][_x]=TERM_GLYPH_DELAY;
+				}
+				else
+				{
+					aGlyphDelay[_y][_x]--;
+					unsigned char randGlyph = Random::randomInt(253);
+					if (randGlyph == '\n') { randGlyph=255; }
+					if (randGlyph == aGlyphBacklog[_y][_x]) { randGlyph=254; }
+					aGlyph2(_x,_y)=randGlyph;
+				}
+			}
+		}
+	}
+	
+	
+   // for (int i=0;i<3072;++i)
+   // {
+      // if (pGlyph[i] != pGlyphBacklog[i])
+      // {
+         // if ( pGlyphDelay[i]==0 )
+         // {
+            // pGlyph[i] = pGlyphBacklog[i];
+            // pGlyphDelay[i]=TERM_GLYPH_DELAY;
+         // }
+         // else
+         // {
+            // pGlyphDelay[i]--;
+            // unsigned char randGlyph = Random::randomInt(253);
+            // if (randGlyph == '\n') { randGlyph=255; }
+            // if (randGlyph == pGlyphBacklog[i]) { randGlyph=254; }
+            // pGlyph[i]=randGlyph;
+         // }
+      // }
+   // }
 }
 
 void Terminal::randomFill()
 {
    // fill terminal with random glyphs.
-   for (int i=0;i<3072;++i)
-   {
-      pGlyph[i] = Random::randomInt(127);
-      if (pGlyph[i] == '\n' ) { pGlyph[i] = ' '; }
-      pGlyphBacklog[i] = ' ';
-   }
+   // for (int i=0;i<3072;++i)
+   // {
+      // pGlyph[i] = Random::randomInt(127);
+      // if (pGlyph[i] == '\n' ) { pGlyph[i] = ' '; }
+      // pGlyphBacklog[i] = ' ';
+   // }
 }
 
 bool Terminal::renderProgram()
@@ -335,10 +365,11 @@ bool Terminal::renderProgram()
 void Terminal::render()
 {
 	//std::cout<<"RENDER\n";
-	//std::cout<<"STRMAINCONSOLE: "<<strMainConsole<<"\n";
+	std::cout<<"STRMAINCONSOLE: "<<strMainConsole<<"\n";
    //loadChar();
    //loadChar();   
-   loadChar3();
+   
+	loadChar3();
 
    blinkCursor();
 
@@ -378,12 +409,16 @@ void Terminal::render()
 
    //Update: Glyphs now render on a grid instead of using error-prone string.
    // Also foreground colour support added.
+	
    int i=0;
-   for (int _y=0;_y<25;++_y)
+   for (int _y=0;_y<nCharY;++_y)
    {
-      for (int _x=0;_x<40;++_x)
+      for (int _x=0;_x<nCharX;++_x)
       {
-         pixelScreen.putChar(_x,_y,aGlyph[_y][_x]);
+         //pixelScreen.putChar(_x,_y,aGlyph[_y][_x]);
+			//HERE?
+         pixelScreen.putChar(_x,_y,aGlyph2(_x,_y),foregroundColour[_y][_x]);
+         //pixelScreen.putChar(_x,_y,aGlyph[_y][_x],rgba);
          //font8x8.putChar(aGlyph[_y][_x],panelX1+(10*_x),panelY2-(10*_y),foregroundColour[_y][_x]);
       }
    }
@@ -411,7 +446,7 @@ void Terminal::putCursor(int _x, int _y)
 {
    if ( isSafe(cursorX,cursorY) )
    {
-      aGlyph[cursorY][cursorX] = ' ';
+      aGlyph2(cursorX,cursorY) = ' ';
       aGlyphBacklog[cursorY][cursorX] = ' ';
       ansiGrid.aGlyph[cursorY][cursorX] = ' ';
    }
@@ -420,7 +455,7 @@ void Terminal::putCursor(int _x, int _y)
    {
       cursorX = _x;
       cursorY = _y;
-      aGlyph[cursorY][cursorX] = ' ';
+      aGlyph2(cursorX,cursorY) = ' ';
       aGlyphBacklog[cursorY][cursorX] = ' ';
       ansiGrid.aGlyph[cursorY][cursorX] = ' ';
    }
@@ -428,12 +463,14 @@ void Terminal::putCursor(int _x, int _y)
 
 void Terminal::newLine()
 {
+	strMainConsole+="\n";
    if (isSafe(0,cursorY+1))
    {
       putCursor(0,cursorY+1);
    }
    else
    {
+		putCursor(0,cursorY);
       //Scroll terminal by 1 row.
       std::cout<<"SHIFT\n";
       shiftUp(1); //ANSI_Grid handles scrolling, but we need to handle the backlog scrolling
@@ -461,11 +498,11 @@ void Terminal::blinkCursor()
          }
          if ( cursorBlink > 20)
          {
-            aGlyph[cursorY][cursorX] = ' ';
+            aGlyph2(cursorX,cursorY) = ' ';
          }
          else
          {
-            aGlyph[cursorY][cursorX] = 1;
+            aGlyph2(cursorX,cursorY) = 1;
          }
       }
    }
@@ -476,9 +513,9 @@ void Terminal::hideCursor()
    cursorVisible=false;
    if (isSafe(cursorX,cursorY))
    {
-      if (aGlyph[cursorY][cursorX]==1)
+      if (aGlyph2(cursorY,cursorX)==1)
       {
-         aGlyph[cursorY][cursorX] = ' ';
+         aGlyph2(cursorY,cursorX) = ' ';
       }
    }
 }
@@ -497,7 +534,7 @@ bool Terminal::typeChar (const unsigned char c)
       if (isSafe(cursorX,cursorY) && isSafe(cursorX+1,cursorY))
       {
          putCursor(cursorX+1,cursorY);
-         aGlyph[cursorY][cursorX-1] = c;
+         aGlyph2(cursorX-1,cursorY) = c;
          aGlyphBacklog[cursorY][cursorX-1] = c;
 
          ansiGrid.aGlyph[cursorY][cursorX-1]=c;
@@ -522,7 +559,7 @@ void Terminal::backspace()
       if (isSafe(cursorX-1,cursorY))
       {
          putCursor(cursorX-1,cursorY);
-         aGlyph[cursorY][cursorX+1] = ' ';
+         aGlyph2(cursorX+1,cursorY) = ' ';
          aGlyphBacklog[cursorY][cursorX+1] = ' ';
          ansiGrid.aGlyph[cursorY][cursorX+1]= ' ';
 
@@ -535,7 +572,7 @@ void Terminal::backspace()
 
 bool Terminal::isSafe(int _x, int _y)
 {
-   return ( _x >= 0 && _x <= 39 && _y  >= 0 && _y <= 19);
+   return ( _x >= 0 && _x <= nCharX-1 && _y  >= 0 && _y <= nCharY-1);
    //return ( _x >= 0 && _x <= 63 && _y  >= 0 && _y <= 47);
 }
 
@@ -599,7 +636,7 @@ bool Terminal::keyboardEvent(Keyboard* _keyboard)
    // Get whatever the user typed.
    else if (_keyboard->lastKey == Keyboard::ENTER )
    {
-      strMainConsole+='\n';
+      //strMainConsole+='\n';
       newLine();
       // Convert string to upper case
       for (auto & c: command) c = toupper(c);
@@ -639,11 +676,11 @@ void Terminal::introStep()
       // fill terminal with random glyphs.
       for (int i=0;i<3072;++i)
       {
-         if (pGlyph[i] != ' ')
-         {
-            pGlyph[i] = Random::randomInt(127);
-            if (pGlyph[i] == '\n' || Random::oneIn(4)) { pGlyph[i] = ' '; }
-         }
+         // if (pGlyph[i] != ' ')
+         // {
+            // pGlyph[i] = Random::randomInt(127);
+            // if (pGlyph[i] == '\n' || Random::oneIn(4)) { pGlyph[i] = ' '; }
+         // }
       }
    }
    else
@@ -651,7 +688,7 @@ void Terminal::introStep()
       // fill terminal with random glyphs.
       for (int i=0;i<3072;++i)
       {
-         pGlyph[i]= ' ';
+         //pGlyph[i]= ' ';
       }
    }
    ++intro;
@@ -780,40 +817,30 @@ void Terminal::errorScreen(std::string strError)
    ColourRGBA <unsigned char> currentColour;
    
    // Note: Colours are currently broken on some systems
-   currentColour.set(255,255,255,255);
+   currentColour.set(255,0,0,255);
 
    gameTimer.update();
 
 
    if (gameTimer.seconds % 2 == 0)
    {
-      currentColour.set(255,0,0,255);
+      currentColour.set(255,255,255,255);
       errorBorder=1;
    }
    
    // Draw flashing red border
-   for (int _x=0;_x<64;++_x)
+   for (int _x=0;_x<40;++_x)
    {
-      aGlyph[0][_x]=errorBorder;
-      aGlyph[47][_x]=errorBorder;
-
-      aGlyphBacklog[0][_x]=errorBorder;
-      aGlyphBacklog[47][_x]=errorBorder;
-
-      foregroundColour[0][_x] = currentColour;
-      foregroundColour[47][_x] = currentColour;
+		pixelScreen.putChar(_x,0,1,currentColour);
+		pixelScreen.putChar(_x,20,1,currentColour);
    }
-   for (int _y=0;_y<48;++_y)
+   for (int _y=0;_y<20;++_y)
    {
-      aGlyph[_y][0]=errorBorder;
-      aGlyph[_y][63]=errorBorder;
-
-      aGlyphBacklog[_y][0]=errorBorder;
-      aGlyphBacklog[_y][63]=errorBorder;
-
-      foregroundColour[_y][0] = currentColour;
-      foregroundColour[_y][63] = currentColour;
+		pixelScreen.putChar(0,_y,1,currentColour);
+		pixelScreen.putChar(39,_y,1,currentColour);
    }
+	
+	//pixelScreen.setPixel(100,100,255,0,0);
 }
 
 void Terminal::game1()
@@ -1015,35 +1042,11 @@ std::cout<<"vtoken size: "<<vToken->size()<<".\n";
    }
 }
 
+// when you scroll down below the minimum level of the screen
+// needs work.
 void Terminal::shiftUp(int amount)
 {
-   if (isSafe(cursorX,cursorY))
-   {
-      aGlyph[cursorY][cursorX] = ' ';
-   }
-
-   for (int _x=0;_x<64;++_x)
-   {
-      for (int _y=0;_y<47;++_y)
-      {
-         aGlyph[_y][_x] = aGlyph[_y+1][_x];
-         aGlyphBacklog[_y][_x] = aGlyphBacklog[_y+1][_x];
-         //ansiGrid.aGlyph[_y][_x] = ansiGrid.aGlyph[_y+1][_x];
-         //ansiGrid.aColour[_y][_x]=ansiGrid.aColour[_y+1][_x];
-         foregroundColour[_y][_x]=foregroundColour[_y+1][_x];
-      }
-   }
-
-   for (int _x=0;_x<64;++_x)
-   {
-      aGlyph[47][_x] = ' ';
-      aGlyphBacklog[47][_x] = ' ';
-      //ansiGrid.aGlyph[47][_x] = ' ';
-      //ansiGrid.aColour[47][_x].set(255,255,255,255);
-      foregroundColour[47][_x].set(255,255,255,255);
-      putCursor(0,47);
-   }
-
+	//strMainConsole+="\n";
 }
 
 void Terminal::eventResize()
@@ -1060,6 +1063,10 @@ void Terminal::setFont(Wildcat::Font* _font)
 {
    font = _font;
    pixelScreen.setFont(_font);
+	
+	nCharX = pixelScreen.nCharX;
+	nCharY = pixelScreen.nCharY;
+	aGlyph2.init(nCharX,nCharY,' ');
 }
 
 #endif
