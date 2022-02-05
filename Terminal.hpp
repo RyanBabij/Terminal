@@ -269,7 +269,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface, public IdleTick
    void sendPacket(std::string _currentConnection, std::string _command);
    void sendTerminalCommand(std::string _command);
 
-   void shiftUp(int amount); //scroll the terminal down by shifting all characters up
+   //void shiftUp(int amount); //scroll the terminal down by shifting all characters up
 
 
    // GUI STUFF

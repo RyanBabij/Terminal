@@ -135,7 +135,7 @@ class Menu_Title: public GUI_Interface, public LogicTickInterface, public IdleTi
    
    void logicTick() override
    {
-
+		terminal.idleTick();
    }
    
    bool keyboardEvent(Keyboard* _keyboard) override
@@ -172,7 +172,7 @@ class Menu_Title: public GUI_Interface, public LogicTickInterface, public IdleTi
    
    void idleTick() override
    {
-      terminal.idleTick();
+      //terminal.idleTick();
    }
    
 };

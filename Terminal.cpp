@@ -8,7 +8,7 @@
 
 #include "Terminal.hpp"
 
-Terminal::Terminal(): pixelScreen(320,200)
+Terminal::Terminal(): pixelScreen(320,200), ansiGrid(45,25)
 {
    //pGlyph = &aGlyph[0][0];
    pGlyphBacklog = &aGlyphBacklog[0][0];
@@ -59,7 +59,7 @@ void Terminal::init()
    
 
 
-   cursorX = -1; cursorY = -1;
+   cursorX = 0; cursorY = 0;
    cursorBlink = 0;
    pause=false;
    intro=0;
@@ -93,6 +93,12 @@ void Terminal::init()
    clearScreen();
    //strMainConsole = "                    *** SUDACHI SYSTEM 1 ***                    \n";
    strMainConsole="";
+	
+	
+	ansiGrid.clear();
+	ansiGrid.cursorX=0;
+	ansiGrid.cursorY=0;
+	writeString(0,0,"");
 }
 
 void Terminal::loadAudio()
@@ -154,7 +160,7 @@ void Terminal::clearScreen(bool forced) /* forced will instantly clear the scree
       for (int _x=0;_x<nCharX;++_x)
       {
          aGlyphBacklog[_y][_x] = ' ';
-         ansiGrid.aGlyph[_y][_x]=' ';
+         ansiGrid.aGlyph(_x,_y)=' ';
          if ( forced )
          {
             //aGlyph[_y][_x] = ' ';
@@ -168,18 +174,28 @@ void Terminal::clearScreen(bool forced) /* forced will instantly clear the scree
 
 //Writes the string to the backlog.
 // Todo: Add instant option.
+
+std::string lastTerminal;
 void Terminal::writeString(int _x, int _y, std::string _str, bool moveCursor)
 {
-   ansiGrid.cursorX=_x;
-   ansiGrid.cursorY=_y;
-   ansiGrid.read(_str);
+	if (_str.compare(lastTerminal) == 0)
+	{
+		return;
+	}
+	
+	ansiGrid.cursorX=_x;
+	ansiGrid.cursorY=_y;
 
+	lastTerminal = _str;
+	// we need to stop writing the entire string, write character by character.
+	ansiGrid.read(_str);
+	
    for (int _y2=0;_y2<nCharY;++_y2)
    {
       for (int _x2=0;_x2<nCharX;++_x2)
       {
-         aGlyphBacklog[_y2][_x2] = ansiGrid.aGlyph[_y2][_x2];
-         foregroundColour[_y2][_x2] = ansiGrid.aColour[_y2][_x2];
+         aGlyphBacklog[_y2][_x2] = ansiGrid.aGlyph(_x2,_y2);
+         foregroundColour[_y2][_x2] = ansiGrid.aColour(_x2,_y2);
       }
    }
    cursorX=ansiGrid.cursorX;
@@ -365,7 +381,7 @@ bool Terminal::renderProgram()
 void Terminal::render()
 {
 	//std::cout<<"RENDER\n";
-	std::cout<<"STRMAINCONSOLE: "<<strMainConsole<<"\n";
+	//std::cout<<"STRMAINCONSOLE: "<<strMainConsole<<"\n";
    //loadChar();
    //loadChar();   
    
@@ -448,7 +464,7 @@ void Terminal::putCursor(int _x, int _y)
    {
       aGlyph2(cursorX,cursorY) = ' ';
       aGlyphBacklog[cursorY][cursorX] = ' ';
-      ansiGrid.aGlyph[cursorY][cursorX] = ' ';
+      ansiGrid.aGlyph(cursorX,cursorY) = ' ';
    }
 
    if (isSafe(_x,_y))
@@ -457,7 +473,7 @@ void Terminal::putCursor(int _x, int _y)
       cursorY = _y;
       aGlyph2(cursorX,cursorY) = ' ';
       aGlyphBacklog[cursorY][cursorX] = ' ';
-      ansiGrid.aGlyph[cursorY][cursorX] = ' ';
+      ansiGrid.aGlyph(cursorX,cursorY) = ' ';
    }
 }
 
@@ -466,14 +482,14 @@ void Terminal::newLine()
 	strMainConsole+="\n";
    if (isSafe(0,cursorY+1))
    {
+		// there is space to go down, just move cursor down.
       putCursor(0,cursorY+1);
    }
    else
    {
+		// cursor stays on same line but goes to column 0.
+		//clearScreen(true);
 		putCursor(0,cursorY);
-      //Scroll terminal by 1 row.
-      std::cout<<"SHIFT\n";
-      shiftUp(1); //ANSI_Grid handles scrolling, but we need to handle the backlog scrolling
    }
 }
 
@@ -537,7 +553,7 @@ bool Terminal::typeChar (const unsigned char c)
          aGlyph2(cursorX-1,cursorY) = c;
          aGlyphBacklog[cursorY][cursorX-1] = c;
 
-         ansiGrid.aGlyph[cursorY][cursorX-1]=c;
+         ansiGrid.aGlyph(cursorX-1,cursorY)=c;
          command+=c;
          return true;
       }
@@ -561,7 +577,7 @@ void Terminal::backspace()
          putCursor(cursorX-1,cursorY);
          aGlyph2(cursorX+1,cursorY) = ' ';
          aGlyphBacklog[cursorY][cursorX+1] = ' ';
-         ansiGrid.aGlyph[cursorY][cursorX+1]= ' ';
+         ansiGrid.aGlyph(cursorX+1,cursorY)= ' ';
 
          if ( command.size () > 0 )
          { command = command.substr(0, command.size()-1);
@@ -620,6 +636,7 @@ bool Terminal::keyboardEvent(Keyboard* _keyboard)
    else if (_keyboard->lastKey == 18) /* CTRL + R */
    {
       init();
+		setFont(font);
    }
    else if (_keyboard->lastKey == 19)
    {
@@ -706,12 +723,24 @@ void Terminal::loadHelpScreen()
    clearScreen();
 	strMainConsole="";
    //randomFill();
-   writeString(0,0,"        *** SUDACHI SYSTEM 1 ***        ");
+   //writeString(0,0,"        *** SUDACHI SYSTEM 1 ***        ");
    writeString(0,2,"CATALOG - LIST PROGRAMS");
    writeString(0,3,"LIST - LIST FILES");
    writeString(0,4,"RUN - RUN PROGRAM");
    writeString(0,5,"REBOOT - REBOOT COMPUTER");
    writeString(0,6,"POWEROFF - POWER OFF COMPUTER");
+   writeString(0,8,"CTRL+C - Power off");
+   writeString(0,9,"CTRL+R - Reboot");
+	
+	strMainConsole = "Help goes here\n\n";
+	
+   strMainConsole+="CATALOG - LIST PROGRAMS\n";
+   strMainConsole+="LIST - LIST FILES\n";
+   strMainConsole+="RUN - RUN PROGRAM\n";
+   strMainConsole+="REBOOT - REBOOT COMPUTER\n";
+   strMainConsole+="POWEROFF - POWER OFF COMPUTER\n\n";
+   strMainConsole+="CTRL+C - Power off\n";
+   strMainConsole+="CTRL+R - Reboot\n";
 
 }
 
@@ -932,6 +961,15 @@ std::cout<<"vtoken size: "<<vToken->size()<<".\n";
       command = "";
       loadHelpScreen();
    }
+	else if (command == "HELP")
+	{
+		loadHelpScreen();
+	}
+	else if (command == "CLS")
+	{
+		init();
+		setFont(font);
+	}
 	else if (command == "TEST")
 	{
       helpScreen=true;
@@ -943,6 +981,7 @@ std::cout<<"vtoken size: "<<vToken->size()<<".\n";
    else if (command == "REBOOT" || command == "RESET")
    {
       init();
+		setFont(font);
    }
    else if (command == "SHUTDOWN" || command == "POWEROFF")
    {
@@ -1044,10 +1083,10 @@ std::cout<<"vtoken size: "<<vToken->size()<<".\n";
 
 // when you scroll down below the minimum level of the screen
 // needs work.
-void Terminal::shiftUp(int amount)
-{
-	//strMainConsole+="\n";
-}
+// void Terminal::shiftUp(int amount)
+// {
+	// //strMainConsole+="\n";
+// }
 
 void Terminal::eventResize()
 {
