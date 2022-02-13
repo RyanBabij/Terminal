@@ -8,7 +8,7 @@
 
 #include "Terminal.hpp"
 
-Terminal::Terminal(): pixelScreen(320,200), ansiGrid(45,25)
+Terminal::Terminal(): pixelScreen(320,200), ansiGrid(40,25)
 {
    //pGlyph = &aGlyph[0][0];
    pGlyphBacklog = &aGlyphBacklog[0][0];
@@ -189,6 +189,7 @@ void Terminal::writeString(int _x, int _y, std::string _str, bool moveCursor)
 	lastTerminal = _str;
 	// we need to stop writing the entire string, write character by character.
 	ansiGrid.read(_str);
+	//ansiGrid.addCh(_str);
 	
    for (int _y2=0;_y2<nCharY;++_y2)
    {
@@ -384,8 +385,6 @@ void Terminal::render()
 	//std::cout<<"STRMAINCONSOLE: "<<strMainConsole<<"\n";
    //loadChar();
    //loadChar();   
-   
-	loadChar3();
 
    blinkCursor();
 
@@ -549,12 +548,17 @@ bool Terminal::typeChar (const unsigned char c)
       // Make sure we're on an input space before we type.
       if (isSafe(cursorX,cursorY) && isSafe(cursorX+1,cursorY))
       {
-         putCursor(cursorX+1,cursorY);
-         aGlyph2(cursorX-1,cursorY) = c;
-         aGlyphBacklog[cursorY][cursorX-1] = c;
+         //putCursor(cursorX+1,cursorY);
+         //aGlyph2(cursorX-1,cursorY) = c;
+         //aGlyphBacklog[cursorY][cursorX-1] = c;
 
-         ansiGrid.aGlyph(cursorX-1,cursorY)=c;
+         //ansiGrid.aGlyph(cursorX-1,cursorY)=c;
          command+=c;
+			
+			//ansiGrid.addChar(c);
+			// cursorX=ansiGrid.cursorX;
+			// cursorY=ansiGrid.cursorY;
+			// putCursor(cursorX,cursorY);
          return true;
       }
    }
@@ -650,6 +654,11 @@ bool Terminal::keyboardEvent(Keyboard* _keyboard)
    {
       shutDown();
    }
+	else if (_keyboard->lastKey == Keyboard::UP )
+	{
+		arrowUp();
+	}
+	
    // Get whatever the user typed.
    else if (_keyboard->lastKey == Keyboard::ENTER )
    {
@@ -684,6 +693,17 @@ bool Terminal::keyboardEvent(Keyboard* _keyboard)
    _keyboard->clearAll();
    }
    return false;
+}
+
+
+// Move terminal up. Doesn't currently work due to how rendering works right now
+void Terminal::arrowUp()
+{
+   if (isSafe(cursorX,cursorY-1))
+   {
+		// there is space to go up, move cursor up
+      putCursor(cursorX,cursorY-1);
+   }
 }
 
 void Terminal::introStep()
@@ -1093,9 +1113,10 @@ void Terminal::eventResize()
    pixelScreen.setPanel(panelX1,panelY1,panelX2,panelY2);
 }
 
-void Terminal::idleTick()
+void Terminal::logicTick()
 {
-   pixelScreen.idleTick();
+	loadChar3();
+   pixelScreen.logicTick();
 }
 
 void Terminal::setFont(Wildcat::Font* _font)

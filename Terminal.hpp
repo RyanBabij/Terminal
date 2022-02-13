@@ -125,13 +125,13 @@ class File
 #include "MemoryMap.hpp"
 
 // This needs to become timer-based
-#define TERM_GLYPH_DELAY 4
+#define TERM_GLYPH_DELAY 3
 
 //#include "Terminal_Screen.hpp"
 
 #include <Graphics/PixelScreen/PixelScreen.cpp>
 
-class Terminal: public GUI_Interface, public LogicTickInterface, public IdleTickInterface
+class Terminal: public GUI_Interface, public LogicTickInterface
 {
    // Full RAM space, contains screen RAM etc. In future probably contains OS etc.
    //char memory [65536]; // = full c64 memory space.
@@ -219,6 +219,8 @@ class Terminal: public GUI_Interface, public LogicTickInterface, public IdleTick
 
    // User has pressed enter and console either goes down by 1, or shuffles everything up by 1.
    void newLine();
+	
+	void arrowUp();
 
    void blinkCursor();
 
@@ -278,7 +280,7 @@ class Terminal: public GUI_Interface, public LogicTickInterface, public IdleTick
    bool renderProgram();
    bool keyboardEvent(Keyboard* /* _keyboard */) override;
    void eventResize() override;
-   void idleTick() override;
+   void logicTick() override;
    void setFont(Wildcat::Font* _font) override;
 
 
